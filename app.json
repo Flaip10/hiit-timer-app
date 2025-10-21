@@ -1,40 +1,36 @@
 {
-  "expo": {
-    "name": "hiit-timer-app",
-    "slug": "hiit-timer-app",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.mendesfilipedev.hiittimerapp",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.mendesfilipedev.hiittimerapp"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "74c08607-8e9d-40e7-8564-9a0ea37c5001"
-      }
+    "expo": {
+        "name": "hiit-timer-app",
+        "slug": "hiit-timer-app",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/icon.png",
+        "userInterfaceStyle": "light",
+        "newArchEnabled": true,
+        "scheme": "hiittimer",
+        "splash": {
+            "image": "./assets/splash-icon.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#ffffff"
+        },
+        "ios": {
+            "supportsTablet": true,
+            "bundleIdentifier": "com.mendesfilipedev.hiittimerapp",
+            "infoPlist": { "ITSAppUsesNonExemptEncryption": false }
+        },
+        "android": {
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/adaptive-icon.png",
+                "backgroundColor": "#ffffff"
+            },
+            "edgeToEdgeEnabled": true,
+            "predictiveBackGestureEnabled": false,
+            "package": "com.mendesfilipedev.hiittimerapp"
+        },
+        "web": { "favicon": "./assets/favicon.png" },
+        "extra": {
+            "eas": { "projectId": "74c08607-8e9d-40e7-8564-9a0ea37c5001" }
+        },
+        "plugins": ["expo-router"]
     }
-  }
 }
