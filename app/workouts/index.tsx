@@ -1,8 +1,5 @@
-// app/workouts/index.tsx
-
-import { useMemo, useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
-    Alert,
     FlatList,
     Pressable,
     StyleSheet,
@@ -15,6 +12,7 @@ import type { Workout } from '../../src/core/entities';
 import { WorkoutCard } from '../../src/components/WorkoutCard';
 import { useAllWorkouts, useWorkouts } from '../../src/state/useWorkouts';
 import { ensureSeed } from '../../src/state/seed';
+import { ConfirmDialog } from '../../src/components/ConfirmDialog';
 
 const formatMinSec = (sec: number): string => {
     const m = Math.floor(sec / 60);
@@ -41,7 +39,11 @@ const WorkoutsScreen = () => {
     const router = useRouter();
     const list = useAllWorkouts();
     const { remove } = useWorkouts();
+
     const [q, setQ] = useState('');
+    const [confirm, setConfirm] = useState<{ id: string; name: string } | null>(
+        null
+    );
 
     useEffect(() => {
         ensureSeed();
@@ -55,20 +57,10 @@ const WorkoutsScreen = () => {
         [list, q]
     );
 
-    const confirmRemove = (id: string, name: string) => {
-        Alert.alert(
-            'Remove workout',
-            `Are you sure you want to remove “${name}”?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Remove',
-                    style: 'destructive',
-                    onPress: () => remove(id),
-                },
-            ],
-            { cancelable: true }
-        );
+    const onRemove = (id: string, name: string) => setConfirm({ id, name });
+    const onConfirmRemove = () => {
+        if (confirm) remove(confirm.id);
+        setConfirm(null);
     };
 
     const renderItem = ({ item }: { item: Workout }) => {
@@ -89,15 +81,15 @@ const WorkoutsScreen = () => {
                         params: { id: item.id },
                     })
                 }
-                onRemove={() => confirmRemove(item.id, item.name)}
+                onRemove={() => onRemove(item.id, item.name)}
             />
         );
     };
 
     return (
         <View style={s.container}>
+            {/* header + search + list (unchanged) */}
             <Text style={s.h1}>Workouts</Text>
-
             <View style={s.searchRow}>
                 <TextInput
                     placeholder="Search workouts"
@@ -117,6 +109,7 @@ const WorkoutsScreen = () => {
                     </Pressable>
                 </Link>
             </View>
+
             <FlatList
                 data={data}
                 keyExtractor={(w) => w.id}
@@ -125,6 +118,21 @@ const WorkoutsScreen = () => {
                 ListEmptyComponent={
                     <Text style={s.empty}>No workouts yet</Text>
                 }
+            />
+
+            <ConfirmDialog
+                visible={!!confirm}
+                title="Remove workout"
+                message={
+                    confirm
+                        ? `Are you sure you want to remove “${confirm.name}”?`
+                        : undefined
+                }
+                confirmLabel="Remove"
+                cancelLabel="Cancel"
+                destructive
+                onConfirm={onConfirmRemove}
+                onCancel={() => setConfirm(null)}
             />
         </View>
     );
