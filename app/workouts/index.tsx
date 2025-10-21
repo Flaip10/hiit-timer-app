@@ -1,6 +1,8 @@
 // app/workouts/index.tsx
+
 import { useMemo, useState, useEffect } from 'react';
 import {
+    Alert,
     FlatList,
     Pressable,
     StyleSheet,
@@ -11,7 +13,7 @@ import {
 import { Link, useRouter } from 'expo-router';
 import type { Workout } from '../../src/core/entities';
 import { WorkoutCard } from '../../src/components/WorkoutCard';
-import { useAllWorkouts } from '../../src/state/useWorkouts';
+import { useAllWorkouts, useWorkouts } from '../../src/state/useWorkouts';
 import { ensureSeed } from '../../src/state/seed';
 
 const formatMinSec = (sec: number): string => {
@@ -38,6 +40,7 @@ const estimateDurationSec = (w: Workout): number => {
 const WorkoutsScreen = () => {
     const router = useRouter();
     const list = useAllWorkouts();
+    const { remove } = useWorkouts();
     const [q, setQ] = useState('');
 
     useEffect(() => {
@@ -51,6 +54,22 @@ const WorkoutsScreen = () => {
             ),
         [list, q]
     );
+
+    const confirmRemove = (id: string, name: string) => {
+        Alert.alert(
+            'Remove workout',
+            `Are you sure you want to remove “${name}”?`,
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Remove',
+                    style: 'destructive',
+                    onPress: () => remove(id),
+                },
+            ],
+            { cancelable: true }
+        );
+    };
 
     const renderItem = ({ item }: { item: Workout }) => {
         const est = estimateDurationSec(item);
@@ -70,6 +89,7 @@ const WorkoutsScreen = () => {
                         params: { id: item.id },
                     })
                 }
+                onRemove={() => confirmRemove(item.id, item.name)}
             />
         );
     };
@@ -97,7 +117,6 @@ const WorkoutsScreen = () => {
                     </Pressable>
                 </Link>
             </View>
-
             <FlatList
                 data={data}
                 keyExtractor={(w) => w.id}

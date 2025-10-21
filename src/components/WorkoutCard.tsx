@@ -1,4 +1,3 @@
-// src/components/WorkoutCard.tsx
 import { memo } from 'react';
 import { Pressable, Text, View, StyleSheet } from 'react-native';
 
@@ -7,25 +6,40 @@ export type WorkoutCardProps = {
     subtitle?: string;
     onPress: () => void; // open Run
     onEdit?: () => void; // open Edit
+    onRemove?: () => void; // confirm + remove
 };
 
 export const WorkoutCard = memo(
-    ({ title, subtitle, onPress, onEdit }: WorkoutCardProps) => (
+    ({ title, subtitle, onPress, onEdit, onRemove }: WorkoutCardProps) => (
         <Pressable
             onPress={onPress}
             style={({ pressed }) => [s.card, pressed && s.pressed]}
         >
             <View style={s.row}>
                 <Text style={s.title}>{title}</Text>
-                {onEdit && (
-                    <Pressable
-                        onPress={onEdit}
-                        hitSlop={12}
-                        style={({ pressed }) => pressed && s.morePressed}
-                    >
-                        <Text style={s.more}>Edit</Text>
-                    </Pressable>
-                )}
+                <View style={s.actions}>
+                    {onEdit && (
+                        <Pressable
+                            onPress={onEdit}
+                            hitSlop={12}
+                            style={({ pressed }) => pressed && s.actionPressed}
+                        >
+                            <Text style={s.actionEdit}>Edit</Text>
+                        </Pressable>
+                    )}
+                    {onRemove && (
+                        <Pressable
+                            onPress={onRemove}
+                            hitSlop={12}
+                            style={({ pressed }) => [
+                                s.removeBtn,
+                                pressed && s.actionPressed,
+                            ]}
+                        >
+                            <Text style={s.actionRemove}>Remove</Text>
+                        </Pressable>
+                    )}
+                </View>
             </View>
             {!!subtitle && <Text style={s.subtitle}>{subtitle}</Text>}
         </Pressable>
@@ -49,6 +63,14 @@ const s = StyleSheet.create({
     },
     title: { color: '#F2F2F2', fontSize: 16, fontWeight: '700' },
     subtitle: { color: '#A1A1AA', marginTop: 6, fontSize: 12 },
-    more: { color: '#93C5FD', fontSize: 14, fontWeight: '700' },
-    morePressed: { opacity: 0.6 },
+    actions: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+    actionPressed: { opacity: 0.6 },
+    actionEdit: { color: '#93C5FD', fontSize: 14, fontWeight: '700' },
+    removeBtn: {
+        paddingHorizontal: 4,
+        paddingVertical: 2,
+        borderRadius: 8,
+        backgroundColor: '#1C1C1F',
+    },
+    actionRemove: { color: '#FCA5A5', fontSize: 14, fontWeight: '700' },
 });
