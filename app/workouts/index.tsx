@@ -1,76 +1,26 @@
-import { useMemo, useState } from 'react';
+// app/workouts/index.tsx
+import { useMemo, useState, useEffect } from 'react';
 import {
     FlatList,
     Pressable,
+    StyleSheet,
     Text,
     TextInput,
     View,
-    StyleSheet,
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import type { Workout } from '../../src/core/entities';
 import { WorkoutCard } from '../../src/components/WorkoutCard';
+import { useAllWorkouts } from '../../src/state/useWorkouts';
+import { ensureSeed } from '../../src/state/seed';
 
-const MOCK: Workout[] = [
-    {
-        id: 'w1',
-        name: 'Lower Body A',
-        blocks: [
-            {
-                id: 'b1',
-                title: 'Main',
-                restBetweenExercisesSec: 45,
-                exercises: [
-                    {
-                        id: 'e1',
-                        name: 'Goblet Squat',
-                        pace: { type: 'reps', reps: 10 },
-                        setScheme: { sets: 3, restBetweenSetsSec: 60 },
-                    },
-                    {
-                        id: 'e2',
-                        name: 'RDL',
-                        pace: { type: 'reps', reps: 8 },
-                        setScheme: { sets: 3, restBetweenSetsSec: 75 },
-                    },
-                ],
-            },
-        ],
-    },
-    {
-        id: 'w2',
-        name: 'HIIT 10-20',
-        blocks: [
-            {
-                id: 'b1',
-                restBetweenExercisesSec: 15,
-                exercises: [
-                    {
-                        id: 'e1',
-                        name: 'Jump Rope',
-                        pace: { type: 'time', workSec: 20 },
-                        setScheme: { sets: 8, restBetweenSetsSec: 10 },
-                    },
-                    {
-                        id: 'e2',
-                        name: 'Rest',
-                        pace: { type: 'time', workSec: 10 },
-                        setScheme: { sets: 8, restBetweenSetsSec: 0 },
-                    },
-                ],
-            },
-        ],
-    },
-];
-
-const formatMinSec = (sec: number) => {
+const formatMinSec = (sec: number): string => {
     const m = Math.floor(sec / 60);
     const s = sec % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
 };
 
-// naive ETA: sum time-based work/rest; ignore reps (shown as “~”)
-const estimateDurationSec = (w: Workout) => {
+const estimateDurationSec = (w: Workout): number => {
     let sec = 0;
     w.blocks.forEach((b) => {
         b.exercises.forEach((ex) => {
@@ -78,7 +28,6 @@ const estimateDurationSec = (w: Workout) => {
                 sec +=
                     ex.pace.workSec * ex.setScheme.sets +
                     ex.setScheme.restBetweenSetsSec * (ex.setScheme.sets - 1);
-            // inter-exercise rest
         });
         const transitions = Math.max(0, b.exercises.length - 1);
         sec += transitions * b.restBetweenExercisesSec;
@@ -88,14 +37,19 @@ const estimateDurationSec = (w: Workout) => {
 
 const WorkoutsScreen = () => {
     const router = useRouter();
+    const list = useAllWorkouts();
     const [q, setQ] = useState('');
+
+    useEffect(() => {
+        ensureSeed();
+    }, []);
 
     const data = useMemo(
         () =>
-            MOCK.filter((w) =>
+            list.filter((w) =>
                 w.name.toLowerCase().includes(q.trim().toLowerCase())
             ),
-        [q]
+        [list, q]
     );
 
     const renderItem = ({ item }: { item: Workout }) => {
@@ -104,12 +58,13 @@ const WorkoutsScreen = () => {
             est > 0
                 ? `~${formatMinSec(est)} • ${item.blocks.length} block${item.blocks.length > 1 ? 's' : ''}`
                 : `${item.blocks.length} block(s)`;
+
         return (
             <WorkoutCard
                 title={item.name}
                 subtitle={subtitle}
                 onPress={() => router.push(`/run/${item.id}`)}
-                onMore={() =>
+                onEdit={() =>
                     router.push({
                         pathname: '/workouts/edit',
                         params: { id: item.id },

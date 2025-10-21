@@ -1,15 +1,33 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useWorkout, useWorkouts } from '../../src/state/useWorkouts';
+import { uid } from '../../src/core/id';
 
 const EditWorkoutScreen = () => {
     const { id } = useLocalSearchParams<{ id?: string }>();
+    const existing = useWorkout(id);
+    const { add, update } = useWorkouts();
     const router = useRouter();
-    const [name, setName] = useState('');
 
+    const [name, setName] = useState(existing?.name ?? '');
     useEffect(() => {
-        id ? setName('Edit: ' + id) : setName('');
-    }, [id]);
+        if (existing) setName(existing.name);
+    }, [existing]);
+
+    const onSave = () => {
+        if (existing && id) {
+            update(id, { name });
+            router.back();
+            return;
+        }
+        const newId = add({
+            id: uid(),
+            name: name || 'Untitled',
+            blocks: [],
+        });
+        router.replace(`/workouts`); // or navigate directly to run/edit of newId
+    };
 
     return (
         <View style={s.container}>
@@ -26,7 +44,7 @@ const EditWorkoutScreen = () => {
 
             <View style={{ height: 12 }} />
             <Pressable
-                onPress={() => router.back()}
+                onPress={onSave}
                 style={({ pressed }) => [
                     s.primary,
                     pressed && { opacity: 0.9 },

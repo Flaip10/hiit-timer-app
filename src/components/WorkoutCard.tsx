@@ -1,28 +1,29 @@
+// src/components/WorkoutCard.tsx
 import { memo } from 'react';
 import { Pressable, Text, View, StyleSheet } from 'react-native';
 
 export type WorkoutCardProps = {
     title: string;
     subtitle?: string;
-    onPress: () => void;
-    onMore?: () => void;
+    onPress: () => void; // open Run
+    onEdit?: () => void; // open Edit
 };
 
 export const WorkoutCard = memo(
-    ({ title, subtitle, onPress, onMore }: WorkoutCardProps) => (
+    ({ title, subtitle, onPress, onEdit }: WorkoutCardProps) => (
         <Pressable
             onPress={onPress}
             style={({ pressed }) => [s.card, pressed && s.pressed]}
         >
             <View style={s.row}>
                 <Text style={s.title}>{title}</Text>
-                {onMore && (
+                {onEdit && (
                     <Pressable
-                        onPress={onMore}
+                        onPress={onEdit}
                         hitSlop={12}
                         style={({ pressed }) => pressed && s.morePressed}
                     >
-                        <Text style={s.more}>⋯</Text>
+                        <Text style={s.more}>Edit</Text>
                     </Pressable>
                 )}
             </View>
@@ -48,11 +49,6 @@ const s = StyleSheet.create({
     },
     title: { color: '#F2F2F2', fontSize: 16, fontWeight: '700' },
     subtitle: { color: '#A1A1AA', marginTop: 6, fontSize: 12 },
-    more: {
-        color: '#A1A1AA',
-        fontSize: 20,
-        lineHeight: 20,
-        paddingHorizontal: 4,
-    },
+    more: { color: '#93C5FD', fontSize: 14, fontWeight: '700' },
     morePressed: { opacity: 0.6 },
 });
