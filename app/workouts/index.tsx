@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
     FlatList,
     Pressable,
@@ -8,31 +8,114 @@ import {
     View,
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import type { Workout } from '../../src/core/entities';
-import { WorkoutCard } from '../../src/components/WorkoutCard';
 import { useAllWorkouts, useWorkouts } from '../../src/state/useWorkouts';
-import { ensureSeed } from '../../src/state/seed';
 import { ConfirmDialog } from '../../src/components/ConfirmDialog';
+import { isTimePace, isRepsPace } from '../../src/core/entities';
 
-const formatMinSec = (sec: number): string => {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
+const summarize = (w: ReturnType<typeof useAllWorkouts>[number]) => {
+    if (!w) return { blocks: 0, exercises: 0, hasReps: false, approxSec: 0 };
+
+    let exercises = 0;
+    let hasReps = false;
+    let approxSec = 0;
+
+    w.blocks.forEach((b) => {
+        const L = b.exercises.length;
+        exercises += L;
+
+        const sets = Math.max(0, b.scheme.sets);
+        const restSet = b.scheme.restBetweenSetsSec;
+        const restEx = b.scheme.restBetweenExercisesSec;
+
+        // Determine base pace for time estimation
+        const baseTime = isTimePace(b.defaultPace) ? b.defaultPace.workSec : 0;
+
+        // If any override introduces reps or if default is reps, we mark hasReps.
+        if (isRepsPace(b.defaultPace)) hasReps = true;
+        b.exercises.forEach((ex) => {
+            if (ex.paceOverride) {
+                if (isRepsPace(ex.paceOverride)) hasReps = true;
+            }
+        });
+
+        // Rough time estimate only from timed parts
+        const timedPerExercise = isTimePace(b.defaultPace) ? baseTime : 0;
+        const timedPerSet = timedPerExercise * L + Math.max(0, L - 1) * restEx;
+        const totalForBlock =
+            sets * timedPerSet + Math.max(0, sets - 1) * restSet;
+
+        approxSec += totalForBlock;
+    });
+
+    return {
+        blocks: w.blocks.length,
+        exercises,
+        hasReps,
+        approxSec,
+    };
 };
 
-const estimateDurationSec = (w: Workout): number => {
-    let sec = 0;
-    w.blocks.forEach((b) => {
-        b.exercises.forEach((ex) => {
-            if (ex.pace.type === 'time')
-                sec +=
-                    ex.pace.workSec * ex.setScheme.sets +
-                    ex.setScheme.restBetweenSetsSec * (ex.setScheme.sets - 1);
-        });
-        const transitions = Math.max(0, b.exercises.length - 1);
-        sec += transitions * b.restBetweenExercisesSec;
-    });
-    return sec;
+const fmtMins = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return m > 0 ? `${m}m${s ? ` ${s}s` : ''}` : `${s}s`;
+};
+
+const WorkoutItem = ({
+    item,
+    onPress,
+    onEdit,
+    onRemove,
+}: {
+    item: NonNullable<ReturnType<typeof useAllWorkouts>[number]>;
+    onPress: () => void;
+    onEdit: () => void;
+    onRemove: () => void;
+}) => {
+    const sum = useMemo(() => summarize(item), [item]);
+
+    const timeLabel =
+        sum.approxSec > 0
+            ? `~${fmtMins(sum.approxSec)}`
+            : sum.hasReps
+              ? 'mixed'
+              : '—';
+
+    return (
+        <Pressable
+            onPress={onPress}
+            style={({ pressed }) => [st.card, pressed && st.pressed]}
+        >
+            <View style={{ flex: 1 }}>
+                <Text style={st.title}>{item.name}</Text>
+                <Text style={st.sub}>
+                    {sum.blocks} block{sum.blocks !== 1 ? 's' : ''} •{' '}
+                    {sum.exercises} exercise{sum.exercises !== 1 ? 's' : ''} •{' '}
+                    {timeLabel}
+                </Text>
+            </View>
+            <View style={st.row}>
+                <Pressable
+                    onPress={onEdit}
+                    style={({ pressed }) => [
+                        st.smallBtn,
+                        pressed && st.pressed,
+                    ]}
+                >
+                    <Text style={st.smallBtnText}>Edit</Text>
+                </Pressable>
+                <Pressable
+                    onPress={onRemove}
+                    style={({ pressed }) => [
+                        st.smallDanger,
+                        pressed && st.pressed,
+                    ]}
+                >
+                    <Text style={st.smallDangerText}>Remove</Text>
+                </Pressable>
+            </View>
+        </Pressable>
+    );
 };
 
 const WorkoutsScreen = () => {
@@ -41,71 +124,32 @@ const WorkoutsScreen = () => {
     const { remove } = useWorkouts();
 
     const [q, setQ] = useState('');
-    const [confirm, setConfirm] = useState<{ id: string; name: string } | null>(
-        null
-    );
+    const [toRemove, setToRemove] = useState<string | null>(null);
 
-    useEffect(() => {
-        ensureSeed();
-    }, []);
-
-    const data = useMemo(
-        () =>
-            list.filter((w) =>
-                w.name.toLowerCase().includes(q.trim().toLowerCase())
-            ),
-        [list, q]
-    );
-
-    const onRemove = (id: string, name: string) => setConfirm({ id, name });
-    const onConfirmRemove = () => {
-        if (confirm) remove(confirm.id);
-        setConfirm(null);
-    };
-
-    const renderItem = ({ item }: { item: Workout }) => {
-        const est = estimateDurationSec(item);
-        const subtitle =
-            est > 0
-                ? `~${formatMinSec(est)} • ${item.blocks.length} block${item.blocks.length > 1 ? 's' : ''}`
-                : `${item.blocks.length} block(s)`;
-
-        return (
-            <WorkoutCard
-                title={item.name}
-                subtitle={subtitle}
-                onPress={() => router.push(`/workouts/${item.id}`)}
-                onEdit={() =>
-                    router.push({
-                        pathname: '/workouts/edit',
-                        params: { id: item.id },
-                    })
-                }
-                onRemove={() => onRemove(item.id, item.name)}
-            />
-        );
-    };
+    const data = useMemo(() => {
+        const qq = q.trim().toLowerCase();
+        if (!qq) return list;
+        return list.filter((w) => w?.name.toLowerCase().includes(qq));
+    }, [list, q]);
 
     return (
-        <View style={s.container}>
-            {/* header + search + list (unchanged) */}
-            <Text style={s.h1}>Workouts</Text>
-            <View style={s.searchRow}>
+        <View style={st.container}>
+            <View style={st.headerRow}>
                 <TextInput
-                    placeholder="Search workouts"
-                    placeholderTextColor="#6B7280"
                     value={q}
                     onChangeText={setQ}
-                    style={s.search}
+                    placeholder="Search workouts"
+                    placeholderTextColor="#6B7280"
+                    style={st.search}
                 />
                 <Link href="/workouts/edit" asChild>
                     <Pressable
                         style={({ pressed }) => [
-                            s.newBtn,
-                            pressed && { opacity: 0.9 },
+                            st.newBtn,
+                            pressed && st.pressed,
                         ]}
                     >
-                        <Text style={s.newBtnText}>＋ New</Text>
+                        <Text style={st.newBtnText}>＋ New</Text>
                     </Pressable>
                 </Link>
             </View>
@@ -113,40 +157,45 @@ const WorkoutsScreen = () => {
             <FlatList
                 data={data}
                 keyExtractor={(w) => w.id}
-                renderItem={renderItem}
-                contentContainerStyle={{ paddingTop: 8, paddingBottom: 24 }}
-                ListEmptyComponent={
-                    <Text style={s.empty}>No workouts yet</Text>
+                renderItem={({ item }) =>
+                    item ? (
+                        <WorkoutItem
+                            item={item}
+                            onPress={() => router.push(`/workouts/${item.id}`)}
+                            onEdit={() =>
+                                router.push({
+                                    pathname: '/workouts/edit',
+                                    params: { id: item.id },
+                                })
+                            }
+                            onRemove={() => setToRemove(item.id)}
+                        />
+                    ) : null
                 }
+                ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+                contentContainerStyle={{ paddingBottom: 24 }}
             />
 
             <ConfirmDialog
-                visible={!!confirm}
+                visible={toRemove != null}
                 title="Remove workout"
-                message={
-                    confirm
-                        ? `Are you sure you want to remove “${confirm.name}”?`
-                        : undefined
-                }
+                message="This will permanently delete the workout."
                 confirmLabel="Remove"
                 cancelLabel="Cancel"
                 destructive
-                onConfirm={onConfirmRemove}
-                onCancel={() => setConfirm(null)}
+                onConfirm={() => {
+                    if (toRemove) remove(toRemove);
+                    setToRemove(null);
+                }}
+                onCancel={() => setToRemove(null)}
             />
         </View>
     );
 };
 
-const s = StyleSheet.create({
+const st = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#0B0B0C', padding: 16 },
-    h1: { color: '#F2F2F2', fontSize: 24, fontWeight: '700', marginBottom: 8 },
-    searchRow: {
-        flexDirection: 'row',
-        gap: 8,
-        alignItems: 'center',
-        marginBottom: 8,
-    },
+    headerRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
     search: {
         flex: 1,
         backgroundColor: '#131316',
@@ -160,11 +209,43 @@ const s = StyleSheet.create({
     newBtn: {
         backgroundColor: '#2563EB',
         borderRadius: 12,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
+        paddingHorizontal: 14,
+        justifyContent: 'center',
     },
     newBtnText: { color: '#fff', fontWeight: '700' },
-    empty: { color: '#A1A1AA', marginTop: 24, textAlign: 'center' },
+
+    card: {
+        backgroundColor: '#111113',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#1F1F23',
+        padding: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    title: { color: '#F2F2F2', fontWeight: '700', fontSize: 16 },
+    sub: { color: '#A1A1AA', marginTop: 2 },
+
+    row: { flexDirection: 'row', gap: 8 },
+    smallBtn: {
+        backgroundColor: '#1C1C1F',
+        borderRadius: 10,
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+    },
+    smallBtnText: { color: '#E5E7EB', fontWeight: '700' },
+    smallDanger: {
+        backgroundColor: '#2A0E0E',
+        borderRadius: 10,
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        borderWidth: 1,
+        borderColor: '#7F1D1D',
+    },
+    smallDangerText: { color: '#FCA5A5', fontWeight: '700' },
+
+    pressed: { opacity: 0.9 },
 });
 
 export default WorkoutsScreen;

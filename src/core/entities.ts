@@ -1,38 +1,43 @@
 export type UUID = string;
 
-// Discriminated union for pace
+/** Defines how an exercise is performed */
 export type TimePace = { type: 'time'; workSec: number };
 export type RepsPace = { type: 'reps'; reps: number; tempo?: string };
-
-// Rename PaceMode → Pace (clearer)
 export type Pace = TimePace | RepsPace;
 
-export interface SetScheme {
-    sets: number;
-    restBetweenSetsSec: number;
-}
-
+/** Minimal exercise model */
 export interface Exercise {
     id: UUID;
     name: string;
-    pace: Pace;
-    setScheme: SetScheme;
-    notes?: string;
+    paceOverride?: Pace; // optional override when advanced mode is on
 }
 
-export interface WorkoutBlock {
-    id: UUID;
-    title?: string;
-    exercises: Exercise[];
+/** Defines the structure of a block (a circuit) */
+export interface BlockScheme {
+    sets: number;
+    restBetweenSetsSec: number;
     restBetweenExercisesSec: number;
 }
 
+/** One workout block (circuit) */
+export interface WorkoutBlock {
+    id: UUID;
+    title?: string;
+
+    defaultPace: Pace; // applies to all exercises unless overridden
+    scheme: BlockScheme; // sets + rests
+
+    advanced?: boolean; // toggles per-exercise overrides
+    exercises: Exercise[];
+}
+
+/** Whole workout */
 export interface Workout {
     id: UUID;
     name: string;
     blocks: WorkoutBlock[];
 }
 
-// Type guards (use these to narrow)
+/** Type guards */
 export const isTimePace = (p: Pace): p is TimePace => p.type === 'time';
 export const isRepsPace = (p: Pace): p is RepsPace => p.type === 'reps';
