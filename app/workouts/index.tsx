@@ -74,7 +74,7 @@ const WorkoutsScreen = () => {
             <WorkoutCard
                 title={item.name}
                 subtitle={subtitle}
-                onPress={() => router.push(`/run/${item.id}`)}
+                onPress={() => router.push(`/workouts/${item.id}`)}
                 onEdit={() =>
                     router.push({
                         pathname: '/workouts/edit',
