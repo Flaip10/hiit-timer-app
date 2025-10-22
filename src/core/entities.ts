@@ -1,8 +1,11 @@
 export type UUID = string;
 
-export type PaceMode =
-    | { type: 'time'; workSec: number }
-    | { type: 'reps'; reps: number; tempo?: string };
+// Discriminated union for pace
+export type TimePace = { type: 'time'; workSec: number };
+export type RepsPace = { type: 'reps'; reps: number; tempo?: string };
+
+// Rename PaceMode → Pace (clearer)
+export type Pace = TimePace | RepsPace;
 
 export interface SetScheme {
     sets: number;
@@ -12,7 +15,7 @@ export interface SetScheme {
 export interface Exercise {
     id: UUID;
     name: string;
-    pace: PaceMode;
+    pace: Pace;
     setScheme: SetScheme;
     notes?: string;
 }
@@ -29,3 +32,7 @@ export interface Workout {
     name: string;
     blocks: WorkoutBlock[];
 }
+
+// Type guards (use these to narrow)
+export const isTimePace = (p: Pace): p is TimePace => p.type === 'time';
+export const isRepsPace = (p: Pace): p is RepsPace => p.type === 'reps';
