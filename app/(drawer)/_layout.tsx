@@ -3,9 +3,7 @@ import { Drawer } from 'expo-router/drawer';
 const DrawerLayout = () => {
     return (
         <Drawer
-            id="root-drawer"
             initialRouteName="index"
-            sceneContainerStyle={{ backgroundColor: '#0B0B0C' }}
             screenOptions={{
                 headerShown: false,
                 drawerType: 'front',
