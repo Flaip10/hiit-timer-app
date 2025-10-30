@@ -1,26 +1,29 @@
+import 'react-native-gesture-handler';
 import { Stack } from 'expo-router';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useEffect } from 'react';
-import { ensureAndroidChannel, requestPermissions } from '../src/core/notify';
 
 const RootLayout = () => {
-    useEffect(() => {
-        const init = async () => {
-            await ensureAndroidChannel();
-            await requestPermissions(); // prompts once on iOS
-        };
-        void init();
-    }, []);
-
     return (
-        <SafeAreaProvider>
-            <Stack
-                screenOptions={{
-                    headerTitleAlign: 'center',
-                    animation: 'fade_from_bottom',
-                }}
+        <Stack
+            initialRouteName="(drawer)" // <— ensure we start at the drawer
+            screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: '#0B0B0C' },
+            }}
+        >
+            <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+            <Stack.Screen
+                name="workouts/[id]"
+                options={{ headerShown: false }}
             />
-        </SafeAreaProvider>
+            <Stack.Screen
+                name="workouts/edit"
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="workouts/block-edit"
+                options={{ headerShown: false }}
+            />
+        </Stack>
     );
 };
 
