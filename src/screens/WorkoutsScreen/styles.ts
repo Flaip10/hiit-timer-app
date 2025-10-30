@@ -52,7 +52,18 @@ const st = StyleSheet.create({
         borderColor: '#7F1D1D',
     },
     smallDangerText: { color: '#FCA5A5', fontWeight: '700' },
-
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 24,
+        gap: 12,
+    },
+    emptyText: {
+        color: '#A1A1AA',
+        fontSize: 16,
+        textAlign: 'center',
+    },
     pressed: { opacity: 0.9 },
 });
 

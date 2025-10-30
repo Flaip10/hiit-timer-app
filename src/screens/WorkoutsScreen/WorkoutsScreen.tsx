@@ -7,6 +7,22 @@ import ConfirmDialog from '@src/components/modals/ConfirmDialog';
 import { WorkoutItem } from '@components/workouts/WorkoutItem';
 import st from './styles';
 
+const EmptyWorkouts = () => {
+    const router = useRouter();
+
+    return (
+        <View style={st.emptyContainer}>
+            <Text style={st.emptyText}>No workouts yet</Text>
+            <Pressable
+                onPress={() => router.push('/workouts/edit')}
+                style={({ pressed }) => [st.newBtn, pressed && st.pressed]}
+            >
+                <Text style={st.newBtnText}>＋ Create your first workout</Text>
+            </Pressable>
+        </View>
+    );
+};
+
 const WorkoutsScreen = () => {
     const router = useRouter();
     const list = useAllWorkouts();
@@ -67,6 +83,7 @@ const WorkoutsScreen = () => {
                         <View style={{ height: 8 }} />
                     )}
                     contentContainerStyle={{ paddingBottom: 24 }}
+                    ListEmptyComponent={EmptyWorkouts}
                 />
 
                 <ConfirmDialog
