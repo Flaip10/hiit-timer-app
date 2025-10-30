@@ -5,6 +5,7 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { useWorkout } from '../../src/state/useWorkouts';
 import { buildSteps, createTimer, Phase } from '../../src/core/timer';
 import { cancelAll, cancelById, scheduleLocal } from '../../src/core/notify';
+import { MainContainer } from '../../src/components/layout/MainContainer';
 
 const colorFor = (p: Phase): string =>
     p === 'WORK' ? '#22C55E' : p === 'REST' ? '#60A5FA' : '#F59E0B';
@@ -144,74 +145,80 @@ const RunScreen = () => {
     };
 
     return (
-        <View style={s.container}>
-            <Text style={[s.phase, { color: colorFor(phase) }]}>{phase}</Text>
-            <Text style={s.timer}>{remaining}</Text>
-            <Text style={s.meta}>{meta}</Text>
-            {step.nextName ? (
-                <Text style={s.next}>Next: {step.nextName}</Text>
-            ) : null}
+        <MainContainer title={phase}>
+            <View style={s.container}>
+                <Text style={[s.phase, { color: colorFor(phase) }]}>
+                    {phase}
+                </Text>
+                <Text style={s.timer}>{remaining}</Text>
+                <Text style={s.meta}>{meta}</Text>
+                {step.nextName ? (
+                    <Text style={s.next}>Next: {step.nextName}</Text>
+                ) : null}
 
-            <View style={s.controls}>
-                {!running ? (
-                    <Pressable
-                        onPress={
-                            remaining === step.durationSec ? onStart : onResume
-                        }
-                        style={({ pressed }) => [
-                            s.primary,
-                            pressed && s.pressed,
-                        ]}
-                    >
-                        <Text style={s.primaryText}>
-                            {remaining === step.durationSec
-                                ? 'Start'
-                                : 'Resume'}
-                        </Text>
-                    </Pressable>
-                ) : (
-                    <Pressable
-                        onPress={onPause}
-                        style={({ pressed }) => [
-                            s.primary,
-                            pressed && s.pressed,
-                        ]}
-                    >
-                        <Text style={s.primaryText}>Pause</Text>
-                    </Pressable>
-                )}
+                <View style={s.controls}>
+                    {!running ? (
+                        <Pressable
+                            onPress={
+                                remaining === step.durationSec
+                                    ? onStart
+                                    : onResume
+                            }
+                            style={({ pressed }) => [
+                                s.primary,
+                                pressed && s.pressed,
+                            ]}
+                        >
+                            <Text style={s.primaryText}>
+                                {remaining === step.durationSec
+                                    ? 'Start'
+                                    : 'Resume'}
+                            </Text>
+                        </Pressable>
+                    ) : (
+                        <Pressable
+                            onPress={onPause}
+                            style={({ pressed }) => [
+                                s.primary,
+                                pressed && s.pressed,
+                            ]}
+                        >
+                            <Text style={s.primaryText}>Pause</Text>
+                        </Pressable>
+                    )}
 
-                <View style={s.row}>
-                    <Pressable
-                        onPress={onSkip}
-                        style={({ pressed }) => [
-                            s.secondary,
-                            pressed && s.pressed,
-                        ]}
-                    >
-                        <Text style={s.secondaryText}>Skip</Text>
-                    </Pressable>
-                    <Pressable
-                        onPress={onPlus30}
-                        style={({ pressed }) => [
-                            s.secondary,
-                            pressed && s.pressed,
-                        ]}
-                    >
-                        <Text style={s.secondaryText}>+30s</Text>
-                    </Pressable>
-                    <Pressable
-                        onPress={onEnd}
-                        style={({ pressed }) => [
-                            s.secondary,
-                            pressed && s.pressed,
-                        ]}
-                    >
-                        <Text style={s.secondaryText}>End</Text>
-                    </Pressable>
+                    <View style={s.row}>
+                        <Pressable
+                            onPress={onSkip}
+                            style={({ pressed }) => [
+                                s.secondary,
+                                pressed && s.pressed,
+                            ]}
+                        >
+                            <Text style={s.secondaryText}>Skip</Text>
+                        </Pressable>
+                        <Pressable
+                            onPress={onPlus30}
+                            style={({ pressed }) => [
+                                s.secondary,
+                                pressed && s.pressed,
+                            ]}
+                        >
+                            <Text style={s.secondaryText}>+30s</Text>
+                        </Pressable>
+                        <Pressable
+                            onPress={onEnd}
+                            style={({ pressed }) => [
+                                s.secondary,
+                                pressed && s.pressed,
+                            ]}
+                        >
+                            <Text style={s.secondaryText}>End</Text>
+                        </Pressable>
+                    </View>
                 </View>
             </View>
-        </View>
+        </MainContainer>
     );
 };
 

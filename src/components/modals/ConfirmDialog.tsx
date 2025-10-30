@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Modal } from './Modal';
+import { Modal } from '../Modal';
 
 type ConfirmDialogProps = {
     visible: boolean;
@@ -13,7 +13,7 @@ type ConfirmDialogProps = {
     onCancel: () => void;
 };
 
-export const ConfirmDialog = ({
+const ConfirmDialog = ({
     visible,
     title,
     message,
@@ -83,3 +83,5 @@ const s = StyleSheet.create({
     btnText: { color: '#fff', fontWeight: '700' },
     pressed: { opacity: 0.9 },
 });
+
+export default ConfirmDialog;
