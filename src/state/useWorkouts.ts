@@ -6,7 +6,7 @@ import type { Workout, WorkoutBlock, Pace } from '../core/entities';
 type WorkoutsState = {
     workouts: Record<string, Workout>;
     order: string[];
-    add: (w: Workout) => string;
+    add: (workout: Workout) => string;
     update: (id: string, patch: Partial<Workout>) => void;
     remove: (id: string) => void;
 };
@@ -32,46 +32,71 @@ const starterWorkout = (): Workout => ({
     blocks: [starterBlock()],
 });
 
-export const useWorkouts = create<WorkoutsState>((set, get) => ({
+export const useWorkouts = create<WorkoutsState>((set) => ({
     workouts: {},
     order: [],
-    add: (w) => {
-        const id = w.id ?? uid();
-        const workout: Workout = { ...w, id };
-        set((s) => ({
-            workouts: { ...s.workouts, [id]: workout },
-            order: [id, ...s.order.filter((x) => x !== id)],
+
+    add: (workout) => {
+        const id = workout.id ?? uid();
+        const nextWorkout: Workout = { ...workout, id };
+
+        set((state) => ({
+            workouts: {
+                ...state.workouts,
+                [id]: nextWorkout,
+            },
+            order: [
+                id,
+                ...state.order.filter((existingId) => existingId !== id),
+            ],
         }));
+
         return id;
     },
+
     update: (id, patch) =>
-        set((s) => {
-            const cur = s.workouts[id];
-            if (!cur) return s;
+        set((state) => {
+            const current = state.workouts[id];
+            if (!current) return state;
+
             const next: Workout = {
-                ...cur,
+                ...current,
                 ...patch,
-                blocks: patch.blocks ?? cur.blocks,
+                blocks: patch.blocks ?? current.blocks,
             };
-            return { ...s, workouts: { ...s.workouts, [id]: next } };
+
+            return {
+                ...state,
+                workouts: {
+                    ...state.workouts,
+                    [id]: next,
+                },
+            };
         }),
+
     remove: (id) =>
-        set((s) => {
-            const { [id]: _, ...rest } = s.workouts;
-            return { workouts: rest, order: s.order.filter((x) => x !== id) };
+        set((state) => {
+            const { [id]: _removed, ...rest } = state.workouts;
+
+            return {
+                workouts: rest,
+                order: state.order.filter((existingId) => existingId !== id),
+            };
         }),
 }));
 
 export const useAllWorkouts = () =>
     useWorkouts(
         useShallow(
-            (s) =>
-                s.order.map((id) => s.workouts[id]).filter(Boolean) as Workout[]
+            (state) =>
+                state.order
+                    .map((id) => state.workouts[id])
+                    .filter(Boolean) as Workout[]
         )
     );
 
 export const useWorkout = (id?: string) =>
-    useWorkouts((s) => (id ? s.workouts[id] : undefined));
+    useWorkouts((state) => (id ? state.workouts[id] : undefined));
 
 export const ensureStarter = (): void => {
     const { workouts, add } = useWorkouts.getState();
