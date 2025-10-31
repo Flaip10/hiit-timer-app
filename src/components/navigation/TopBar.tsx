@@ -1,5 +1,4 @@
 import { StyleSheet, Text, View, StatusBar } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import { useRouter, useSegments } from 'expo-router';
@@ -55,7 +54,6 @@ export const TopBar = ({
     return (
         <View style={st.root}>
             <StatusBar barStyle="light-content" />
-            <SafeAreaView edges={['top']} style={st.safeTop} />
             <View style={st.bar}>
                 {showBack ? (
                     <IconButton onPress={onBack}>
@@ -98,7 +96,6 @@ const st = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#1F1F23',
     },
-    safeTop: { backgroundColor: '#0B0B0C' },
     bar: {
         height: 56,
         backgroundColor: '#0B0B0C',
