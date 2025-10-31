@@ -67,22 +67,7 @@ const st = StyleSheet.create({
     addBlockText: { color: '#E5E7EB', fontWeight: '700' },
 
     footer: { flexDirection: 'row', gap: 10, marginTop: 16, paddingBottom: 24 },
-    primary: {
-        flex: 1,
-        backgroundColor: '#2563EB',
-        borderRadius: 12,
-        paddingVertical: 14,
-        alignItems: 'center',
-    },
-    primaryText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-    secondary: {
-        flex: 1,
-        backgroundColor: '#1C1C1F',
-        borderRadius: 12,
-        paddingVertical: 12,
-        alignItems: 'center',
-    },
-    secondaryText: { color: '#E5E7EB', fontWeight: '700' },
+
     pressed: { opacity: 0.9 },
 
     errorBox: {

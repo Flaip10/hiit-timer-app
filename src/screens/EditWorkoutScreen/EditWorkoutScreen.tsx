@@ -8,6 +8,7 @@ import { uid } from '@src/core/id';
 import { useWorkout, useWorkouts } from '@src/state/useWorkouts';
 import { WorkoutBlockItem } from './WorkoutBlockItem';
 import st from './styles';
+import { Button } from '@src/components/ui/Button/Button';
 
 const createEmptyBlock = (): WorkoutBlock => ({
     id: uid(),
@@ -133,27 +134,18 @@ const EditWorkoutScreen = () => {
                 {errorBox}
 
                 <View style={st.footer}>
-                    <Pressable
+                    <Button
+                        title="Cancel"
+                        variant="secondary"
                         onPress={() => router.back()}
-                        style={({ pressed }) => [
-                            st.secondary,
-                            pressed && st.pressed,
-                        ]}
-                    >
-                        <Text style={st.secondaryText}>Cancel</Text>
-                    </Pressable>
-                    <Pressable
-                        disabled={saving}
+                        flex={1}
+                    />
+                    <Button
+                        title={existing ? 'Save' : 'Create'}
                         onPress={onSave}
-                        style={({ pressed }) => [
-                            st.primary,
-                            (pressed || saving) && st.pressed,
-                        ]}
-                    >
-                        <Text style={st.primaryText}>
-                            {existing ? 'Save' : 'Create'}
-                        </Text>
-                    </Pressable>
+                        loading={saving}
+                        flex={1}
+                    />
                 </View>
             </ScrollView>
         </View>
