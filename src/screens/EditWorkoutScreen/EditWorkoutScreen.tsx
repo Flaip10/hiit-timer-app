@@ -3,17 +3,13 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { TopBar } from '@src/components/navigation/TopBar';
-import {
-    isRepsPace,
-    isTimePace,
-    Workout,
-    WorkoutBlock,
-} from '@src/core/entities';
+import { Workout, WorkoutBlock } from '@src/core/entities';
 import { uid } from '@src/core/id';
 import { useWorkout, useWorkouts } from '@src/state/useWorkouts';
+import { WorkoutBlockItem } from './WorkoutBlockItem';
 import st from './styles';
 
-const emptyBlock = (): WorkoutBlock => ({
+const createEmptyBlock = (): WorkoutBlock => ({
     id: uid(),
     title: '',
     defaultPace: { type: 'time', workSec: 20 },
@@ -30,7 +26,7 @@ const EditWorkoutScreen = () => {
 
     const [name, setName] = useState(existing?.name ?? 'New Workout');
     const [blocks, setBlocks] = useState<WorkoutBlock[]>(
-        existing?.blocks ?? [emptyBlock()]
+        existing?.blocks ?? [createEmptyBlock()]
     );
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
@@ -44,33 +40,21 @@ const EditWorkoutScreen = () => {
         }
     }, [existing]);
 
-    const onAddBlock = () => setBlocks((prev) => [...prev, emptyBlock()]);
+    const onAddBlock = () => setBlocks((prev) => [...prev, createEmptyBlock()]);
+
     const onRemoveBlock = (index: number) =>
         setBlocks((prev) => prev.filter((_, i) => i !== index));
 
-    // navigation to block-edit
     const onEditBlock = (index: number) => {
         const targetId = existing?.id ?? 'draft';
+
         router.push(`/workouts/block-edit?id=${targetId}&index=${index}`);
     };
 
-    // validation + save
     const validate = (): boolean => {
         const errs: string[] = [];
         if (!name.trim()) errs.push('Workout name is required.');
         if (blocks.length === 0) errs.push('Add at least one block.');
-
-        blocks.forEach((b, bi) => {
-            if (b.scheme.sets <= 0)
-                errs.push(`Block ${bi + 1}: sets must be > 0.`);
-            if (b.exercises.length === 0)
-                errs.push(`Block ${bi + 1}: must have at least one exercise.`);
-
-            if (isTimePace(b.defaultPace) && b.defaultPace.workSec <= 0)
-                errs.push(`Block ${bi + 1}: work seconds must be > 0.`);
-            if (isRepsPace(b.defaultPace) && b.defaultPace.reps <= 0)
-                errs.push(`Block ${bi + 1}: reps must be > 0.`);
-        });
 
         setErrors(errs);
         return errs.length === 0;
@@ -90,7 +74,6 @@ const EditWorkoutScreen = () => {
                 update(existing.id, payload);
                 router.replace(`/workouts/${existing.id}`);
             } else {
-                // @ts-ignore: add returns ID
                 const addedId: string = (await add(payload)) ?? payload.id;
                 router.replace(`/workouts/${addedId}`);
             }
@@ -126,39 +109,15 @@ const EditWorkoutScreen = () => {
                     style={st.input}
                 />
 
-                {/* ----- Blocks Summary List ----- */}
                 <Text style={st.sectionTitle}>Blocks</Text>
-                {blocks.map((b, i) => (
-                    <View key={b.id} style={st.blockCard}>
-                        <View style={st.blockHeader}>
-                            <Text style={st.blockTitle}>
-                                Block {i + 1} {b.title ? `— ${b.title}` : ''}
-                            </Text>
-                        </View>
-
-                        <Text style={st.blockInfo}>
-                            {b.scheme.sets} sets • {b.exercises.length}{' '}
-                            exercises •{' '}
-                            {isTimePace(b.defaultPace)
-                                ? `${b.defaultPace.workSec}s work`
-                                : `${b.defaultPace.reps} reps`}
-                        </Text>
-
-                        <View style={st.blockActions}>
-                            <Pressable
-                                onPress={() => onEditBlock(i)}
-                                style={st.smallButton}
-                            >
-                                <Text style={st.smallText}>Edit</Text>
-                            </Pressable>
-                            <Pressable
-                                onPress={() => onRemoveBlock(i)}
-                                style={st.removeButton}
-                            >
-                                <Text style={st.removeText}>Remove</Text>
-                            </Pressable>
-                        </View>
-                    </View>
+                {blocks.map((block, index) => (
+                    <WorkoutBlockItem
+                        key={block.id}
+                        index={index}
+                        block={block}
+                        onEdit={onEditBlock}
+                        onRemove={onRemoveBlock}
+                    />
                 ))}
 
                 <Pressable
