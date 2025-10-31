@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import { useRouter, useSegments } from 'expo-router';
-import { IconButton } from './IconButton';
+import { IconButton } from '../ui/IconButton/IconButton';
 
 type Props = {
     title?: string;
