@@ -1,26 +1,44 @@
 // src/components/layout/MainContainer.tsx
-import { View, StyleSheet } from 'react-native';
 import { ReactNode } from 'react';
-import { TopBar } from '../navigation/TopBar';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView, View, StyleSheet } from 'react-native';
 
-interface Props {
+import { TopBar } from '@src/components/navigation/TopBar';
+import { ScreenShell } from './ScreenShell';
+
+type MainContainerProps = {
     title?: string;
     children: ReactNode;
-}
+    scroll?: boolean; // default true
+};
 
-export const MainContainer = ({ title, children }: Props) => (
-    <View style={st.container}>
-        <TopBar title={title} />
-        {/* Bottom safe area so lists/buttons don't sit under the home indicator */}
-        <SafeAreaView edges={['bottom']} style={st.safeBottom}>
-            <View style={st.content}>{children}</View>
-        </SafeAreaView>
-    </View>
-);
+export const MainContainer = ({
+    title,
+    children,
+    scroll = true,
+}: MainContainerProps) => {
+    return (
+        <ScreenShell>
+            {title ? <TopBar title={title} /> : null}
+
+            {scroll ? (
+                <ScrollView
+                    contentContainerStyle={st.content}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    {children}
+                </ScrollView>
+            ) : (
+                <View style={st.content}>{children}</View>
+            )}
+        </ScreenShell>
+    );
+};
 
 const st = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#0B0B0C' },
-    safeBottom: { flex: 1, backgroundColor: '#0B0B0C' },
-    content: { flex: 1 },
+    content: {
+        flexGrow: 1,
+        padding: 16,
+        gap: 12,
+        paddingBottom: 24,
+    },
 });
