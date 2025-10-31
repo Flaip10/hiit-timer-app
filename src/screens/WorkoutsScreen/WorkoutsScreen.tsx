@@ -38,68 +38,59 @@ const WorkoutsScreen = () => {
     }, [list, q]);
 
     return (
-        <MainContainer title="Workouts">
-            <View style={st.container}>
-                <View style={st.headerRow}>
-                    <TextInput
-                        value={q}
-                        onChangeText={setQ}
-                        placeholder="Search workouts"
-                        placeholderTextColor="#6B7280"
-                        style={st.search}
-                    />
-                    <Pressable
-                        onPress={() => router.push('/workouts/edit')}
-                        style={({ pressed }) => [
-                            st.newBtn,
-                            pressed && st.pressed,
-                        ]}
-                    >
-                        <Text style={st.newBtnText}>＋ New</Text>
-                    </Pressable>
-                </View>
-
-                <FlatList
-                    data={data}
-                    keyExtractor={(w) => w.id}
-                    renderItem={({ item }) =>
-                        item ? (
-                            <WorkoutItem
-                                item={item}
-                                onPress={() =>
-                                    router.push(`/workouts/${item.id}`)
-                                }
-                                onEdit={() =>
-                                    router.push({
-                                        pathname: '/workouts/edit',
-                                        params: { id: item.id },
-                                    })
-                                }
-                                onRemove={() => setToRemove(item.id)}
-                            />
-                        ) : null
-                    }
-                    ItemSeparatorComponent={() => (
-                        <View style={{ height: 8 }} />
-                    )}
-                    contentContainerStyle={{ paddingBottom: 24 }}
-                    ListEmptyComponent={EmptyWorkouts}
+        <MainContainer title="Workouts" scroll={false}>
+            <View style={st.headerRow}>
+                <TextInput
+                    value={q}
+                    onChangeText={setQ}
+                    placeholder="Search workouts"
+                    placeholderTextColor="#6B7280"
+                    style={st.search}
                 />
-
-                <ConfirmDialog
-                    visible={toRemove != null}
-                    title="Remove workout"
-                    message="This will permanently delete the workout."
-                    confirmLabel="Remove"
-                    cancelLabel="Cancel"
-                    destructive
-                    onConfirm={() => {
-                        if (toRemove) remove(toRemove);
-                        setToRemove(null);
-                    }}
-                    onCancel={() => setToRemove(null)}
-                />
+                <Pressable
+                    onPress={() => router.push('/workouts/edit')}
+                    style={({ pressed }) => [st.newBtn, pressed && st.pressed]}
+                >
+                    <Text style={st.newBtnText}>＋ New</Text>
+                </Pressable>
             </View>
+
+            <FlatList
+                data={data}
+                keyExtractor={(w) => w.id}
+                renderItem={({ item }) =>
+                    item ? (
+                        <WorkoutItem
+                            item={item}
+                            onPress={() => router.push(`/workouts/${item.id}`)}
+                            onEdit={() =>
+                                router.push({
+                                    pathname: '/workouts/edit',
+                                    params: { id: item.id },
+                                })
+                            }
+                            onRemove={() => setToRemove(item.id)}
+                        />
+                    ) : null
+                }
+                ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+                contentContainerStyle={{ paddingBottom: 24 }}
+                ListEmptyComponent={EmptyWorkouts}
+            />
+
+            <ConfirmDialog
+                visible={toRemove != null}
+                title="Remove workout"
+                message="This will permanently delete the workout."
+                confirmLabel="Remove"
+                cancelLabel="Cancel"
+                destructive
+                onConfirm={() => {
+                    if (toRemove) remove(toRemove);
+                    setToRemove(null);
+                }}
+                onCancel={() => setToRemove(null)}
+            />
         </MainContainer>
     );
 };
