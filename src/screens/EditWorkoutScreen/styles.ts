@@ -64,14 +64,6 @@ const st = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#1F1F23',
     },
-    addBlockText: { color: '#E5E7EB', fontWeight: '700' },
-
-    footer: {
-        flexDirection: 'row',
-        gap: 10,
-        marginTop: 16,
-        paddingBottom: 24,
-    },
 
     pressed: { opacity: 0.9 },
 

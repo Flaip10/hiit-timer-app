@@ -2,7 +2,7 @@ import React from 'react';
 import { ActivityIndicator, Pressable, Text, ViewStyle } from 'react-native';
 import st from './styles';
 
-type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
+type ButtonVariant = 'default' | 'primary' | 'secondary' | 'danger' | 'ghost';
 
 type ButtonProps = {
     title: string;
@@ -17,7 +17,7 @@ type ButtonProps = {
 export const Button = ({
     title,
     onPress,
-    variant = 'primary',
+    variant = 'default',
     disabled = false,
     loading = false,
     style,
@@ -45,6 +45,7 @@ export const Button = ({
                 <Text
                     style={[
                         st.text,
+                        variant === 'primary' && st.textPrimary,
                         variant === 'secondary' && st.textSecondary,
                         variant === 'ghost' && st.textGhost,
                     ]}

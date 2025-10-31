@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Workout, WorkoutBlock } from '@src/core/entities';
@@ -9,6 +9,7 @@ import { WorkoutBlockItem } from './WorkoutBlockItem';
 import st from './styles';
 import { Button } from '@src/components/ui/Button/Button';
 import { MainContainer } from '@src/components/layout/MainContainer';
+import { FooterBar } from '@src/components/layout/FooterBar';
 
 const createEmptyBlock = (): WorkoutBlock => ({
     id: uid(),
@@ -98,37 +99,35 @@ const EditWorkoutScreen = () => {
     );
 
     return (
-        <MainContainer title={existing ? 'Edit Workout' : 'New Workout'}>
-            <Text style={st.label}>Workout Name</Text>
-            <TextInput
-                value={name}
-                onChangeText={setName}
-                placeholder="e.g., Conditioning A"
-                placeholderTextColor="#6B7280"
-                style={st.input}
-            />
-
-            <Text style={st.sectionTitle}>Blocks</Text>
-            {blocks.map((block, index) => (
-                <WorkoutBlockItem
-                    key={block.id}
-                    index={index}
-                    block={block}
-                    onEdit={onEditBlock}
-                    onRemove={onRemoveBlock}
+        <>
+            <MainContainer title={existing ? 'Edit Workout' : 'New Workout'}>
+                <Text style={st.label}>Workout Name</Text>
+                <TextInput
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="e.g., Conditioning A"
+                    placeholderTextColor="#6B7280"
+                    style={st.input}
                 />
-            ))}
 
-            <Pressable
-                onPress={onAddBlock}
-                style={({ pressed }) => [st.addBlock, pressed && st.pressed]}
-            >
-                <Text style={st.addBlockText}>＋ Add Block</Text>
-            </Pressable>
-
-            {errorBox}
-
-            <View style={st.footer}>
+                <Text style={st.sectionTitle}>Blocks</Text>
+                {blocks.map((block, index) => (
+                    <WorkoutBlockItem
+                        key={block.id}
+                        index={index}
+                        block={block}
+                        onEdit={onEditBlock}
+                        onRemove={onRemoveBlock}
+                    />
+                ))}
+                <Button
+                    title="＋ Add Block"
+                    onPress={onAddBlock}
+                    style={st.addBlock}
+                />
+                {errorBox}
+            </MainContainer>
+            <FooterBar>
                 <Button
                     title="Cancel"
                     variant="secondary"
@@ -137,12 +136,13 @@ const EditWorkoutScreen = () => {
                 />
                 <Button
                     title={existing ? 'Save' : 'Create'}
+                    variant="primary"
                     onPress={onSave}
                     loading={saving}
                     flex={1}
                 />
-            </View>
-        </MainContainer>
+            </FooterBar>
+        </>
     );
 };
 

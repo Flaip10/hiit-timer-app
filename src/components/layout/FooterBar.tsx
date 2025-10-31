@@ -19,7 +19,7 @@ const st = StyleSheet.create({
     row: {
         flexDirection: 'row',
         gap: 10,
-        paddingHorizontal: 16,
+        paddingHorizontal: 14,
         paddingTop: 10,
         paddingBottom: Platform.OS === 'android' ? 16 : 0,
     },

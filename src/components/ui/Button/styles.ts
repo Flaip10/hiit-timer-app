@@ -9,8 +9,7 @@ const st = StyleSheet.create({
         flexDirection: 'row',
         gap: 6,
     },
-
-    // variants
+    default: {},
     primary: {
         backgroundColor: '#2563EB',
         borderWidth: 1,
@@ -29,9 +28,12 @@ const st = StyleSheet.create({
     },
 
     text: {
-        color: '#FFFFFF',
+        color: '#E5E7EB',
         fontWeight: '700',
-        fontSize: 15,
+        fontSize: 14,
+    },
+    textPrimary: {
+        color: '#FFFFFF',
     },
     textSecondary: {
         color: '#E5E7EB',
