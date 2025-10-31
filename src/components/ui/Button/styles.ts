@@ -13,6 +13,8 @@ const st = StyleSheet.create({
     // variants
     primary: {
         backgroundColor: '#2563EB',
+        borderWidth: 1,
+        borderColor: '#2563EB',
     },
     secondary: {
         backgroundColor: '#1C1C1F',
