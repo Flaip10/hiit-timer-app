@@ -1,7 +1,6 @@
 import { StyleSheet } from 'react-native';
 
 const st = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#0B0B0C', padding: 16 },
     headerRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
     search: {
         flex: 1,

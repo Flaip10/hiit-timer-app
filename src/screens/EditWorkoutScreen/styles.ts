@@ -66,7 +66,12 @@ const st = StyleSheet.create({
     },
     addBlockText: { color: '#E5E7EB', fontWeight: '700' },
 
-    footer: { flexDirection: 'row', gap: 10, marginTop: 16, paddingBottom: 24 },
+    footer: {
+        flexDirection: 'row',
+        gap: 10,
+        marginTop: 16,
+        paddingBottom: 24,
+    },
 
     pressed: { opacity: 0.9 },
 

@@ -1,4 +1,3 @@
-// src/components/layout/MainContainer.tsx
 import { ReactNode } from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
 
@@ -38,7 +37,7 @@ const st = StyleSheet.create({
     content: {
         flexGrow: 1,
         padding: 16,
-        gap: 12,
+        gap: 8,
         paddingBottom: 24,
     },
 });
