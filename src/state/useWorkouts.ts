@@ -48,15 +48,8 @@ const starterBlock = (): WorkoutBlock => ({
 
 const starterWorkout = (): Workout => ({
     id: uid(),
-    name: 'Starter',
-    blocks: [starterBlock()],
-});
-
-// “empty” draft workout used when creating a new one
-const emptyDraftWorkout = (): Workout => ({
-    id: uid(),
     name: 'New Workout',
-    blocks: [],
+    blocks: [starterBlock()],
 });
 
 // --- store --------------------------------------------------------
@@ -110,7 +103,7 @@ export const useWorkouts = create<WorkoutsState>()(
         // start a brand new draft
         startDraftNew: () =>
             set(() => ({
-                draft: emptyDraftWorkout(),
+                draft: starterWorkout(),
             })),
 
         // start from an existing workout (deep clone)
