@@ -1,4 +1,3 @@
-// app/workouts/block-edit.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, Switch, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -6,8 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Stepper } from '@components/ui/Stepper';
 import { ExerciseCard } from '@components/blocks/ExerciseCard';
 
-import { useWorkout, useWorkouts } from '@state/useWorkouts';
-import { getDraftBlocks, updateDraftBlock } from '@state/editCache';
+import { useWorkouts } from '@state/useWorkouts';
 
 import type {
     WorkoutBlock,
@@ -17,9 +15,9 @@ import type {
 } from '@core/entities';
 import { isTimePace, isRepsPace } from '@core/entities';
 import { uid } from '@core/id';
-import st from './styles';
 import { MainContainer } from '@src/components/layout/MainContainer';
 import { Button } from '@src/components/ui/Button/Button';
+import st from './styles';
 
 // ---------- helpers ----------
 const toPosInt = (s: string | number, fallback = 0): number => {
@@ -32,12 +30,15 @@ const ensureExerciseCount = (
     count: number
 ): WorkoutBlock => {
     const next: WorkoutBlock = { ...block, exercises: [...block.exercises] };
-    while (next.exercises.length < count)
+    while (next.exercises.length < count) {
         next.exercises.push({
             id: uid(),
             name: `Exercise ${next.exercises.length + 1}`,
         });
-    while (next.exercises.length > count) next.exercises.pop();
+    }
+    while (next.exercises.length > count) {
+        next.exercises.pop();
+    }
     return next;
 };
 
@@ -51,48 +52,44 @@ const clearOverrides = (block: WorkoutBlock): WorkoutBlock => ({
 
 // ---------- component ----------
 const BlockEditScreen = () => {
-    const { id, index } = useLocalSearchParams<{
-        id?: string;
-        index?: string;
-    }>();
-    const bi = Number(index ?? '-1');
-
+    const { blockId } = useLocalSearchParams<{ blockId?: string }>();
     const router = useRouter();
-    const workout = useWorkout(id);
-    const { update } = useWorkouts();
 
-    // hydrate initial block
+    const draft = useWorkouts((state) => state.draft);
+    const updateDraftBlock = useWorkouts((state) => state.updateDraftBlock);
+
     const [block, setBlock] = useState<WorkoutBlock | null>(null);
     const [errors, setErrors] = useState<string[]>([]);
     const [saving, setSaving] = useState(false);
 
+    // hydrate initial block from current draft
     useEffect(() => {
-        // existing workout path
-        if (id && workout?.blocks?.[bi]) {
-            const copy = JSON.parse(
-                JSON.stringify(workout.blocks[bi])
-            ) as WorkoutBlock;
-            setBlock(copy);
+        if (!draft || !blockId) {
+            setBlock(null);
             return;
         }
-        // draft path
-        if (!id) {
-            const draftBlocks = getDraftBlocks();
-            if (draftBlocks && draftBlocks[bi]) {
-                setBlock(
-                    JSON.parse(JSON.stringify(draftBlocks[bi])) as WorkoutBlock
-                );
-                return;
-            }
-        }
-        // invalid index / missing block
-        setBlock(null);
-    }, [id, workout, bi]);
 
-    const validLength = id
-        ? (workout?.blocks.length ?? 0)
-        : (getDraftBlocks()?.length ?? 0);
-    const notFound = Number.isNaN(bi) || bi < 0 || bi >= validLength || !block;
+        const source = draft.blocks.find((b) => b.id === blockId);
+        if (!source) {
+            setBlock(null);
+            return;
+        }
+
+        const copy: WorkoutBlock =
+            typeof structuredClone === 'function'
+                ? structuredClone(source)
+                : (JSON.parse(JSON.stringify(source)) as WorkoutBlock);
+
+        setBlock(copy);
+    }, [draft, blockId]);
+
+    const labelIndex = useMemo(() => {
+        if (!draft || !blockId) return null;
+        const idx = draft.blocks.findIndex((b) => b.id === blockId);
+        return idx >= 0 ? idx + 1 : null;
+    }, [draft, blockId]);
+
+    const notFound = !draft || !block || !blockId || labelIndex == null;
 
     // ----- block-level setters -----
     const setField = <K extends keyof WorkoutBlock>(
@@ -136,8 +133,10 @@ const BlockEditScreen = () => {
     // advanced toggle & defaults
     const onToggleAdvanced = (enabled: boolean) => {
         if (!block) return;
-        if (!enabled)
-            return setBlock((prev) => (prev ? clearOverrides(prev) : prev));
+        if (!enabled) {
+            setBlock((prev) => (prev ? clearOverrides(prev) : prev));
+            return;
+        }
 
         const initOverride =
             block.defaultPace.type === 'time'
@@ -250,15 +249,17 @@ const BlockEditScreen = () => {
                     if (
                         isTimePace(ex.paceOverride) &&
                         ex.paceOverride.workSec <= 0
-                    )
+                    ) {
                         errs.push(
                             `Exercise ${ei + 1}: work seconds must be > 0.`
                         );
+                    }
                     if (
                         isRepsPace(ex.paceOverride) &&
                         ex.paceOverride.reps <= 0
-                    )
+                    ) {
                         errs.push(`Exercise ${ei + 1}: reps must be > 0.`);
+                    }
                 }
             });
         }
@@ -273,16 +274,9 @@ const BlockEditScreen = () => {
 
         setSaving(true);
         try {
-            if (id && workout) {
-                const nextBlocks = [...(workout.blocks ?? [])];
-                nextBlocks[bi] = block;
-                update(workout.id, { blocks: nextBlocks });
-                router.back();
-            } else {
-                // draft path
-                updateDraftBlock(bi, block);
-                router.back();
-            }
+            // write local copy back into the draft
+            updateDraftBlock(block.id, block);
+            router.back();
         } finally {
             setSaving(false);
         }
@@ -311,17 +305,19 @@ const BlockEditScreen = () => {
         );
     }
 
-    const isTime = isTimePace(block.defaultPace);
-    const isReps = isRepsPace(block.defaultPace);
+    const isTime = isTimePace(block!.defaultPace);
+    const isReps = isRepsPace(block!.defaultPace);
 
     return (
         <MainContainer
-            title={`Block ${bi + 1}${block.title ? ` — ${block.title}` : ''}`}
+            title={`Block ${labelIndex}${
+                block!.title ? ` — ${block!.title}` : ''
+            }`}
         >
             {/* Title */}
             <Text style={st.label}>Block Title (optional)</Text>
             <TextInput
-                value={block.title ?? ''}
+                value={block!.title ?? ''}
                 onChangeText={onTitle}
                 style={st.input}
             />
@@ -329,26 +325,26 @@ const BlockEditScreen = () => {
             {/* Core scheme */}
             <Stepper
                 label="Sets"
-                value={block.scheme.sets}
+                value={block!.scheme.sets}
                 onChange={onSets}
                 min={0}
             />
             <Stepper
                 label="# Exercises"
-                value={block.exercises.length}
+                value={block!.exercises.length}
                 onChange={onNumExercises}
                 min={0}
             />
             <Stepper
                 label="Rest between sets (sec)"
-                value={block.scheme.restBetweenSetsSec}
+                value={block!.scheme.restBetweenSetsSec}
                 onChange={onRestBetweenSets}
                 min={0}
                 step={5}
             />
             <Stepper
                 label="Rest between exercises (sec)"
-                value={block.scheme.restBetweenExercisesSec}
+                value={block!.scheme.restBetweenExercisesSec}
                 onChange={onRestBetweenExercises}
                 min={0}
                 step={5}
@@ -358,13 +354,13 @@ const BlockEditScreen = () => {
             <View style={st.advRow}>
                 <Text style={st.advText}>Advanced per-exercise options</Text>
                 <Switch
-                    value={!!block.advanced}
+                    value={!!block!.advanced}
                     onValueChange={onToggleAdvanced}
                 />
             </View>
 
             {/* Advanced-only section */}
-            {!!block.advanced && (
+            {!!block!.advanced && (
                 <>
                     <Text style={st.sectionTitle}>Default Exercise Type</Text>
                     <View style={st.segment}>
@@ -407,7 +403,7 @@ const BlockEditScreen = () => {
                     {isTime ? (
                         <Stepper
                             label="Default work (sec)"
-                            value={(block.defaultPace as TimePace).workSec}
+                            value={(block!.defaultPace as TimePace).workSec}
                             onChange={onDefaultWorkSec}
                             min={0}
                             step={5}
@@ -416,7 +412,7 @@ const BlockEditScreen = () => {
                         <>
                             <Stepper
                                 label="Default reps"
-                                value={(block.defaultPace as RepsPace).reps}
+                                value={(block!.defaultPace as RepsPace).reps}
                                 onChange={onDefaultReps}
                                 min={0}
                             />
@@ -425,7 +421,7 @@ const BlockEditScreen = () => {
                             </Text>
                             <TextInput
                                 value={
-                                    (block.defaultPace as RepsPace).tempo ?? ''
+                                    (block!.defaultPace as RepsPace).tempo ?? ''
                                 }
                                 onChangeText={onDefaultTempo}
                                 style={st.input}
@@ -436,12 +432,12 @@ const BlockEditScreen = () => {
                     )}
 
                     <Text style={st.sectionTitle}>Exercises</Text>
-                    {block.exercises.map((ex, ei) => (
+                    {block!.exercises.map((ex, ei) => (
                         <ExerciseCard
                             key={ex.id}
                             index={ei}
                             exercise={ex}
-                            advanced={!!block.advanced}
+                            advanced={!!block!.advanced}
                             onChange={(next) => onExChange(ei, next)}
                             onRemove={() => onRemoveExercise(ei)}
                         />

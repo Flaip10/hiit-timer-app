@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import { Workout, WorkoutBlock } from '@src/core/entities';
+import type { WorkoutBlock } from '@src/core/entities';
 import { uid } from '@src/core/id';
-import { useWorkout, useWorkouts } from '@src/state/useWorkouts';
+import { useWorkouts } from '@src/state/useWorkouts';
 import { WorkoutBlockItem } from './WorkoutBlockItem';
 import st from './styles';
 import { Button } from '@src/components/ui/Button/Button';
@@ -22,62 +22,79 @@ const createEmptyBlock = (): WorkoutBlock => ({
 
 const EditWorkoutScreen = () => {
     const { id } = useLocalSearchParams<{ id?: string }>();
-    const existing = useWorkout(id);
-    const { add, update } = useWorkouts();
     const router = useRouter();
 
-    const [name, setName] = useState(existing?.name ?? 'New Workout');
-    const [blocks, setBlocks] = useState<WorkoutBlock[]>(
-        existing?.blocks ?? [createEmptyBlock()]
+    const draft = useWorkouts((state) => state.draft);
+    const startDraftNew = useWorkouts((state) => state.startDraftNew);
+    const startDraftFromExisting = useWorkouts(
+        (state) => state.startDraftFromExisting
     );
+    const updateDraftMeta = useWorkouts((state) => state.updateDraftMeta);
+    const setDraftBlocks = useWorkouts((state) => state.setDraftBlocks);
+    const commitDraft = useWorkouts((state) => state.commitDraft);
+    const clearDraft = useWorkouts((state) => state.clearDraft);
+
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
 
+    // initialise / cleanup draft
     useEffect(() => {
-        if (existing) {
-            setName(existing.name || 'New Workout');
-            setBlocks(
-                JSON.parse(JSON.stringify(existing.blocks)) as WorkoutBlock[]
-            );
+        if (id) {
+            startDraftFromExisting(id);
+        } else {
+            startDraftNew();
         }
-    }, [existing]);
 
-    const onAddBlock = () => setBlocks((prev) => [...prev, createEmptyBlock()]);
+        return () => {
+            clearDraft();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]);
 
-    const onRemoveBlock = (index: number) =>
-        setBlocks((prev) => prev.filter((_, i) => i !== index));
+    const name = draft?.name ?? 'New Workout';
+    const blocks = draft?.blocks ?? [];
 
-    const onEditBlock = (index: number) => {
-        const targetId = existing?.id ?? 'draft';
+    const onAddBlock = () => {
+        if (!draft) return;
+        setDraftBlocks([...(draft.blocks ?? []), createEmptyBlock()]);
+    };
 
-        router.push(`/workouts/block-edit?id=${targetId}&index=${index}`);
+    const onEditBlock = (blockId: string) => {
+        router.push({
+            pathname: '/workouts/block-edit',
+            params: { blockId },
+        });
+    };
+
+    const onRemoveBlock = (blockId: string) => {
+        if (!draft) return;
+        const next = draft.blocks.filter((b) => b.id !== blockId);
+        setDraftBlocks(next);
     };
 
     const validate = (): boolean => {
         const errs: string[] = [];
-        if (!name.trim()) errs.push('Workout name is required.');
+        const trimmedName = name.trim();
+
+        if (!trimmedName) errs.push('Workout name is required.');
         if (blocks.length === 0) errs.push('Add at least one block.');
 
         setErrors(errs);
         return errs.length === 0;
     };
 
-    const onSave = async () => {
+    const onSave = () => {
         if (saving) return;
+        if (!draft) return;
         if (!validate()) return;
+
         setSaving(true);
         try {
-            const payload: Workout = {
-                id: existing?.id ?? uid(),
-                name: name.trim(),
-                blocks,
-            };
-            if (existing?.id) {
-                update(existing.id, payload);
-                router.replace(`/workouts/${existing.id}`);
+            const idFromCommit = commitDraft();
+            if (idFromCommit) {
+                router.replace(`/workouts/${idFromCommit}`);
             } else {
-                const addedId: string = (await add(payload)) ?? payload.id;
-                router.replace(`/workouts/${addedId}`);
+                router.back();
             }
         } finally {
             setSaving(false);
@@ -98,13 +115,19 @@ const EditWorkoutScreen = () => {
         [errors]
     );
 
+    const isEditingExisting = !!id;
+
     return (
         <>
-            <MainContainer title={existing ? 'Edit Workout' : 'New Workout'}>
+            <MainContainer
+                title={isEditingExisting ? 'Edit Workout' : 'New Workout'}
+            >
                 <Text style={st.label}>Workout Name</Text>
                 <TextInput
                     value={name}
-                    onChangeText={setName}
+                    onChangeText={(value) =>
+                        updateDraftMeta({ name: value ?? '' })
+                    }
                     placeholder="e.g., Conditioning A"
                     placeholderTextColor="#6B7280"
                     style={st.input}
@@ -114,8 +137,8 @@ const EditWorkoutScreen = () => {
                 {blocks.map((block, index) => (
                     <WorkoutBlockItem
                         key={block.id}
-                        index={index}
                         block={block}
+                        index={index}
                         onEdit={onEditBlock}
                         onRemove={onRemoveBlock}
                     />
@@ -135,7 +158,7 @@ const EditWorkoutScreen = () => {
                     flex={1}
                 />
                 <Button
-                    title={existing ? 'Save' : 'Create'}
+                    title={isEditingExisting ? 'Save' : 'Create'}
                     variant="primary"
                     onPress={onSave}
                     loading={saving}
