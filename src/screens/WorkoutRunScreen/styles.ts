@@ -1,6 +1,13 @@
 import { StyleSheet } from 'react-native';
 
 const st = StyleSheet.create({
+    // main state
+    phase: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#F2F2F2',
+    },
+
     runContainer: {
         flex: 1,
         alignItems: 'center',
@@ -9,12 +16,20 @@ const st = StyleSheet.create({
         gap: 10,
     },
 
-    // main state
-    phase: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#F2F2F2',
+    phasePill: {
+        paddingHorizontal: 16,
+        paddingVertical: 6,
+        borderRadius: 999,
+        marginBottom: 12,
     },
+    phasePillText: {
+        color: '#0B0B0C',
+        fontWeight: '700',
+        fontSize: 14,
+        textTransform: 'uppercase',
+        letterSpacing: 0.8,
+    },
+
     timer: {
         color: '#F2F2F2',
         fontSize: 96,
@@ -31,7 +46,29 @@ const st = StyleSheet.create({
         fontSize: 14,
     },
 
-    // empty state
+    progressContainer: {
+        marginTop: 16,
+        width: '100%',
+        maxWidth: 360,
+        gap: 6,
+    },
+    progressText: {
+        color: '#9CA3AF',
+        fontSize: 12,
+    },
+    progressBarBg: {
+        flexDirection: 'row',
+        height: 6,
+        borderRadius: 999,
+        overflow: 'hidden',
+        backgroundColor: '#111827',
+    },
+    progressBarFill: {
+        backgroundColor: '#2563EB',
+    },
+    progressBarRemaining: {
+        backgroundColor: 'transparent',
+    },
     emptyContainer: {
         flex: 1,
         alignItems: 'center',

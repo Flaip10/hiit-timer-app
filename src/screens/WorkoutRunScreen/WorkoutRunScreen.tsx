@@ -6,40 +6,57 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { useWorkout } from '@state/useWorkouts';
 import { buildSteps, createTimer, type Phase } from '@core/timer';
 import { cancelAll, cancelById, scheduleLocal } from '@core/notify';
-import { MainContainer } from '@src/components/layout/MainContainer';
-import { FooterBar } from '@src/components/layout/FooterBar';
-import { Button } from '@src/components/ui/Button/Button';
+
+import { MainContainer } from '@components/layout/MainContainer';
+import { FooterBar } from '@components/layout/FooterBar';
+import { Button } from '@components/ui/Button/Button';
 import st from './styles';
 
 const colorFor = (phase: Phase): string => {
     if (phase === 'WORK') return '#22C55E';
     if (phase === 'REST') return '#60A5FA';
-    return '#F59E0B'; // PREP or anything else
+    return '#F59E0B'; // PREP or others
 };
 
-const WorkoutRunScreen = () => {
+const labelFor = (phase: Phase): string => {
+    if (phase === 'WORK') return 'Work';
+    if (phase === 'REST') return 'Rest';
+    return 'Prepare';
+};
+
+export const WorkoutRunScreen = () => {
     useKeepAwake();
 
-    const { id } = useLocalSearchParams<{ id?: string }>();
+    const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
     const workout = useWorkout(id);
 
-    const { steps } = useMemo(() => {
+    // Build steps once for this workout
+    const { steps, totalDurationSec } = useMemo(() => {
         if (!workout) {
-            return { steps: [] as ReturnType<typeof buildSteps>['steps'] };
+            return {
+                steps: [] as ReturnType<typeof buildSteps>['steps'],
+                totalDurationSec: 0,
+            };
         }
-        // TODO: allow rounds to be configurable instead of hardcoded 5
-        return buildSteps(5, workout.blocks);
+
+        const built = buildSteps(5, workout.blocks);
+        const total = built.steps.reduce(
+            (sum, s) => sum + (s.durationSec ?? 0),
+            0
+        );
+
+        return { steps: built.steps, totalDurationSec: total };
     }, [workout]);
 
     const engineRef = useRef<ReturnType<typeof createTimer> | null>(null);
     const lastNotifIdRef = useRef<string | null>(null);
 
     const [stepIndex, setStepIndex] = useState(0);
-    const [remainingSec, setRemainingSec] = useState(0);
+    const [remaining, setRemaining] = useState(0);
     const [running, setRunning] = useState(false);
 
-    // ---- init timer on steps change ----
+    // Initial setup + engine creation
     useEffect(() => {
         const setup = async () => {
             await cancelAll();
@@ -48,14 +65,14 @@ const WorkoutRunScreen = () => {
 
         if (steps.length === 0) return;
 
-        engineRef.current = createTimer(steps, (t) => {
-            setStepIndex(t.stepIndex);
-            setRemainingSec(t.remainingSec);
-            setRunning(t.running);
+        engineRef.current = createTimer(steps, (snapshot) => {
+            setStepIndex(snapshot.stepIndex);
+            setRemaining(snapshot.remainingSec);
+            setRunning(snapshot.running);
         });
 
         setStepIndex(0);
-        setRemainingSec(steps[0]?.durationSec ?? 0);
+        setRemaining(steps[0]?.durationSec ?? 0);
         setRunning(false);
 
         return () => {
@@ -64,10 +81,9 @@ const WorkoutRunScreen = () => {
         };
     }, [steps]);
 
-    // ---- schedule / reschedule local notification for current step ----
+    // Local notifications: schedule end of current step
     useEffect(() => {
         const schedule = async () => {
-            // clear previous pending notification
             if (lastNotifIdRef.current) {
                 await cancelById(lastNotifIdRef.current).catch(() => {});
                 lastNotifIdRef.current = null;
@@ -76,7 +92,7 @@ const WorkoutRunScreen = () => {
             if (!running) return;
 
             const step = steps[stepIndex];
-            if (!step || remainingSec <= 0) return;
+            if (!step || remaining <= 0) return;
 
             const title =
                 step.label === 'WORK'
@@ -92,39 +108,41 @@ const WorkoutRunScreen = () => {
                   }`
                 : 'Workout finished';
 
-            const id = await scheduleLocal(remainingSec, title, body);
+            const id = await scheduleLocal(remaining, title, body);
             lastNotifIdRef.current = id;
         };
 
         void schedule();
-    }, [stepIndex, remainingSec, running, steps]);
+    }, [stepIndex, running, remaining, steps]);
 
-    // ---- resync when app returns to foreground ----
+    // Foreground re-sync: pause+resume to re-align timers after background
     useEffect(() => {
         const sub = AppState.addEventListener('change', (state) => {
             if (state === 'active') {
                 const engine = engineRef.current;
                 if (!engine) return;
+
                 if (engine.isRunning()) {
-                    // small "jog" to force re-sync
                     engine.pause();
                     engine.resume();
                 }
             }
         });
 
-        return () => sub.remove();
+        return () => {
+            sub.remove();
+        };
     }, []);
 
-    // ---- early exit: no workout / no steps ----
+    // Empty / error state
     if (!workout || steps.length === 0) {
         return (
             <>
-                <MainContainer title="Run Workout" scroll={false}>
+                <MainContainer title="Run workout" scroll={false}>
                     <View style={st.emptyContainer}>
                         <Text style={st.emptyTitle}>No steps to run</Text>
                         <Text style={st.emptyText}>
-                            This workout has no timed blocks configured.
+                            This workout has no timed steps configured.
                         </Text>
                     </View>
                 </MainContainer>
@@ -141,16 +159,22 @@ const WorkoutRunScreen = () => {
     }
 
     const step = steps[stepIndex];
-    const phase = step.label;
+    const phase = step.label as Phase;
     const phaseColor = colorFor(phase);
+    const phaseLabel = labelFor(phase);
 
     const meta = `Block ${step.blockIdx + 1} • Ex ${step.exIdx + 1} • Set ${
         step.setIdx + 1
     }`;
 
-    const onStart = () => engineRef.current?.start();
+    const totalSteps = steps.length;
+    const currentStepNumber = stepIndex + 1;
+    const progress = totalSteps > 0 ? currentStepNumber / totalSteps : 0; // 0..1
 
-    const onPause = () => {
+    // Controls
+    const handleStart = () => engineRef.current?.start();
+
+    const handlePause = () => {
         engineRef.current?.pause();
         if (lastNotifIdRef.current) {
             void cancelById(lastNotifIdRef.current);
@@ -158,13 +182,13 @@ const WorkoutRunScreen = () => {
         }
     };
 
-    const onResume = () => engineRef.current?.resume();
+    const handleResume = () => engineRef.current?.resume();
 
-    const onSkip = () => engineRef.current?.skip();
+    const handleSkip = () => engineRef.current?.skip();
 
-    const onPlus30 = () => engineRef.current?.addSeconds(30);
+    const handlePlus30 = () => engineRef.current?.addSeconds(30);
 
-    const onEnd = () => {
+    const handleEnd = () => {
         engineRef.current?.stop();
         if (lastNotifIdRef.current) {
             void cancelById(lastNotifIdRef.current);
@@ -174,31 +198,56 @@ const WorkoutRunScreen = () => {
         router.back();
     };
 
-    const isAtStepStart = remainingSec === step.durationSec;
-    const primaryLabel = !running
-        ? isAtStepStart
-            ? 'Start'
-            : 'Resume'
-        : 'Pause';
-    const primaryHandler = !running
-        ? isAtStepStart
-            ? onStart
-            : onResume
-        : onPause;
+    const isAtStepStart = remaining === step.durationSec;
+    const primaryLabel = running ? 'Pause' : isAtStepStart ? 'Start' : 'Resume';
+
+    const handlePrimary = () => {
+        if (running) {
+            handlePause();
+        } else if (isAtStepStart) {
+            handleStart();
+        } else {
+            handleResume();
+        }
+    };
 
     return (
         <>
             <MainContainer title={workout.name} scroll={false}>
                 <View style={st.runContainer}>
-                    <Text style={[st.phase, { color: phaseColor }]}>
-                        {phase}
-                    </Text>
-                    <Text style={st.timer}>{remainingSec}</Text>
-                    <Text style={st.meta}>{meta}</Text>
+                    {/* Phase pill */}
+                    <View
+                        style={[st.phasePill, { backgroundColor: phaseColor }]}
+                    >
+                        <Text style={st.phasePillText}>{phaseLabel}</Text>
+                    </View>
 
+                    {/* Timer */}
+                    <Text style={st.timer}>{remaining}</Text>
+
+                    {/* Meta */}
+                    <Text style={st.meta}>{meta}</Text>
                     {step.nextName ? (
                         <Text style={st.next}>Next: {step.nextName}</Text>
                     ) : null}
+
+                    {/* Progress indicator */}
+                    <View style={st.progressContainer}>
+                        <Text style={st.progressText}>
+                            Step {currentStepNumber} / {totalSteps}
+                        </Text>
+                        <View style={st.progressBarBg}>
+                            <View
+                                style={[st.progressBarFill, { flex: progress }]}
+                            />
+                            <View
+                                style={[
+                                    st.progressBarRemaining,
+                                    { flex: 1 - progress },
+                                ]}
+                            />
+                        </View>
+                    </View>
                 </View>
             </MainContainer>
 
@@ -206,25 +255,25 @@ const WorkoutRunScreen = () => {
                 <Button
                     title={primaryLabel}
                     variant="primary"
-                    onPress={primaryHandler}
+                    onPress={handlePrimary}
                     flex={1}
                 />
                 <Button
                     title="Skip"
                     variant="secondary"
-                    onPress={onSkip}
+                    onPress={handleSkip}
                     flex={1}
                 />
                 <Button
                     title="+30s"
                     variant="secondary"
-                    onPress={onPlus30}
+                    onPress={handlePlus30}
                     flex={1}
                 />
                 <Button
                     title="End"
                     variant="secondary"
-                    onPress={onEnd}
+                    onPress={handleEnd}
                     flex={1}
                 />
             </FooterBar>
