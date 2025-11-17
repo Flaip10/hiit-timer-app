@@ -53,7 +53,6 @@ const st = StyleSheet.create({
     },
     addMinorText: { color: '#E5E7EB', fontWeight: '700' },
 
-    footer: { flexDirection: 'row', gap: 10, marginTop: 16, paddingBottom: 8 },
     primary: {
         flex: 1,
         backgroundColor: '#2563EB',

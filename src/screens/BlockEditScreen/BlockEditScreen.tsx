@@ -4,6 +4,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Stepper } from '@components/ui/Stepper';
 import { ExerciseCard } from '@components/blocks/ExerciseCard';
+import { FooterBar } from '@src/components/layout/FooterBar';
+import { MainContainer } from '@src/components/layout/MainContainer';
+import { Button } from '@src/components/ui/Button/Button';
 
 import { useWorkouts } from '@state/useWorkouts';
 
@@ -15,8 +18,7 @@ import type {
 } from '@core/entities';
 import { isTimePace, isRepsPace } from '@core/entities';
 import { uid } from '@core/id';
-import { MainContainer } from '@src/components/layout/MainContainer';
-import { Button } from '@src/components/ui/Button/Button';
+
 import st from './styles';
 
 // ---------- helpers ----------
@@ -309,176 +311,178 @@ const BlockEditScreen = () => {
     const isReps = isRepsPace(block!.defaultPace);
 
     return (
-        <MainContainer
-            title={`Block ${labelIndex}${
-                block!.title ? ` — ${block!.title}` : ''
-            }`}
-        >
-            {/* Title */}
-            <Text style={st.label}>Block Title (optional)</Text>
-            <TextInput
-                value={block!.title ?? ''}
-                onChangeText={onTitle}
-                style={st.input}
-            />
-
-            {/* Core scheme */}
-            <Stepper
-                label="Sets"
-                value={block!.scheme.sets}
-                onChange={onSets}
-                min={0}
-            />
-            <Stepper
-                label="# Exercises"
-                value={block!.exercises.length}
-                onChange={onNumExercises}
-                min={0}
-            />
-            <Stepper
-                label="Rest between sets (sec)"
-                value={block!.scheme.restBetweenSetsSec}
-                onChange={onRestBetweenSets}
-                min={0}
-                step={5}
-            />
-            <Stepper
-                label="Rest between exercises (sec)"
-                value={block!.scheme.restBetweenExercisesSec}
-                onChange={onRestBetweenExercises}
-                min={0}
-                step={5}
-            />
-
-            {/* Advanced toggle */}
-            <View style={st.advRow}>
-                <Text style={st.advText}>Advanced per-exercise options</Text>
-                <Switch
-                    value={!!block!.advanced}
-                    onValueChange={onToggleAdvanced}
+        <>
+            <MainContainer
+                title={`Block ${labelIndex}${
+                    block!.title ? ` — ${block!.title}` : ''
+                }`}
+            >
+                {/* Title */}
+                <Text style={st.label}>Block Title (optional)</Text>
+                <TextInput
+                    value={block!.title ?? ''}
+                    onChangeText={onTitle}
+                    style={st.input}
                 />
-            </View>
 
-            {/* Advanced-only section */}
-            {!!block!.advanced && (
-                <>
-                    <Text style={st.sectionTitle}>Default Exercise Type</Text>
-                    <View style={st.segment}>
-                        <Pressable
-                            onPress={() => onDefaultType('time')}
-                            style={[
-                                st.segmentBtn,
-                                isTime ? st.segmentBtnActive : null,
-                            ]}
-                        >
-                            <Text
-                                style={
-                                    isTime
-                                        ? st.segmentTextActive
-                                        : st.segmentText
-                                }
-                            >
-                                Time
-                            </Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={() => onDefaultType('reps')}
-                            style={[
-                                st.segmentBtn,
-                                isReps ? st.segmentBtnActive : null,
-                            ]}
-                        >
-                            <Text
-                                style={
-                                    isReps
-                                        ? st.segmentTextActive
-                                        : st.segmentText
-                                }
-                            >
-                                Reps
-                            </Text>
-                        </Pressable>
-                    </View>
+                {/* Core scheme */}
+                <Stepper
+                    label="Sets"
+                    value={block!.scheme.sets}
+                    onChange={onSets}
+                    min={0}
+                />
+                <Stepper
+                    label="# Exercises"
+                    value={block!.exercises.length}
+                    onChange={onNumExercises}
+                    min={0}
+                />
+                <Stepper
+                    label="Rest between sets (sec)"
+                    value={block!.scheme.restBetweenSetsSec}
+                    onChange={onRestBetweenSets}
+                    min={0}
+                    step={5}
+                />
+                <Stepper
+                    label="Rest between exercises (sec)"
+                    value={block!.scheme.restBetweenExercisesSec}
+                    onChange={onRestBetweenExercises}
+                    min={0}
+                    step={5}
+                />
 
-                    {isTime ? (
-                        <Stepper
-                            label="Default work (sec)"
-                            value={(block!.defaultPace as TimePace).workSec}
-                            onChange={onDefaultWorkSec}
-                            min={0}
-                            step={5}
-                        />
-                    ) : (
-                        <>
+                {/* Advanced toggle */}
+                <View style={st.advRow}>
+                    <Text style={st.advText}>
+                        Advanced per-exercise options
+                    </Text>
+                    <Switch
+                        value={!!block!.advanced}
+                        onValueChange={onToggleAdvanced}
+                    />
+                </View>
+
+                {/* Advanced-only section */}
+                {!!block!.advanced && (
+                    <>
+                        <Text style={st.sectionTitle}>
+                            Default Exercise Type
+                        </Text>
+                        <View style={st.segment}>
+                            <Pressable
+                                onPress={() => onDefaultType('time')}
+                                style={[
+                                    st.segmentBtn,
+                                    isTime ? st.segmentBtnActive : null,
+                                ]}
+                            >
+                                <Text
+                                    style={
+                                        isTime
+                                            ? st.segmentTextActive
+                                            : st.segmentText
+                                    }
+                                >
+                                    Time
+                                </Text>
+                            </Pressable>
+                            <Pressable
+                                onPress={() => onDefaultType('reps')}
+                                style={[
+                                    st.segmentBtn,
+                                    isReps ? st.segmentBtnActive : null,
+                                ]}
+                            >
+                                <Text
+                                    style={
+                                        isReps
+                                            ? st.segmentTextActive
+                                            : st.segmentText
+                                    }
+                                >
+                                    Reps
+                                </Text>
+                            </Pressable>
+                        </View>
+
+                        {isTime ? (
                             <Stepper
-                                label="Default reps"
-                                value={(block!.defaultPace as RepsPace).reps}
-                                onChange={onDefaultReps}
+                                label="Default work (sec)"
+                                value={(block!.defaultPace as TimePace).workSec}
+                                onChange={onDefaultWorkSec}
                                 min={0}
+                                step={5}
                             />
-                            <Text style={st.subLabel}>
-                                Default tempo (optional)
-                            </Text>
-                            <TextInput
-                                value={
-                                    (block!.defaultPace as RepsPace).tempo ?? ''
-                                }
-                                onChangeText={onDefaultTempo}
-                                style={st.input}
-                                placeholder="e.g., 3-1-3"
-                                placeholderTextColor="#6B7280"
+                        ) : (
+                            <>
+                                <Stepper
+                                    label="Default reps"
+                                    value={
+                                        (block!.defaultPace as RepsPace).reps
+                                    }
+                                    onChange={onDefaultReps}
+                                    min={0}
+                                />
+                                <Text style={st.subLabel}>
+                                    Default tempo (optional)
+                                </Text>
+                                <TextInput
+                                    value={
+                                        (block!.defaultPace as RepsPace)
+                                            .tempo ?? ''
+                                    }
+                                    onChangeText={onDefaultTempo}
+                                    style={st.input}
+                                    placeholder="e.g., 3-1-3"
+                                    placeholderTextColor="#6B7280"
+                                />
+                            </>
+                        )}
+
+                        <Text style={st.sectionTitle}>Exercises</Text>
+                        {block!.exercises.map((ex, ei) => (
+                            <ExerciseCard
+                                key={ex.id}
+                                index={ei}
+                                exercise={ex}
+                                advanced={!!block!.advanced}
+                                onChange={(next) => onExChange(ei, next)}
+                                onRemove={() => onRemoveExercise(ei)}
                             />
-                        </>
-                    )}
+                        ))}
 
-                    <Text style={st.sectionTitle}>Exercises</Text>
-                    {block!.exercises.map((ex, ei) => (
-                        <ExerciseCard
-                            key={ex.id}
-                            index={ei}
-                            exercise={ex}
-                            advanced={!!block!.advanced}
-                            onChange={(next) => onExChange(ei, next)}
-                            onRemove={() => onRemoveExercise(ei)}
-                        />
-                    ))}
+                        <Pressable
+                            onPress={onAddExercise}
+                            style={({ pressed }) => [
+                                st.addMinor,
+                                pressed && st.pressed,
+                            ]}
+                        >
+                            <Text style={st.addMinorText}>＋ Add Exercise</Text>
+                        </Pressable>
+                    </>
+                )}
 
-                    <Pressable
-                        onPress={onAddExercise}
-                        style={({ pressed }) => [
-                            st.addMinor,
-                            pressed && st.pressed,
-                        ]}
-                    >
-                        <Text style={st.addMinorText}>＋ Add Exercise</Text>
-                    </Pressable>
-                </>
-            )}
-
-            {errorBox}
-
-            <View style={st.footer}>
-                <Pressable
+                {errorBox}
+            </MainContainer>
+            <FooterBar>
+                <Button
+                    title="Cancel"
+                    variant="secondary"
                     onPress={() => router.back()}
-                    style={({ pressed }) => [
-                        st.secondary,
-                        pressed && st.pressed,
-                    ]}
-                >
-                    <Text style={st.secondaryText}>Cancel</Text>
-                </Pressable>
-                <Pressable
-                    disabled={saving}
+                    flex={1}
+                />
+                <Button
+                    title="Save Block"
+                    variant="primary"
                     onPress={onSave}
-                    style={({ pressed }) => [
-                        st.primary,
-                        (pressed || saving) && st.pressed,
-                    ]}
-                >
-                    <Text style={st.primaryText}>Save Block</Text>
-                </Pressable>
-            </View>
-        </MainContainer>
+                    loading={saving}
+                    flex={1}
+                />
+            </FooterBar>
+        </>
     );
 };
 
