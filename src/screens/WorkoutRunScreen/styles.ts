@@ -51,16 +51,6 @@ const st = StyleSheet.create({
         height: 18, // roughly one line of text, keeps layout stable
     },
 
-    progressContainer: {
-        marginTop: 12,
-        width: '100%',
-        maxWidth: 360,
-        gap: 6,
-    },
-    progressText: {
-        color: '#9CA3AF',
-        fontSize: 12,
-    },
     progressBarBg: {
         flexDirection: 'row',
         height: 6,
@@ -104,19 +94,15 @@ const st = StyleSheet.create({
     // Container that holds both "current" and "next"
     metaContainer: {
         width: '100%',
-        marginTop: -12,
-        gap: 10,
+        marginTop: 16,
     },
 
-    // ---------- CURRENT CARD ----------
+    // ----- CURRENT EXERCISE CARD -----
     currentCard: {
         width: '100%',
-        borderRadius: 12,
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        backgroundColor: '#020617',
-        borderWidth: 1,
-        // borderColor is injected from props
+        borderRadius: 14,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
     },
 
     currentHeaderRow: {
@@ -145,27 +131,25 @@ const st = StyleSheet.create({
         fontWeight: '700',
     },
 
-    currentMeta: {
-        color: '#E5E7EB',
-        fontSize: 14,
+    currentName: {
+        color: '#F9FAFB',
+        fontSize: 20,
+        fontWeight: '700',
     },
 
-    // ---------- NEXT CARD (carousel wrapper) ----------
+    // ----- NEXT (CAROUSEL) -----
     nextCardWrapper: {
-        width: '100%',
-        minHeight: 64,
+        marginTop: 4,
     },
 
     nextCard: {
-        width: '100%',
-        minHeight: 64,
-        borderRadius: 12,
-        paddingHorizontal: 14,
-        paddingVertical: 10,
+        borderRadius: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
         backgroundColor: '#020617',
         borderWidth: 1,
         borderColor: '#1F2937',
-        justifyContent: 'center',
+        overflow: 'hidden',
     },
 
     nextTitle: {
@@ -177,14 +161,57 @@ const st = StyleSheet.create({
     },
 
     nextText: {
-        color: '#F9FAFB',
-        fontSize: 16,
+        color: '#E5E7EB',
+        fontSize: 15,
         fontWeight: '600',
     },
 
     nextEmpty: {
         color: '#4B5563',
         fontSize: 13,
+    },
+    progressContainer: {
+        width: '100%',
+        marginTop: 16,
+        gap: 6,
+    },
+
+    progressHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+
+    progressMeta: {
+        color: '#9CA3AF',
+        fontSize: 12,
+    },
+
+    progressText: {
+        color: '#E5E7EB',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    currentBodyRow: {
+        marginVertical: 6,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
+        justifyContent: 'flex-start',
+    },
+
+    checkCircle: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    checkMark: {
+        color: '#FFFFFF',
+        fontSize: 14,
+        fontWeight: '700',
     },
 });
 
