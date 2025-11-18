@@ -1,26 +1,21 @@
 import { StyleSheet } from 'react-native';
 
-const st = StyleSheet.create({
-    // main state
-    phase: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#F2F2F2',
-    },
+const ARC_SIZE = 220;
 
+const st = StyleSheet.create({
     runContainer: {
         flex: 1,
+        padding: 16,
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 16,
-        gap: 10,
+        gap: 16,
     },
 
     phasePill: {
         paddingHorizontal: 16,
         paddingVertical: 6,
         borderRadius: 999,
-        marginBottom: 12,
+        marginBottom: 8,
     },
     phasePillText: {
         color: '#0B0B0C',
@@ -30,24 +25,42 @@ const st = StyleSheet.create({
         letterSpacing: 0.8,
     },
 
+    arcWrapper: {
+        width: ARC_SIZE,
+        height: ARC_SIZE,
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+    },
+
     timer: {
+        position: 'absolute',
         color: '#F2F2F2',
         fontSize: 96,
         fontVariant: ['tabular-nums'],
     },
+
+    metaContainer: {
+        marginTop: 8,
+        alignItems: 'center',
+        minHeight: 40, // keeps timer from shifting when "Next" appears/disappears
+        justifyContent: 'center',
+        gap: 2,
+    },
     meta: {
         color: '#A1A1AA',
-        marginTop: 6,
         fontSize: 14,
     },
     next: {
         color: '#9CA3AF',
-        marginTop: 4,
         fontSize: 14,
+    },
+    nextPlaceholder: {
+        height: 18, // roughly one line of text, keeps layout stable
     },
 
     progressContainer: {
-        marginTop: 16,
+        marginTop: 12,
         width: '100%',
         maxWidth: 360,
         gap: 6,
@@ -69,6 +82,8 @@ const st = StyleSheet.create({
     progressBarRemaining: {
         backgroundColor: 'transparent',
     },
+
+    // === EMPTY RUN STATE ===
     emptyContainer: {
         flex: 1,
         alignItems: 'center',
@@ -87,6 +102,12 @@ const st = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
         marginTop: 4,
+    },
+    // main state
+    phase: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#F2F2F2',
     },
 });
 

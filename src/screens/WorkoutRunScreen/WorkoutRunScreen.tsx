@@ -1,7 +1,9 @@
+// src/screens/workouts/WorkoutRunScreen.tsx
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, Text, View } from 'react-native';
+import { AppState, Animated, Easing, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
+import Svg, { Circle } from 'react-native-svg';
 
 import { useWorkout } from '@state/useWorkouts';
 import { buildSteps, createTimer, type Phase } from '@core/timer';
@@ -15,13 +17,55 @@ import st from './styles';
 const colorFor = (phase: Phase): string => {
     if (phase === 'WORK') return '#22C55E';
     if (phase === 'REST') return '#60A5FA';
-    return '#F59E0B'; // PREP or others
+    return '#F59E0B'; // PREP / else
 };
 
 const labelFor = (phase: Phase): string => {
     if (phase === 'WORK') return 'Work';
     if (phase === 'REST') return 'Rest';
     return 'Prepare';
+};
+
+// ——— Arc around the timer ———
+const ARC_SIZE = 220;
+const ARC_STROKE = 15;
+const ARC_RADIUS = (ARC_SIZE - ARC_STROKE) / 2;
+const ARC_CIRC = 2 * Math.PI * ARC_RADIUS;
+
+type PhaseArcProps = {
+    progress: number; // 0..1
+    color: string;
+};
+
+const PhaseArc = ({ progress, color }: PhaseArcProps) => {
+    const clamped = Math.min(Math.max(progress, 0), 1);
+    const strokeDashoffset = ARC_CIRC * (1 - clamped);
+
+    return (
+        <Svg width={ARC_SIZE} height={ARC_SIZE}>
+            {/* Background track */}
+            <Circle
+                cx={ARC_SIZE / 2}
+                cy={ARC_SIZE / 2}
+                r={ARC_RADIUS}
+                stroke="#111827"
+                strokeWidth={ARC_STROKE}
+                fill="transparent"
+            />
+            {/* Progress arc */}
+            <Circle
+                cx={ARC_SIZE / 2}
+                cy={ARC_SIZE / 2}
+                r={ARC_RADIUS}
+                stroke={color}
+                strokeWidth={ARC_STROKE}
+                fill="transparent"
+                strokeDasharray={`${ARC_CIRC} ${ARC_CIRC}`}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+            />
+        </Svg>
+    );
 };
 
 export const WorkoutRunScreen = () => {
@@ -31,22 +75,15 @@ export const WorkoutRunScreen = () => {
     const router = useRouter();
     const workout = useWorkout(id);
 
-    // Build steps once for this workout
-    const { steps, totalDurationSec } = useMemo(() => {
+    // Steps + total duration
+    const { steps } = useMemo(() => {
         if (!workout) {
             return {
                 steps: [] as ReturnType<typeof buildSteps>['steps'],
-                totalDurationSec: 0,
             };
         }
-
         const built = buildSteps(5, workout.blocks);
-        const total = built.steps.reduce(
-            (sum, s) => sum + (s.durationSec ?? 0),
-            0
-        );
-
-        return { steps: built.steps, totalDurationSec: total };
+        return { steps: built.steps };
     }, [workout]);
 
     const engineRef = useRef<ReturnType<typeof createTimer> | null>(null);
@@ -56,7 +93,37 @@ export const WorkoutRunScreen = () => {
     const [remaining, setRemaining] = useState(0);
     const [running, setRunning] = useState(false);
 
-    // Initial setup + engine creation
+    // Breathing animation for last seconds
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    const stopBreathing = () => {
+        scaleAnim.stopAnimation();
+        scaleAnim.setValue(1);
+    };
+
+    const startBreathing = () => {
+        // already animating? avoid stacking
+        scaleAnim.stopAnimation();
+        scaleAnim.setValue(1);
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(scaleAnim, {
+                    toValue: 1.1,
+                    duration: 180,
+                    easing: Easing.inOut(Easing.ease),
+                    useNativeDriver: true,
+                }),
+                Animated.timing(scaleAnim, {
+                    toValue: 1.0,
+                    duration: 180,
+                    easing: Easing.inOut(Easing.ease),
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+    };
+
+    // Engine setup
     useEffect(() => {
         const setup = async () => {
             await cancelAll();
@@ -81,7 +148,7 @@ export const WorkoutRunScreen = () => {
         };
     }, [steps]);
 
-    // Local notifications: schedule end of current step
+    // Notifications on step end
     useEffect(() => {
         const schedule = async () => {
             if (lastNotifIdRef.current) {
@@ -115,13 +182,12 @@ export const WorkoutRunScreen = () => {
         void schedule();
     }, [stepIndex, running, remaining, steps]);
 
-    // Foreground re-sync: pause+resume to re-align timers after background
+    // Foreground resync
     useEffect(() => {
         const sub = AppState.addEventListener('change', (state) => {
             if (state === 'active') {
                 const engine = engineRef.current;
                 if (!engine) return;
-
                 if (engine.isRunning()) {
                     engine.pause();
                     engine.resume();
@@ -134,7 +200,23 @@ export const WorkoutRunScreen = () => {
         };
     }, []);
 
-    // Empty / error state
+    // Breathing toggle (based on remaining time of the current step)
+    useEffect(() => {
+        const step = steps[stepIndex];
+        if (!step || !step.durationSec) {
+            stopBreathing();
+            return;
+        }
+
+        if (remaining > 0 && remaining <= 3) {
+            startBreathing();
+        } else {
+            stopBreathing();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [remaining, stepIndex, steps]);
+
+    // Empty / not found state
     if (!workout || steps.length === 0) {
         return (
             <>
@@ -166,6 +248,12 @@ export const WorkoutRunScreen = () => {
     const meta = `Block ${step.blockIdx + 1} • Ex ${step.exIdx + 1} • Set ${
         step.setIdx + 1
     }`;
+
+    // progress inside *this phase*
+    const phaseProgress =
+        step.durationSec && step.durationSec > 0
+            ? (step.durationSec - remaining) / step.durationSec
+            : 0;
 
     const totalSteps = steps.length;
     const currentStepNumber = stepIndex + 1;
@@ -215,23 +303,39 @@ export const WorkoutRunScreen = () => {
         <>
             <MainContainer title={workout.name} scroll={false}>
                 <View style={st.runContainer}>
-                    {/* Phase pill */}
+                    {/* Phase pill (fixed position above timer) */}
                     <View
                         style={[st.phasePill, { backgroundColor: phaseColor }]}
                     >
                         <Text style={st.phasePillText}>{phaseLabel}</Text>
                     </View>
 
-                    {/* Timer */}
-                    <Text style={st.timer}>{remaining}</Text>
+                    {/* Arc + timer (timer absolutely centered, arc behind it) */}
+                    <View style={st.arcWrapper}>
+                        <PhaseArc progress={phaseProgress} color={phaseColor} />
+                        <Animated.Text
+                            style={[
+                                st.timer,
+                                {
+                                    transform: [{ scale: scaleAnim }],
+                                },
+                            ]}
+                        >
+                            {remaining}
+                        </Animated.Text>
+                    </View>
 
-                    {/* Meta */}
-                    <Text style={st.meta}>{meta}</Text>
-                    {step.nextName ? (
-                        <Text style={st.next}>Next: {step.nextName}</Text>
-                    ) : null}
+                    {/* Meta + "Next" in a fixed-height area to avoid vertical jumps */}
+                    <View style={st.metaContainer}>
+                        <Text style={st.meta}>{meta}</Text>
+                        {step.nextName ? (
+                            <Text style={st.next}>Next: {step.nextName}</Text>
+                        ) : (
+                            <View style={st.nextPlaceholder} />
+                        )}
+                    </View>
 
-                    {/* Progress indicator */}
+                    {/* Progress indicator for whole workout */}
                     <View style={st.progressContainer}>
                         <Text style={st.progressText}>
                             Step {currentStepNumber} / {totalSteps}
