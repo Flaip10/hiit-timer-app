@@ -140,6 +140,123 @@ const PhaseArc = ({ progress, color }: PhaseArcProps) => {
     );
 };
 
+type CurrentStepCardProps = {
+    meta: string;
+    phaseLabel: string;
+    color: string;
+};
+
+const CurrentStepCard = ({ meta, phaseLabel, color }: CurrentStepCardProps) => {
+    return (
+        <View style={[st.currentCard, { borderColor: color }]}>
+            <View style={st.currentHeaderRow}>
+                <Text style={st.currentTitle}>Current</Text>
+                <View style={[st.currentPhasePill, { backgroundColor: color }]}>
+                    <Text style={st.currentPhaseText}>{phaseLabel}</Text>
+                </View>
+            </View>
+            <Text style={st.currentMeta}>{meta}</Text>
+        </View>
+    );
+};
+
+type NextStepCarouselProps = {
+    label: string | null;
+};
+
+const NextStepCarousel = ({ label }: NextStepCarouselProps) => {
+    // What we are currently displaying
+    const [displayLabel, setDisplayLabel] = useState<string | null>(label);
+
+    const opacity = useRef(new Animated.Value(label ? 1 : 0)).current;
+    const translateY = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        // No change → nothing to do
+        if (label === displayLabel) return;
+
+        // Helper: animate in from bottom
+        const animateIn = () => {
+            opacity.setValue(0);
+            translateY.setValue(8); // slightly below
+            Animated.timing(opacity, {
+                toValue: 1,
+                duration: 220,
+                easing: Easing.out(Easing.ease),
+                useNativeDriver: true,
+            }).start();
+            Animated.timing(translateY, {
+                toValue: 0,
+                duration: 220,
+                easing: Easing.out(Easing.ease),
+                useNativeDriver: true,
+            }).start();
+        };
+
+        // Helper: animate out upwards, then swap text
+        const animateOutAndReplace = (nextLabel: string | null) => {
+            Animated.parallel([
+                Animated.timing(opacity, {
+                    toValue: 0,
+                    duration: 160,
+                    easing: Easing.in(Easing.ease),
+                    useNativeDriver: true,
+                }),
+                Animated.timing(translateY, {
+                    toValue: -8,
+                    duration: 160,
+                    easing: Easing.in(Easing.ease),
+                    useNativeDriver: true,
+                }),
+            ]).start(() => {
+                setDisplayLabel(nextLabel);
+                if (nextLabel) {
+                    animateIn();
+                }
+            });
+        };
+
+        // First render: nothing yet → just show new label
+        if (!displayLabel && label) {
+            setDisplayLabel(label);
+            animateIn();
+            return;
+        }
+
+        // Going to "no next step"
+        if (displayLabel && !label) {
+            animateOutAndReplace(null);
+            return;
+        }
+
+        // Switching from one label to another
+        animateOutAndReplace(label);
+    }, [label, displayLabel, opacity, translateY]);
+
+    return (
+        <View style={st.nextCardWrapper}>
+            <Animated.View
+                style={[
+                    st.nextCard,
+                    {
+                        opacity,
+                        transform: [{ translateY }],
+                    },
+                ]}
+            >
+                {displayLabel ? (
+                    <>
+                        <Text style={st.nextTitle}>Next</Text>
+                        <Text style={st.nextText}>{displayLabel}</Text>
+                    </>
+                ) : (
+                    <Text style={st.nextEmpty}>No next step</Text>
+                )}
+            </Animated.View>
+        </View>
+    );
+};
+
 export const WorkoutRunScreen = () => {
     useKeepAwake();
 
@@ -399,12 +516,12 @@ export const WorkoutRunScreen = () => {
                 </View>
                 {/* Meta + "Next" in a fixed-height area to avoid vertical jumps */}
                 <View style={st.metaContainer}>
-                    <Text style={st.meta}>{meta}</Text>
-                    {step.nextName ? (
-                        <Text style={st.next}>Next: {step.nextName}</Text>
-                    ) : (
-                        <View style={st.nextPlaceholder} />
-                    )}
+                    <CurrentStepCard
+                        meta={meta}
+                        phaseLabel={phaseLabel}
+                        color={phaseColor}
+                    />
+                    <NextStepCarousel label={step.nextName ?? null} />
                 </View>
 
                 {/* Progress indicator for whole workout */}

@@ -4,10 +4,11 @@ export const ARC_SIZE = 240;
 
 const st = StyleSheet.create({
     arcContainer: {
+        marginTop: 60,
         padding: 16,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 32,
+        gap: 40,
     },
 
     phasePill: {
@@ -38,13 +39,6 @@ const st = StyleSheet.create({
         fontVariant: ['tabular-nums'],
     },
 
-    metaContainer: {
-        marginTop: 8,
-        alignItems: 'center',
-        minHeight: 40, // keeps timer from shifting when "Next" appears/disappears
-        justifyContent: 'center',
-        gap: 2,
-    },
     meta: {
         color: '#A1A1AA',
         fontSize: 14,
@@ -106,6 +100,91 @@ const st = StyleSheet.create({
         fontSize: 18,
         fontWeight: '700',
         color: '#F2F2F2',
+    },
+    // Container that holds both "current" and "next"
+    metaContainer: {
+        width: '100%',
+        marginTop: -12,
+        gap: 10,
+    },
+
+    // ---------- CURRENT CARD ----------
+    currentCard: {
+        width: '100%',
+        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        backgroundColor: '#020617',
+        borderWidth: 1,
+        // borderColor is injected from props
+    },
+
+    currentHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 4,
+    },
+
+    currentTitle: {
+        color: '#9CA3AF',
+        fontSize: 11,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+
+    currentPhasePill: {
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 999,
+    },
+
+    currentPhaseText: {
+        color: '#0B0B0C',
+        fontSize: 12,
+        fontWeight: '700',
+    },
+
+    currentMeta: {
+        color: '#E5E7EB',
+        fontSize: 14,
+    },
+
+    // ---------- NEXT CARD (carousel wrapper) ----------
+    nextCardWrapper: {
+        width: '100%',
+        minHeight: 64,
+    },
+
+    nextCard: {
+        width: '100%',
+        minHeight: 64,
+        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        backgroundColor: '#020617',
+        borderWidth: 1,
+        borderColor: '#1F2937',
+        justifyContent: 'center',
+    },
+
+    nextTitle: {
+        color: '#9CA3AF',
+        fontSize: 11,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        marginBottom: 2,
+    },
+
+    nextText: {
+        color: '#F9FAFB',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+
+    nextEmpty: {
+        color: '#4B5563',
+        fontSize: 13,
     },
 });
 
