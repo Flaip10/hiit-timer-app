@@ -1,9 +1,16 @@
 // src/screens/workouts/WorkoutRunScreen.tsx
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Animated, Easing, Text, View } from 'react-native';
+
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
+import Reanimated, {
+    useSharedValue,
+    useAnimatedProps,
+    withTiming,
+    Easing as ReEasing,
+} from 'react-native-reanimated';
 
 import { useWorkout } from '@state/useWorkouts';
 import { buildSteps, createTimer, type Phase } from '@core/timer';
@@ -12,7 +19,7 @@ import { cancelAll, cancelById, scheduleLocal } from '@core/notify';
 import { MainContainer } from '@components/layout/MainContainer';
 import { FooterBar } from '@components/layout/FooterBar';
 import { Button } from '@components/ui/Button/Button';
-import st from './styles';
+import st, { ARC_SIZE } from './styles';
 
 const colorFor = (phase: Phase): string => {
     if (phase === 'WORK') return '#22C55E';
@@ -27,10 +34,50 @@ const labelFor = (phase: Phase): string => {
 };
 
 // ——— Arc around the timer ———
-const ARC_SIZE = 220;
-const ARC_STROKE = 15;
+const AnimatedPath = Reanimated.createAnimatedComponent(Path);
+
+const ARC_STROKE = 17;
 const ARC_RADIUS = (ARC_SIZE - ARC_STROKE) / 2;
-const ARC_CIRC = 2 * Math.PI * ARC_RADIUS;
+
+// 240° arc, open at the bottom like a rainbow
+const ARC_SWEEP_DEG = 240;
+const ARC_SWEEP_RAD = (ARC_SWEEP_DEG * Math.PI) / 180;
+
+// Arc length used for strokeDasharray/offset
+const ARC_LENGTH = ARC_RADIUS * ARC_SWEEP_RAD;
+
+const polarToCartesian = (
+    cx: number,
+    cy: number,
+    radius: number,
+    angleDeg: number
+) => {
+    // angle 0 at top, positive clockwise
+    const rad = ((angleDeg - 90) * Math.PI) / 180;
+    return {
+        x: cx + radius * Math.cos(rad),
+        y: cy + radius * Math.sin(rad),
+    };
+};
+
+const describeArc = (
+    cx: number,
+    cy: number,
+    radius: number,
+    startAngle: number,
+    endAngle: number
+) => {
+    const start = polarToCartesian(cx, cy, radius, startAngle);
+    const end = polarToCartesian(cx, cy, radius, endAngle);
+
+    const largeArcFlag = Math.abs(endAngle - startAngle) <= 180 ? 0 : 1;
+    const sweepFlag = 1; // clockwise
+
+    return [
+        `M ${start.x} ${start.y}`,
+        `A ${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${end.x} ${end.y}`,
+    ].join(' ');
+};
 
 type PhaseArcProps = {
     progress: number; // 0..1
@@ -38,31 +85,56 @@ type PhaseArcProps = {
 };
 
 const PhaseArc = ({ progress, color }: PhaseArcProps) => {
-    const clamped = Math.min(Math.max(progress, 0), 1);
-    const strokeDashoffset = ARC_CIRC * (1 - clamped);
+    const cx = ARC_SIZE / 2;
+    const cy = ARC_SIZE / 2;
+
+    // Arc from -120° to +120° (240° total)
+    const startAngle = -120;
+    const endAngle = 120;
+
+    const arcPath = describeArc(cx, cy, ARC_RADIUS, startAngle, endAngle);
+
+    // Shared value for smooth progress
+    const animatedProgress = useSharedValue(progress);
+
+    // Animate toward the latest progress
+    useEffect(() => {
+        const clamped = Math.min(Math.max(progress, 0), 1);
+        animatedProgress.value = withTiming(clamped, {
+            duration: 300,
+            easing: ReEasing.out(ReEasing.cubic),
+        });
+    }, [progress, animatedProgress]);
+
+    // Animate strokeDashoffset along the arc length
+    const animatedProps = useAnimatedProps(() => {
+        const clamped = Math.min(Math.max(animatedProgress.value, 0), 1);
+        const strokeDashoffset = ARC_LENGTH * (1 - clamped);
+
+        return {
+            strokeDashoffset,
+        };
+    });
 
     return (
         <Svg width={ARC_SIZE} height={ARC_SIZE}>
-            {/* Background track */}
-            <Circle
-                cx={ARC_SIZE / 2}
-                cy={ARC_SIZE / 2}
-                r={ARC_RADIUS}
+            {/* Background track for the arc */}
+            <Path
+                d={arcPath}
                 stroke="#111827"
                 strokeWidth={ARC_STROKE}
                 fill="transparent"
+                strokeLinecap="round"
             />
-            {/* Progress arc */}
-            <Circle
-                cx={ARC_SIZE / 2}
-                cy={ARC_SIZE / 2}
-                r={ARC_RADIUS}
+            {/* Foreground animated arc */}
+            <AnimatedPath
+                d={arcPath}
                 stroke={color}
                 strokeWidth={ARC_STROKE}
                 fill="transparent"
-                strokeDasharray={`${ARC_CIRC} ${ARC_CIRC}`}
-                strokeDashoffset={strokeDashoffset}
                 strokeLinecap="round"
+                strokeDasharray={`${ARC_LENGTH} ${ARC_LENGTH}`}
+                animatedProps={animatedProps}
             />
         </Svg>
     );
@@ -302,7 +374,7 @@ export const WorkoutRunScreen = () => {
     return (
         <>
             <MainContainer title={workout.name} scroll={false}>
-                <View style={st.runContainer}>
+                <View style={st.arcContainer}>
                     {/* Phase pill (fixed position above timer) */}
                     <View
                         style={[st.phasePill, { backgroundColor: phaseColor }]}
@@ -324,33 +396,32 @@ export const WorkoutRunScreen = () => {
                             {remaining}
                         </Animated.Text>
                     </View>
+                </View>
+                {/* Meta + "Next" in a fixed-height area to avoid vertical jumps */}
+                <View style={st.metaContainer}>
+                    <Text style={st.meta}>{meta}</Text>
+                    {step.nextName ? (
+                        <Text style={st.next}>Next: {step.nextName}</Text>
+                    ) : (
+                        <View style={st.nextPlaceholder} />
+                    )}
+                </View>
 
-                    {/* Meta + "Next" in a fixed-height area to avoid vertical jumps */}
-                    <View style={st.metaContainer}>
-                        <Text style={st.meta}>{meta}</Text>
-                        {step.nextName ? (
-                            <Text style={st.next}>Next: {step.nextName}</Text>
-                        ) : (
-                            <View style={st.nextPlaceholder} />
-                        )}
-                    </View>
-
-                    {/* Progress indicator for whole workout */}
-                    <View style={st.progressContainer}>
-                        <Text style={st.progressText}>
-                            Step {currentStepNumber} / {totalSteps}
-                        </Text>
-                        <View style={st.progressBarBg}>
-                            <View
-                                style={[st.progressBarFill, { flex: progress }]}
-                            />
-                            <View
-                                style={[
-                                    st.progressBarRemaining,
-                                    { flex: 1 - progress },
-                                ]}
-                            />
-                        </View>
+                {/* Progress indicator for whole workout */}
+                <View style={st.progressContainer}>
+                    <Text style={st.progressText}>
+                        Step {currentStepNumber} / {totalSteps}
+                    </Text>
+                    <View style={st.progressBarBg}>
+                        <View
+                            style={[st.progressBarFill, { flex: progress }]}
+                        />
+                        <View
+                            style={[
+                                st.progressBarRemaining,
+                                { flex: 1 - progress },
+                            ]}
+                        />
                     </View>
                 </View>
             </MainContainer>

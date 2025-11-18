@@ -1,21 +1,19 @@
 import { StyleSheet } from 'react-native';
 
-const ARC_SIZE = 220;
+export const ARC_SIZE = 240;
 
 const st = StyleSheet.create({
-    runContainer: {
-        flex: 1,
+    arcContainer: {
         padding: 16,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 16,
+        gap: 32,
     },
 
     phasePill: {
         paddingHorizontal: 16,
         paddingVertical: 6,
         borderRadius: 999,
-        marginBottom: 8,
     },
     phasePillText: {
         color: '#0B0B0C',
