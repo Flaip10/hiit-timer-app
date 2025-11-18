@@ -1,4 +1,3 @@
-// src/screens/workouts/ExerciseInfoCard.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Text, View } from 'react-native';
 
