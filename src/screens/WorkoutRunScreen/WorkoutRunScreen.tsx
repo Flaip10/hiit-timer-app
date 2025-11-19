@@ -366,11 +366,13 @@ export const WorkoutRunScreen = () => {
                     )}
 
                     {!isFinished && nextExerciseName && (
-                        <NextExerciseCarousel label={nextExerciseName} />
+                        <NextExerciseCarousel
+                            phase={phase}
+                            label={nextExerciseName}
+                        />
                     )}
-
-                    <FinishedCard visible={isFinished} />
                 </View>
+                <FinishedCard visible={isFinished} />
 
                 {/* Progress indicator for whole workout */}
                 {/* <View style={st.progressContainer}>

@@ -95,14 +95,14 @@ const st = StyleSheet.create({
     metaContainer: {
         width: '100%',
         marginTop: -50,
+        paddingHorizontal: 10,
+        paddingVertical: 14,
+        gap: 12,
     },
 
     // ----- CURRENT EXERCISE CARD -----
     currentCard: {
         width: '100%',
-        borderRadius: 14,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
     },
 
     currentHeaderRow: {
