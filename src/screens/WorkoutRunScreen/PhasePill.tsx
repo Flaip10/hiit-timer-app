@@ -1,9 +1,9 @@
-// src/screens/workouts/PhasePill.tsx
 import React, { useEffect } from 'react';
 import { Text, type TextStyle, type ViewStyle } from 'react-native';
 import Animated, {
     Easing,
     interpolateColor,
+    LinearTransition,
     useAnimatedStyle,
     useSharedValue,
     withDelay,
@@ -46,7 +46,6 @@ export const PhasePill = ({
                 })
             );
 
-            // opacity pop
             opacity.value = withSequence(
                 withTiming(0.7, {
                     duration: 250,
@@ -58,7 +57,6 @@ export const PhasePill = ({
                 })
             );
 
-            // scale pop
             scale.value = withSequence(
                 withTiming(0.9, {
                     duration: 250,
@@ -87,7 +85,11 @@ export const PhasePill = ({
     });
 
     return (
-        <Animated.View style={[containerStyle, animatedStyle]}>
+        <Animated.View
+            // smooth width/position changes when label length changes
+            layout={LinearTransition.springify().duration(400)}
+            style={[containerStyle, animatedStyle]}
+        >
             <Text style={textStyle}>{label}</Text>
         </Animated.View>
     );
