@@ -366,10 +366,7 @@ export const WorkoutRunScreen = () => {
                     )}
 
                     {!isFinished && nextExerciseName && (
-                        <NextExerciseCarousel
-                            label={nextExerciseName}
-                            highlight={phase !== 'WORK'} // full opacity on REST / PREP
-                        />
+                        <NextExerciseCarousel label={nextExerciseName} />
                     )}
 
                     <FinishedCard visible={isFinished} />
