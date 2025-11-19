@@ -130,12 +130,6 @@ export const ExerciseInfoCard = ({
         >
             <View style={st.currentHeaderRow}>
                 <Text style={st.currentTitle}>Exercise</Text>
-                <PhasePill
-                    label={phaseLabel}
-                    color={color}
-                    containerStyle={st.currentPhasePill}
-                    textStyle={st.currentPhaseText}
-                />
             </View>
 
             <View style={st.currentBodyRow}>
