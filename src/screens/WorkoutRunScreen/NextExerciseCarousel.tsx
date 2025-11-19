@@ -17,7 +17,7 @@ export const NextExerciseCarousel = ({
     const [displayed, setDisplayed] = useState(label);
     const translateY = useRef(new Animated.Value(0)).current;
     const opacity = useRef(new Animated.Value(1)).current;
-    const cardOpacity = useRef(new Animated.Value(0.6)).current;
+    const cardOpacity = useRef(new Animated.Value(0.5)).current;
 
     const lastPhaseRef = useRef<Phase | null>(null);
 
@@ -74,7 +74,14 @@ export const NextExerciseCarousel = ({
         }
 
         if (phase !== 'REST') {
-            cardOpacity.setValue(0.6);
+            Animated.sequence([
+                Animated.delay(100),
+                Animated.timing(cardOpacity, {
+                    toValue: 0.5,
+                    duration: 180,
+                    useNativeDriver: true,
+                }),
+            ]).start();
         }
 
         lastPhaseRef.current = phase;
