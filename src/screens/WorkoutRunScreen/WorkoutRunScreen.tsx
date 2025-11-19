@@ -442,6 +442,11 @@ export const WorkoutRunScreen = () => {
                                 onPress={handlePrimary}
                                 flex={1}
                                 textStyle={st.bigPrimaryText}
+                                style={
+                                    primaryLabel === 'Pause'
+                                        ? st.primaryAlt
+                                        : undefined
+                                }
                             />
                         </View>
                     </View>

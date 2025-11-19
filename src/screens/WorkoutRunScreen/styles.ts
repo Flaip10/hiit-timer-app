@@ -266,6 +266,7 @@ const st = StyleSheet.create({
     bigPrimaryText: {
         fontSize: 18,
     },
+    primaryAlt: { opacity: 0.6 },
     smallSecondary: {
         width: 100,
     },
