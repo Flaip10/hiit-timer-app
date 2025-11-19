@@ -16,6 +16,7 @@ import { PhaseArc } from './PhaseArc';
 import { ExerciseInfoCard } from './ExerciseInfoCard';
 import { NextExerciseCarousel } from './NextExerciseCarousel';
 import { FinishedCard } from './FinishedCard';
+import { PhasePill } from './PhasePill';
 
 const colorFor = (phase: Phase): string => {
     if (phase === 'WORK') return '#22C55E';
@@ -325,18 +326,12 @@ export const WorkoutRunScreen = () => {
         <>
             <MainContainer title={workout.name} scroll={false}>
                 <View style={st.arcContainer}>
-                    <View
-                        style={[
-                            st.phasePill,
-                            {
-                                backgroundColor: phaseColor,
-                            },
-                        ]}
-                    >
-                        <Text style={st.phasePillText}>
-                            {isFinished ? 'Done' : phaseLabel}
-                        </Text>
-                    </View>
+                    <PhasePill
+                        color={phaseColor}
+                        label={isFinished ? 'Done' : phaseLabel}
+                        containerStyle={st.phasePill}
+                        textStyle={st.phasePillText}
+                    />
 
                     <View style={st.arcWrapper}>
                         <PhaseArc
