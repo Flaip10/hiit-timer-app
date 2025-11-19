@@ -115,7 +115,6 @@ const WorkoutSummaryScreen = () => {
                     onPress={() =>
                         router.push({
                             pathname: `/run/${id}`,
-                            params: { id },
                         })
                     }
                 />
