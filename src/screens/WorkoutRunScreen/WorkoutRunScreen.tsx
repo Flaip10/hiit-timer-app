@@ -21,7 +21,7 @@ import { PhasePill } from './PhasePill';
 const colorFor = (phase: Phase): string => {
     if (phase === 'WORK') return '#22C55E';
     if (phase === 'REST') return '#60A5FA';
-    return '#F59E0B'; // PREP / else
+    return '#F59E0B';
 };
 
 const labelFor = (phase: Phase): string => {
@@ -33,9 +33,15 @@ const labelFor = (phase: Phase): string => {
 export const WorkoutRunScreen = () => {
     useKeepAwake();
 
-    const { id } = useLocalSearchParams<{ id: string }>();
+    const { id, autoStart } = useLocalSearchParams<{
+        id?: string;
+        autoStart?: string;
+    }>();
     const router = useRouter();
     const workout = useWorkout(id);
+
+    const shouldAutoStart =
+        autoStart === '1' || autoStart === 'true' || autoStart === 'yes';
 
     // Steps + total duration
     const { steps } = useMemo(() => {
@@ -50,6 +56,7 @@ export const WorkoutRunScreen = () => {
 
     const engineRef = useRef<ReturnType<typeof createTimer> | null>(null);
     const lastNotifIdRef = useRef<string | null>(null);
+    const autoStartedRef = useRef(false);
 
     const [stepIndex, setStepIndex] = useState(0);
     const [remaining, setRemaining] = useState(0);
@@ -104,11 +111,17 @@ export const WorkoutRunScreen = () => {
         setRemaining(steps[0]?.durationSec ?? 0);
         setRunning(false);
 
+        // auto-start PREP if requested (coming from WorkoutSummary "Start")
+        if (shouldAutoStart && !autoStartedRef.current) {
+            autoStartedRef.current = true;
+            engineRef.current?.start();
+        }
+
         return () => {
             engineRef.current?.stop();
             void cancelAll();
         };
-    }, [steps]);
+    }, [steps, shouldAutoStart]);
 
     // Notifications on step end
     useEffect(() => {
@@ -296,6 +309,11 @@ export const WorkoutRunScreen = () => {
         router.back();
     };
 
+    const handleDone = () => {
+        // natural finish → just go back to previous (summary)
+        router.back();
+    };
+
     const isAtStepStart = remaining === step.durationSec;
 
     const primaryLabel = isFinished
@@ -308,8 +326,7 @@ export const WorkoutRunScreen = () => {
 
     const handlePrimary = () => {
         if (isFinished) {
-            // treat as End
-            handleEnd();
+            handleDone();
             return;
         }
 
@@ -349,7 +366,7 @@ export const WorkoutRunScreen = () => {
                         </Animated.Text>
                     </View>
                 </View>
-                {/* Meta + "Next" in a fixed-height area to avoid vertical jumps */}
+
                 <View style={st.metaContainer}>
                     {!isFinished && currentExerciseName && (
                         <ExerciseInfoCard
@@ -367,10 +384,12 @@ export const WorkoutRunScreen = () => {
                         />
                     )}
                 </View>
+
                 <FinishedCard visible={isFinished} />
 
-                {/* Progress indicator for whole workout */}
-                {/* <View style={st.progressContainer}>
+                {/* Progress bar is commented for now; keep here if you want it later */}
+                {/*
+                <View style={st.progressContainer}>
                     <View style={st.progressHeaderRow}>
                         <Text style={st.progressMeta}>{metaLabel}</Text>
                         <Text style={st.progressText}>
@@ -388,28 +407,45 @@ export const WorkoutRunScreen = () => {
                             ]}
                         />
                     </View>
-                </View> */}
+                </View>
+                */}
             </MainContainer>
 
             <FooterBar>
-                <Button
-                    title={primaryLabel}
-                    variant="primary"
-                    onPress={handlePrimary}
-                    flex={1}
-                />
-                <Button
-                    title="Skip"
-                    variant="secondary"
-                    onPress={handleSkip}
-                    flex={1}
-                />
-                <Button
-                    title="End"
-                    variant="secondary"
-                    onPress={handleEnd}
-                    flex={1}
-                />
+                {isFinished ? (
+                    <Button
+                        title="Done"
+                        variant="primary"
+                        onPress={handleDone}
+                        flex={1}
+                    />
+                ) : (
+                    <View style={st.footerRunLayout}>
+                        <View style={st.footerTopRow}>
+                            <Button
+                                title="Skip"
+                                variant="secondary"
+                                onPress={handleSkip}
+                                style={st.smallSecondary}
+                            />
+                            <Button
+                                title="End"
+                                variant="secondary"
+                                onPress={handleEnd}
+                                style={st.smallSecondary}
+                            />
+                        </View>
+                        <View style={st.footerTopRow}>
+                            <Button
+                                title={primaryLabel}
+                                variant="primary"
+                                onPress={handlePrimary}
+                                flex={1}
+                                textStyle={st.bigPrimaryText}
+                            />
+                        </View>
+                    </View>
+                )}
             </FooterBar>
         </>
     );
