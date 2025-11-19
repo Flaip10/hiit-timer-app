@@ -1,5 +1,15 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Text, type TextStyle, type ViewStyle } from 'react-native';
+// src/screens/workouts/PhasePill.tsx
+import React, { useEffect } from 'react';
+import { Text, type TextStyle, type ViewStyle } from 'react-native';
+import Animated, {
+    Easing,
+    interpolateColor,
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withSequence,
+    withTiming,
+} from 'react-native-reanimated';
 
 type PhasePillProps = {
     label: string;
@@ -14,39 +24,70 @@ export const PhasePill = ({
     containerStyle,
     textStyle,
 }: PhasePillProps) => {
-    const opacity = useRef(new Animated.Value(0)).current;
-    const scale = useRef(new Animated.Value(0.9)).current;
+    const opacity = useSharedValue(1);
+    const scale = useSharedValue(1);
 
-    // Whenever label or color changes, play a quick fade+scale-in
+    // color interpolation: fromColor -> toColor with progress 0..1
+    const fromColor = useSharedValue(color);
+    const toColor = useSharedValue(color);
+    const colorProgress = useSharedValue(1);
+
     useEffect(() => {
-        opacity.setValue(0);
-        scale.setValue(0.9);
+        if (label !== 'Prepare') {
+            fromColor.value = toColor.value;
+            toColor.value = color;
+            colorProgress.value = 0;
 
-        Animated.parallel([
-            Animated.timing(opacity, {
-                toValue: 1,
-                duration: 180,
-                useNativeDriver: true,
-            }),
-            Animated.timing(scale, {
-                toValue: 1,
-                duration: 180,
-                useNativeDriver: true,
-            }),
-        ]).start();
-    }, [label, color, opacity, scale]);
+            colorProgress.value = withDelay(
+                75,
+                withTiming(1, {
+                    duration: 250,
+                    easing: Easing.inOut(Easing.quad),
+                })
+            );
+
+            // opacity pop
+            opacity.value = withSequence(
+                withTiming(0.7, {
+                    duration: 250,
+                    easing: Easing.inOut(Easing.quad),
+                }),
+                withTiming(1, {
+                    duration: 250,
+                    easing: Easing.inOut(Easing.quad),
+                })
+            );
+
+            // scale pop
+            scale.value = withSequence(
+                withTiming(0.9, {
+                    duration: 250,
+                    easing: Easing.inOut(Easing.quad),
+                }),
+                withTiming(1, {
+                    duration: 250,
+                    easing: Easing.inOut(Easing.quad),
+                })
+            );
+        }
+    }, [label, color, fromColor, toColor, colorProgress, opacity, scale]);
+
+    const animatedStyle = useAnimatedStyle(() => {
+        const backgroundColor = interpolateColor(
+            colorProgress.value,
+            [0, 1],
+            [fromColor.value, toColor.value]
+        );
+
+        return {
+            opacity: opacity.value,
+            transform: [{ scale: scale.value }],
+            backgroundColor,
+        };
+    });
 
     return (
-        <Animated.View
-            style={[
-                containerStyle,
-                {
-                    backgroundColor: color,
-                    opacity,
-                    transform: [{ scale }],
-                },
-            ]}
-        >
+        <Animated.View style={[containerStyle, animatedStyle]}>
             <Text style={textStyle}>{label}</Text>
         </Animated.View>
     );
