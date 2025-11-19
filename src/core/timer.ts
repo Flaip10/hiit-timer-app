@@ -184,20 +184,6 @@ export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
         } else stop();
     };
 
-    const addSeconds = (sec: number) => {
-        const delta = sec * 1000;
-        if (running) {
-            endAt += delta;
-            issueTick(Math.max(0, endAt - nowMs()));
-        } else {
-            pausedRemainMs = Math.max(
-                0,
-                (pausedRemainMs ?? steps[index].durationSec * 1000) + delta
-            );
-            issueTick(pausedRemainMs);
-        }
-    };
-
     const stop = () => {
         running = false;
         if (raf != null) cancelAnimationFrame(raf);
@@ -211,7 +197,6 @@ export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
         pause,
         resume,
         skip,
-        addSeconds,
         stop,
         getIndex: () => index,
         isRunning: () => running,
