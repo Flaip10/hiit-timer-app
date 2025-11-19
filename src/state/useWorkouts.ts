@@ -36,8 +36,8 @@ const uid = (): string => nanoid(12);
 const starterBlock = (): WorkoutBlock => ({
     id: uid(),
     title: 'Basic HIIT',
-    defaultPace: { type: 'time', workSec: 20 } as Pace,
-    scheme: { sets: 6, restBetweenSetsSec: 20, restBetweenExercisesSec: 10 },
+    defaultPace: { type: 'time', workSec: 5 } as Pace,
+    scheme: { sets: 3, restBetweenSetsSec: 20, restBetweenExercisesSec: 10 },
     advanced: false,
     exercises: [
         { id: uid(), name: 'Jumping Jacks' },
