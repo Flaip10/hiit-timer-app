@@ -61,7 +61,6 @@ export const NextExerciseCarousel = ({
 
     useEffect(() => {
         const last = lastPhaseRef.current;
-        console.log(last);
 
         if (last === 'WORK' && phase === 'REST') {
             Animated.sequence([
