@@ -1,4 +1,3 @@
-// src/screens/workouts/PhaseArc.tsx
 import React, { useEffect, useRef } from 'react';
 import Svg, { Path } from 'react-native-svg';
 import Reanimated, {
@@ -81,11 +80,7 @@ export const PhaseArc = ({ progress, color, finished }: PhaseArcProps) => {
 
     // Normal phase progress
     useEffect(() => {
-        const clamped = Math.min(Math.max(progress, 0), 1);
-        mainProgress.value = withTiming(clamped, {
-            duration: clamped === 0 ? 250 : 1000,
-            easing: Easing.linear,
-        });
+        mainProgress.value = Math.min(Math.max(progress, 0), 1);
     }, [progress, mainProgress]);
 
     // One-shot glow sweep when we enter "finished"
