@@ -254,6 +254,21 @@ const st = StyleSheet.create({
         color: '#9CA3AF',
         fontSize: 14,
     },
+    footerRunLayout: {
+        width: '100%',
+        gap: 12,
+    },
+    footerTopRow: {
+        flexDirection: 'row',
+        gap: 8,
+        justifyContent: 'space-between',
+    },
+    bigPrimaryText: {
+        fontSize: 18,
+    },
+    smallSecondary: {
+        width: 100,
+    },
 });
 
 export default st;
