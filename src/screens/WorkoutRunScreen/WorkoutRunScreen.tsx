@@ -15,7 +15,7 @@ import st from './styles';
 import { PhaseArc } from './PhaseArc';
 import { ExerciseInfoCard } from './ExerciseInfoCard';
 import { NextExerciseCarousel } from './NextExerciseCarousel';
-import { PhasePill } from './PhasePill';
+import { FinishedCard } from './FinishedCard';
 
 const colorFor = (phase: Phase): string => {
     if (phase === 'WORK') return '#22C55E';
@@ -206,6 +206,9 @@ export const WorkoutRunScreen = () => {
     const phaseColor = colorFor(phase);
     const phaseLabel = labelFor(phase);
 
+    const isFinished =
+        !running && stepIndex === steps.length - 1 && remaining <= 0;
+
     // Helper to read exercise name for a given step (WORK step only)
     const getExerciseNameForStep = (
         s: (typeof steps)[number] | undefined
@@ -293,9 +296,22 @@ export const WorkoutRunScreen = () => {
     };
 
     const isAtStepStart = remaining === step.durationSec;
-    const primaryLabel = running ? 'Pause' : isAtStepStart ? 'Start' : 'Resume';
+
+    const primaryLabel = isFinished
+        ? 'Done'
+        : running
+          ? 'Pause'
+          : isAtStepStart
+            ? 'Start'
+            : 'Resume';
 
     const handlePrimary = () => {
+        if (isFinished) {
+            // treat as End
+            handleEnd();
+            return;
+        }
+
         if (running) {
             handlePause();
         } else if (isAtStepStart) {
@@ -309,32 +325,38 @@ export const WorkoutRunScreen = () => {
         <>
             <MainContainer title={workout.name} scroll={false}>
                 <View style={st.arcContainer}>
-                    {/* Phase pill (fixed position above timer) */}
-                    <PhasePill
-                        label={phaseLabel}
-                        color={phaseColor}
-                        containerStyle={st.phasePill}
-                        textStyle={st.phasePillText}
-                    />
+                    <View
+                        style={[
+                            st.phasePill,
+                            {
+                                backgroundColor: phaseColor,
+                            },
+                        ]}
+                    >
+                        <Text style={st.phasePillText}>
+                            {isFinished ? 'Done' : phaseLabel}
+                        </Text>
+                    </View>
 
-                    {/* Arc + timer (timer absolutely centered, arc behind it) */}
                     <View style={st.arcWrapper}>
-                        <PhaseArc progress={phaseProgress} color={phaseColor} />
+                        <PhaseArc
+                            progress={phaseProgress}
+                            color={phaseColor}
+                            finished={isFinished}
+                        />
                         <Animated.Text
                             style={[
                                 st.timer,
-                                {
-                                    transform: [{ scale: scaleAnim }],
-                                },
+                                { transform: [{ scale: scaleAnim }] },
                             ]}
                         >
-                            {remaining}
+                            {isFinished ? 0 : remaining}
                         </Animated.Text>
                     </View>
                 </View>
                 {/* Meta + "Next" in a fixed-height area to avoid vertical jumps */}
                 <View style={st.metaContainer}>
-                    {currentExerciseName && (
+                    {!isFinished && currentExerciseName && (
                         <ExerciseInfoCard
                             phase={phase}
                             phaseLabel={phaseLabel}
@@ -343,9 +365,14 @@ export const WorkoutRunScreen = () => {
                         />
                     )}
 
-                    {nextExerciseName && (
-                        <NextExerciseCarousel label={nextExerciseName} />
+                    {!isFinished && nextExerciseName && (
+                        <NextExerciseCarousel
+                            label={nextExerciseName}
+                            highlight={phase !== 'WORK'} // full opacity on REST / PREP
+                        />
                     )}
+
+                    <FinishedCard visible={isFinished} />
                 </View>
 
                 {/* Progress indicator for whole workout */}
