@@ -1,14 +1,14 @@
 import { StyleSheet } from 'react-native';
 
-export const ARC_SIZE = 240;
+export const ARC_SIZE = 280;
 
 const st = StyleSheet.create({
     arcContainer: {
-        marginTop: 60,
-        padding: 16,
+        marginTop: 50,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 40,
+        gap: 50,
+        // backgroundColor: 'red',
     },
 
     phasePill: {
@@ -94,7 +94,7 @@ const st = StyleSheet.create({
     // Container that holds both "current" and "next"
     metaContainer: {
         width: '100%',
-        marginTop: 16,
+        marginTop: -50,
     },
 
     // ----- CURRENT EXERCISE CARD -----
@@ -212,6 +212,47 @@ const st = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 14,
         fontWeight: '700',
+    },
+    finishedBox: {
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        borderRadius: 16,
+        backgroundColor: '#111827',
+        alignSelf: 'stretch',
+        marginTop: 12,
+    },
+    finishedText: {
+        color: '#9CA3AF',
+        fontSize: 14,
+    },
+    finishedTitleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginBottom: 4,
+    },
+    finishedEmoji: {
+        fontSize: 18,
+    },
+    finishedCard: {
+        marginHorizontal: 16,
+        marginTop: 16,
+        paddingVertical: 16,
+        paddingHorizontal: 18,
+        borderRadius: 18,
+        backgroundColor: '#020617', // dark navy
+        borderWidth: 1,
+        borderColor: '#1F2937',
+    },
+    finishedTitle: {
+        color: '#E5E7EB',
+        fontSize: 16,
+        fontWeight: '700',
+        marginBottom: 10,
+    },
+    finishedBody: {
+        color: '#9CA3AF',
+        fontSize: 14,
     },
 });
 
