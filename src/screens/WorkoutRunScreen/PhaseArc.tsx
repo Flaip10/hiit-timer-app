@@ -7,7 +7,7 @@ import Reanimated, {
     withTiming,
     withSequence,
     withDelay,
-    Easing as ReEasing,
+    Easing,
 } from 'react-native-reanimated';
 
 import { ARC_SIZE } from './styles';
@@ -83,8 +83,8 @@ export const PhaseArc = ({ progress, color, finished }: PhaseArcProps) => {
     useEffect(() => {
         const clamped = Math.min(Math.max(progress, 0), 1);
         mainProgress.value = withTiming(clamped, {
-            duration: 250,
-            easing: ReEasing.out(ReEasing.cubic),
+            duration: clamped === 0 ? 250 : 1000,
+            easing: Easing.linear,
         });
     }, [progress, mainProgress]);
 
@@ -101,11 +101,11 @@ export const PhaseArc = ({ progress, color, finished }: PhaseArcProps) => {
                 withSequence(
                     withTiming(1, {
                         duration: 200,
-                        easing: ReEasing.out(ReEasing.cubic),
+                        easing: Easing.out(Easing.cubic),
                     }),
                     withTiming(0, {
                         duration: 400,
-                        easing: ReEasing.in(ReEasing.cubic),
+                        easing: Easing.in(Easing.cubic),
                     })
                 )
             );
@@ -114,7 +114,7 @@ export const PhaseArc = ({ progress, color, finished }: PhaseArcProps) => {
                 GLOW_DELAY,
                 withTiming(1, {
                     duration: 700,
-                    easing: ReEasing.inOut(ReEasing.cubic),
+                    easing: Easing.inOut(Easing.cubic),
                 })
             );
         }
