@@ -15,13 +15,21 @@ export type Step = {
 
 export type Tick = {
     stepIndex: number;
+    /** whole seconds left in this step (what you use for UI + notifications) */
     remainingSec: number;
+    /** precise ms left in this step (for smooth progress / arcs if you need it) */
+    remainingMs: number;
     running: boolean;
 };
 
 // Monotonic timestamp helper
 const startWallMs = Date.now();
 const startPerf = performance.now();
+/**
+ * Monotonic "wall-clock" ms:
+ *  - uses performance.now() (monotonic, not affected by system clock jumps)
+ *  - anchored to a Date.now() baseline so it's comparable to "real" time if needed
+ */
 const nowMs = (): number => startWallMs + (performance.now() - startPerf);
 
 const workDuration = (p: Pace): number => (p.type === 'time' ? p.workSec : 0);
@@ -44,6 +52,7 @@ export const buildSteps = (
                 const pace = ex.paceOverride ?? block.defaultPace;
                 const workSec = workDuration(pace);
 
+                // Optional global PREP at the *very* beginning
                 if (!firstWorkAdded && prepSec > 0) {
                     steps.push({
                         id: `prep-${bi}-${si}-${ei}`,
@@ -56,9 +65,11 @@ export const buildSteps = (
                     });
                     firstWorkAdded = true;
                 } else if (!firstWorkAdded) {
+                    // no prep, but we still mark that we've hit the first WORK
                     firstWorkAdded = true;
                 }
 
+                // WORK step for this exercise
                 steps.push({
                     id: `work-${bi}-${si}-${ei}`,
                     label: 'WORK',
@@ -69,6 +80,7 @@ export const buildSteps = (
                     name: ex.name,
                 });
 
+                // REST between exercises (within same set)
                 const lastExerciseInSet = ei === L - 1;
                 const restEx = block.scheme.restBetweenExercisesSec;
                 if (!lastExerciseInSet && restEx > 0) {
@@ -84,6 +96,7 @@ export const buildSteps = (
                 }
             }
 
+            // REST between sets (after the last exercise of the set)
             const lastSet = si === sets - 1;
             const restSet = block.scheme.restBetweenSetsSec;
             if (!lastSet && restSet > 0) {
@@ -99,6 +112,7 @@ export const buildSteps = (
         }
     });
 
+    // Fill nextName only for steps whose *next* step is WORK
     steps.forEach((s, i) => {
         const next = steps[i + 1];
         if (next && next.label === 'WORK') s.nextName = next.name;
@@ -111,17 +125,33 @@ export const buildSteps = (
 export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
     let index = 0;
     let running = false;
-    let endAt = 0;
+    let endAt = 0; // absolute timestamp (ms) when current step ends
     let pausedRemainMs: number | null = null;
     let raf: number | null = null;
 
+    /**
+     * Emits a snapshot to the UI.
+     * - remainMs: precise ms left in this step
+     * - remainingSec: ceil(...) so user sees full seconds, not 0.1, 0.2, ...
+     */
     const issueTick = (remainMs: number) => {
-        const secLeft = Math.ceil(Math.max(0, remainMs) / 1000);
-        onTick({ stepIndex: index, remainingSec: secLeft, running });
+        const ms = Math.max(0, remainMs);
+        const secLeft = Math.ceil(ms / 1000);
+        onTick({
+            stepIndex: index,
+            remainingSec: secLeft,
+            remainingMs: ms,
+            running,
+        });
     };
 
+    /** How many ms are left in the current step, considering running/paused state */
     const currentRemainMs = (): number => {
-        if (!running) return pausedRemainMs ?? steps[index]?.durationSec * 1000;
+        if (!steps[index]) return 0;
+        if (!running) {
+            // if paused, use frozen remain; otherwise use full duration
+            return pausedRemainMs ?? steps[index].durationSec * 1000;
+        }
         return Math.max(0, endAt - nowMs());
     };
 
@@ -132,6 +162,7 @@ export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
 
         if (msLeft <= 0) {
             if (index < steps.length - 1) {
+                // advance to next step
                 index += 1;
                 endAt = nowMs() + steps[index].durationSec * 1000;
                 issueTick(steps[index].durationSec * 1000);
@@ -144,7 +175,7 @@ export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
     };
 
     const start = () => {
-        if (running) return;
+        if (running || steps.length === 0) return;
         running = true;
         pausedRemainMs = null;
         endAt = nowMs() + steps[index].durationSec * 1000;
@@ -162,7 +193,7 @@ export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
     };
 
     const resume = () => {
-        if (running) return;
+        if (running || steps.length === 0) return;
         const remain = pausedRemainMs ?? steps[index].durationSec * 1000;
         endAt = nowMs() + remain;
         pausedRemainMs = null;
@@ -181,7 +212,9 @@ export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
                 pausedRemainMs = steps[index].durationSec * 1000;
                 issueTick(pausedRemainMs);
             }
-        } else stop();
+        } else {
+            stop();
+        }
     };
 
     const stop = () => {
@@ -189,7 +222,12 @@ export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
         if (raf != null) cancelAnimationFrame(raf);
         raf = null;
         pausedRemainMs = null;
-        onTick({ stepIndex: index, remainingSec: 0, running });
+        onTick({
+            stepIndex: index,
+            remainingSec: 0,
+            remainingMs: 0,
+            running,
+        });
     };
 
     return {
