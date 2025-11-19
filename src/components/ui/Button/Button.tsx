@@ -1,5 +1,11 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, Text, ViewStyle } from 'react-native';
+import {
+    ActivityIndicator,
+    Pressable,
+    Text,
+    TextStyle,
+    ViewStyle,
+} from 'react-native';
 import st from './styles';
 
 type ButtonVariant = 'default' | 'primary' | 'secondary' | 'danger' | 'ghost';
@@ -11,6 +17,7 @@ type ButtonProps = {
     disabled?: boolean;
     loading?: boolean;
     style?: ViewStyle;
+    textStyle?: TextStyle;
     flex?: number | boolean;
 };
 
@@ -20,6 +27,7 @@ export const Button = ({
     variant = 'default',
     disabled = false,
     loading = false,
+    textStyle,
     style,
     flex,
 }: ButtonProps) => {
@@ -48,6 +56,7 @@ export const Button = ({
                         variant === 'primary' && st.textPrimary,
                         variant === 'secondary' && st.textSecondary,
                         variant === 'ghost' && st.textGhost,
+                        textStyle,
                     ]}
                 >
                     {title}
