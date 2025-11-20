@@ -1,19 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-    AppState,
-    Animated,
-    Easing,
-    Text,
-    View,
-    TouchableOpacity,
-} from 'react-native';
+import { useMemo } from 'react';
+import { Animated, Text, View, TouchableOpacity } from 'react-native';
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
 
 import { useWorkout } from '@state/useWorkouts';
-import { buildSteps, createTimer, type Phase } from '@core/timer';
-import { cancelAll, cancelById, scheduleLocal } from '@core/notify';
+import { buildSteps, type Phase } from '@core/timer';
 
 import { MainContainer } from '@components/layout/MainContainer';
 import { FooterBar } from '@components/layout/FooterBar';
@@ -27,33 +19,14 @@ import { FinishedCard } from './FinishedCard';
 import { PhasePill } from './PhasePill';
 import { WorkoutMetaStrip } from './WorkoutMetaStrip';
 import { Feather, Ionicons } from '@expo/vector-icons';
-
-// -------- helpers --------
-
-const colorFor = (phase: Phase, isSetRest: boolean): string => {
-    if (phase === 'WORK') return '#22C55E';
-    if (phase === 'REST') {
-        return isSetRest ? '#F97316' : '#60A5FA'; // e.g. orange for set rest
-    }
-    return '#F59E0B';
-};
-
-const labelFor = (phase: Phase, isSetRest: boolean): string => {
-    if (phase === 'WORK') return 'Work';
-    if (phase === 'REST') return isSetRest ? 'Set rest' : 'Rest';
-    return 'Prepare';
-};
-
-const formatDuration = (sec: number): string => {
-    const total = Math.max(0, Math.floor(sec));
-    const m = Math.floor(total / 60)
-        .toString()
-        .padStart(2, '0'); // always 2 digits
-    const s = (total % 60).toString().padStart(2, '0'); // always 2 digits
-    return `${m}:${s}`; // e.g. "00:09", "01:05", "10:42"
-};
-
-// -------- main screen --------
+import {
+    colorFor,
+    computeRemainingWorkoutSec,
+    computeSetProgress,
+    formatDuration,
+    labelFor,
+} from './helpers';
+import { useWorkoutRun } from './useWorkoutRun';
 
 export const WorkoutRunScreen = () => {
     useKeepAwake();
@@ -64,9 +37,6 @@ export const WorkoutRunScreen = () => {
     }>();
     const router = useRouter();
     const workout = useWorkout(id);
-
-    const shouldAutoStart =
-        autoStart === '1' || autoStart === 'true' || autoStart === 'yes';
 
     // Build steps from workout blocks
     const { steps } = useMemo(() => {
@@ -79,151 +49,22 @@ export const WorkoutRunScreen = () => {
         return { steps: built.steps };
     }, [workout]);
 
-    const engineRef = useRef<ReturnType<typeof createTimer> | null>(null);
-    const lastNotifIdRef = useRef<string | null>(null);
-    const autoStartedRef = useRef(false);
+    const shouldAutoStart =
+        autoStart === '1' || autoStart === 'true' || autoStart === 'yes';
 
-    // --- source-of-truth timer state ---
-    const [stepIndex, setStepIndex] = useState(0);
-    const [remaining, setRemaining] = useState(0); // seconds (display)
-    const [remainingMs, setRemainingMs] = useState(0); // ms (for smooth progress)
-    const [running, setRunning] = useState(false);
-
-    // Breathing animation for last seconds (Animated, not Reanimated)
-    const scaleAnim = useRef(new Animated.Value(1)).current;
-
-    const stopBreathing = () => {
-        scaleAnim.stopAnimation();
-        scaleAnim.setValue(1);
-    };
-
-    const startBreathing = () => {
-        scaleAnim.stopAnimation();
-        scaleAnim.setValue(1);
-        Animated.loop(
-            Animated.sequence([
-                Animated.timing(scaleAnim, {
-                    toValue: 1.1,
-                    duration: 500,
-                    easing: Easing.inOut(Easing.ease),
-                    useNativeDriver: true,
-                }),
-                Animated.timing(scaleAnim, {
-                    toValue: 1.0,
-                    duration: 500,
-                    easing: Easing.inOut(Easing.ease),
-                    useNativeDriver: true,
-                }),
-            ])
-        ).start();
-    };
-
-    // -------- engine setup --------
-
-    useEffect(() => {
-        const setup = async () => {
-            await cancelAll();
-        };
-        void setup();
-
-        if (steps.length === 0) return;
-
-        engineRef.current = createTimer(steps, (snapshot) => {
-            setStepIndex(snapshot.stepIndex);
-            setRemaining(snapshot.remainingSec);
-            setRemainingMs(snapshot.remainingMs);
-            setRunning(snapshot.running);
-        });
-
-        const firstDurationSec = steps[0]?.durationSec ?? 0;
-
-        setStepIndex(0);
-        setRemaining(firstDurationSec);
-        setRemainingMs(firstDurationSec * 1000);
-        setRunning(false);
-
-        // auto-start PREP if requested (coming from WorkoutSummary "Start")
-        if (shouldAutoStart && !autoStartedRef.current) {
-            autoStartedRef.current = true;
-            engineRef.current?.start();
-        }
-
-        return () => {
-            engineRef.current?.stop();
-            void cancelAll();
-        };
-    }, [steps, shouldAutoStart]);
-
-    // -------- notifications on step end --------
-
-    useEffect(() => {
-        const schedule = async () => {
-            if (lastNotifIdRef.current) {
-                await cancelById(lastNotifIdRef.current).catch(() => {});
-                lastNotifIdRef.current = null;
-            }
-
-            if (!running) return;
-
-            const step = steps[stepIndex];
-            if (!step || remaining <= 0) return;
-
-            const title =
-                step.label === 'WORK'
-                    ? 'Work done'
-                    : step.label === 'REST'
-                      ? 'Rest done'
-                      : 'Prep done';
-
-            const next = steps[stepIndex + 1];
-            const body = next
-                ? `Next: ${next.label}${
-                      next.nextName ? ` • ${next.nextName}` : ''
-                  }`
-                : 'Workout finished';
-
-            const id = await scheduleLocal(remaining, title, body);
-            lastNotifIdRef.current = id;
-        };
-
-        void schedule();
-    }, [stepIndex, running, remaining, steps]);
-
-    // -------- foreground resync --------
-
-    useEffect(() => {
-        const sub = AppState.addEventListener('change', (state) => {
-            if (state === 'active') {
-                const engine = engineRef.current;
-                if (!engine) return;
-                if (engine.isRunning()) {
-                    engine.pause();
-                    engine.resume();
-                }
-            }
-        });
-
-        return () => {
-            sub.remove();
-        };
-    }, []);
-
-    // -------- breathing toggle (last 3 seconds) --------
-
-    useEffect(() => {
-        const step = steps[stepIndex];
-        if (!step || !step.durationSec) {
-            stopBreathing();
-            return;
-        }
-
-        if (remaining > 0 && remaining <= 3) {
-            startBreathing();
-        } else {
-            stopBreathing();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [remaining, stepIndex, steps]);
+    const {
+        stepIndex,
+        remaining,
+        remainingMs,
+        running,
+        scaleAnim,
+        handleStart,
+        handlePause,
+        handleResume,
+        handleSkip,
+        handleEnd,
+        handleDone,
+    } = useWorkoutRun({ steps, shouldAutoStart, router });
 
     // -------- empty / not found state --------
 
@@ -264,76 +105,28 @@ export const WorkoutRunScreen = () => {
     const isFinished =
         !running && stepIndex === steps.length - 1 && remaining <= 0;
 
-    // continuous phase progress (0..1) based on ms
     const durationMs = (step?.durationSec ?? 0) * 1000;
     const safeRemainingMs =
         durationMs > 0 ? Math.max(0, Math.min(remainingMs, durationMs)) : 0;
 
+    // continuous phase progress (0..1) based on ms
     const phaseProgress =
         durationMs > 0 ? (durationMs - safeRemainingMs) / durationMs : 0;
 
     // total workout time remaining (current partial step + later steps)
-    const remainingWorkoutSec = steps.reduce((acc, s, idx) => {
-        // Skip PREP steps entirely from "workout time"
-        if (s.label === 'PREP') return acc;
-
-        if (idx > stepIndex) {
-            return acc + (s.durationSec ?? 0);
-        }
-
-        if (idx === stepIndex) {
-            return acc + remaining;
-        }
-
-        return acc;
-    }, 0);
+    const remainingWorkoutSec = computeRemainingWorkoutSec(
+        steps,
+        stepIndex,
+        remaining
+    );
 
     // progress within the *current set* (0..1, continuous based on ms)
-    let setProgress = 0;
+    const setProgress = computeSetProgress(
+        steps,
+        steps[stepIndex],
+        remainingMs
+    );
 
-    if (totalSets > 0) {
-        let totalSetDurationMs = 0;
-        let elapsedInSetMs = 0;
-
-        for (let i = 0; i < steps.length; i += 1) {
-            const s = steps[i];
-
-            // Only consider steps that belong to the current block+set
-            if (s.blockIdx !== step.blockIdx || s.setIdx !== step.setIdx)
-                continue;
-
-            //Ignore PREP for set progress
-            if (s.label === 'PREP') continue;
-
-            // Ignore REST *between sets* for set progress
-            if (s.label === 'REST' && s.id.startsWith('rest-set-')) {
-                continue;
-            }
-
-            const stepDurationMs = (s.durationSec ?? 0) * 1000;
-            totalSetDurationMs += stepDurationMs;
-
-            if (i < stepIndex) {
-                // fully completed steps in this set
-                elapsedInSetMs += stepDurationMs;
-            } else if (i === stepIndex) {
-                // partial current step in this set
-                const clampedRemaining = Math.min(
-                    stepDurationMs,
-                    Math.max(0, remainingMs)
-                );
-                const elapsedInThisStep = stepDurationMs - clampedRemaining;
-                elapsedInSetMs += elapsedInThisStep;
-            }
-        }
-
-        if (totalSetDurationMs > 0) {
-            const raw = elapsedInSetMs / totalSetDurationMs;
-            setProgress = Math.min(1, Math.max(0, raw));
-        }
-    }
-
-    // helper: exercise name for a WORK step
     const getExerciseNameForStep = (
         s: (typeof steps)[number] | undefined
     ): string | null => {
@@ -388,36 +181,6 @@ export const WorkoutRunScreen = () => {
         }
     }
 
-    // -------- controls --------
-
-    const handleStart = () => engineRef.current?.start();
-
-    const handlePause = () => {
-        engineRef.current?.pause();
-        if (lastNotifIdRef.current) {
-            void cancelById(lastNotifIdRef.current);
-            lastNotifIdRef.current = null;
-        }
-    };
-
-    const handleResume = () => engineRef.current?.resume();
-
-    const handleSkip = () => engineRef.current?.skip();
-
-    const handleEnd = () => {
-        engineRef.current?.stop();
-        if (lastNotifIdRef.current) {
-            void cancelById(lastNotifIdRef.current);
-            lastNotifIdRef.current = null;
-        }
-        void cancelAll();
-        router.back();
-    };
-
-    const handleDone = () => {
-        router.back();
-    };
-
     const isAtStepStart = remaining === step.durationSec;
 
     const primaryLabel = isFinished
@@ -442,8 +205,6 @@ export const WorkoutRunScreen = () => {
             handleResume();
         }
     };
-
-    // -------- render --------
 
     return (
         <>
