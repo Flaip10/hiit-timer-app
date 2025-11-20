@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
 
 import { useWorkout } from '@state/useWorkouts';
-import { buildSteps, type Phase } from '@core/timer';
+import { buildSteps } from '@core/timer';
 
 import { MainContainer } from '@components/layout/MainContainer';
 import { FooterBar } from '@components/layout/FooterBar';
@@ -19,13 +19,7 @@ import { FinishedCard } from './components/FinishedCard/FinishedCard';
 import { PhasePill } from './components/PhasePill/PhasePill';
 import { WorkoutMetaStrip } from './components/WorkoutMetaStrip/WorkoutMetaStrip';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import {
-    colorFor,
-    computeRemainingWorkoutSec,
-    computeSetProgress,
-    formatDuration,
-    labelFor,
-} from './helpers';
+import { colorFor, formatDuration, labelFor } from './helpers';
 import { useWorkoutRun } from './hooks/useWorkoutRun';
 
 export const WorkoutRunScreen = () => {
@@ -53,22 +47,30 @@ export const WorkoutRunScreen = () => {
         autoStart === '1' || autoStart === 'true' || autoStart === 'yes';
 
     const {
-        stepIndex,
         remaining,
-        remainingMs,
         running,
         scaleAnim,
-        handleStart,
-        handlePause,
-        handleResume,
+        step,
+        phase,
+        isSetRest,
+        phaseProgress,
+        remainingWorkoutSec,
+        setProgress,
+        isFinished,
+        primaryLabel,
+        currentBlock,
+        totalSets,
+        currentExerciseName,
+        nextExerciseName,
+        handlePrimary,
         handleSkip,
         handleEnd,
         handleDone,
-    } = useWorkoutRun({ steps, shouldAutoStart, router });
+    } = useWorkoutRun({ steps, workout, shouldAutoStart, router });
 
     // -------- empty / not found state --------
 
-    if (!workout || steps.length === 0) {
+    if (!workout || steps.length === 0 || !step) {
         return (
             <>
                 <MainContainer title="Run workout" scroll={false}>
@@ -91,120 +93,10 @@ export const WorkoutRunScreen = () => {
         );
     }
 
-    // -------- derived data from current step --------
+    // -------- visual mapping from phase --------
 
-    const step = steps[stepIndex];
-    const phase = step.label as Phase;
-    const isSetRest = phase === 'REST' && step.id.startsWith('rest-set-');
-    const phaseColor = colorFor(phase, isSetRest);
-    const phaseLabel = labelFor(phase, isSetRest);
-
-    const currentBlock = workout.blocks[step.blockIdx];
-    const totalSets = currentBlock?.scheme.sets ?? 0;
-
-    const isFinished =
-        !running && stepIndex === steps.length - 1 && remaining <= 0;
-
-    const durationMs = (step?.durationSec ?? 0) * 1000;
-    const safeRemainingMs =
-        durationMs > 0 ? Math.max(0, Math.min(remainingMs, durationMs)) : 0;
-
-    // continuous phase progress (0..1) based on ms
-    const phaseProgress =
-        durationMs > 0 ? (durationMs - safeRemainingMs) / durationMs : 0;
-
-    // total workout time remaining (current partial step + later steps)
-    const remainingWorkoutSec = computeRemainingWorkoutSec(
-        steps,
-        stepIndex,
-        remaining
-    );
-
-    // progress within the *current set* (0..1, continuous based on ms)
-    const setProgress = computeSetProgress(
-        steps,
-        steps[stepIndex],
-        remainingMs
-    );
-
-    const getExerciseNameForStep = (
-        s: (typeof steps)[number] | undefined
-    ): string | null => {
-        if (!s || s.label !== 'WORK') return null;
-        const block = workout.blocks[s.blockIdx];
-        const exercise = block?.exercises[s.exIdx];
-        return exercise?.name ?? null;
-    };
-
-    let currentExerciseName: string | null = null;
-    let nextExerciseName: string | null = null;
-
-    if (phase === 'PREP') {
-        // Look forward from the current step and collect the first 2 WORK steps
-        const upcoming: (typeof steps)[number][] = [];
-
-        for (let i = stepIndex; i < steps.length; i += 1) {
-            const candidate = steps[i];
-            if (candidate.label === 'WORK') {
-                upcoming.push(candidate);
-                if (upcoming.length === 2) break;
-            }
-        }
-
-        const firstWork = upcoming[0];
-        const secondWork = upcoming[1];
-
-        currentExerciseName = getExerciseNameForStep(firstWork);
-        nextExerciseName = getExerciseNameForStep(secondWork);
-    } else {
-        // CURRENT exercise for WORK / REST
-        if (phase === 'WORK') {
-            currentExerciseName = getExerciseNameForStep(step);
-        } else if (phase === 'REST') {
-            // last WORK before this REST
-            for (let i = stepIndex - 1; i >= 0; i -= 1) {
-                const prev = steps[i];
-                if (prev.label === 'WORK') {
-                    currentExerciseName = getExerciseNameForStep(prev);
-                    break;
-                }
-            }
-        }
-
-        // NEXT exercise: first WORK step after this step
-        for (let i = stepIndex + 1; i < steps.length; i += 1) {
-            const future = steps[i];
-            if (future.label === 'WORK') {
-                nextExerciseName = getExerciseNameForStep(future);
-                break;
-            }
-        }
-    }
-
-    const isAtStepStart = remaining === step.durationSec;
-
-    const primaryLabel = isFinished
-        ? 'Done'
-        : running
-          ? 'Pause'
-          : isAtStepStart
-            ? 'Start'
-            : 'Resume';
-
-    const handlePrimary = () => {
-        if (isFinished) {
-            handleDone();
-            return;
-        }
-
-        if (running) {
-            handlePause();
-        } else if (isAtStepStart) {
-            handleStart();
-        } else {
-            handleResume();
-        }
-    };
+    const phaseColor = colorFor(phase, !!isSetRest);
+    const phaseLabel = labelFor(phase, !!isSetRest);
 
     return (
         <>
@@ -235,7 +127,7 @@ export const WorkoutRunScreen = () => {
                     )}
                 </View>
 
-                {/* Meta strip at the very top of the content */}
+                {/* Meta strip */}
                 {!isFinished && (
                     <WorkoutMetaStrip
                         blockIndex={step.blockIdx}
@@ -246,6 +138,7 @@ export const WorkoutRunScreen = () => {
                         phaseColor={phaseColor}
                     />
                 )}
+
                 {/* ARC + PHASE */}
                 <View style={st.arcContainer}>
                     <PhasePill
@@ -328,9 +221,7 @@ export const WorkoutRunScreen = () => {
                                 activeOpacity={0.9}
                                 style={[
                                     st.footerRoundPrimary,
-                                    {
-                                        backgroundColor: phaseColor,
-                                    },
+                                    { backgroundColor: phaseColor },
                                 ]}
                             >
                                 <Ionicons
