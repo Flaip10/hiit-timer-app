@@ -3,18 +3,15 @@ import { Animated, Easing, Text, View } from 'react-native';
 
 import type { Phase } from '@core/timer';
 import st from './styles';
-import { PhasePill } from './PhasePill';
 
 type ExerciseInfoCardProps = {
     phase: Phase;
-    phaseLabel: string;
     color: string;
     currentExerciseName: string;
 };
 
 export const ExerciseInfoCard = ({
     phase,
-    phaseLabel,
     color,
     currentExerciseName,
 }: ExerciseInfoCardProps) => {

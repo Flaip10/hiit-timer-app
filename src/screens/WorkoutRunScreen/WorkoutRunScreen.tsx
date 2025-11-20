@@ -277,7 +277,6 @@ export const WorkoutRunScreen = () => {
                     {!isFinished && currentExerciseName && (
                         <ExerciseInfoCard
                             phase={phase}
-                            phaseLabel={phaseLabel}
                             color={phaseColor}
                             currentExerciseName={currentExerciseName}
                         />
