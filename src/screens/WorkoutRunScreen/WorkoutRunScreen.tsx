@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, Animated, Easing, Text, View } from 'react-native';
+import {
+    AppState,
+    Animated,
+    Easing,
+    Text,
+    View,
+    TouchableOpacity,
+} from 'react-native';
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
@@ -19,6 +26,7 @@ import { NextExerciseCarousel } from './NextExerciseCarousel';
 import { FinishedCard } from './FinishedCard';
 import { PhasePill } from './PhasePill';
 import { WorkoutMetaStrip } from './WorkoutMetaStrip';
+import { Feather, Ionicons } from '@expo/vector-icons';
 
 // -------- helpers --------
 
@@ -34,6 +42,15 @@ const labelFor = (phase: Phase, isSetRest: boolean): string => {
     if (phase === 'WORK') return 'Work';
     if (phase === 'REST') return isSetRest ? 'Set rest' : 'Rest';
     return 'Prepare';
+};
+
+const formatDuration = (sec: number): string => {
+    const total = Math.max(0, Math.floor(sec));
+    const m = Math.floor(total / 60)
+        .toString()
+        .padStart(2, '0'); // always 2 digits
+    const s = (total % 60).toString().padStart(2, '0'); // always 2 digits
+    return `${m}:${s}`; // e.g. "00:09", "01:05", "10:42"
 };
 
 // -------- main screen --------
@@ -431,6 +448,43 @@ export const WorkoutRunScreen = () => {
     return (
         <>
             <MainContainer scroll={false}>
+                {/* Workout header */}
+                <View style={st.runHeader}>
+                    <Text
+                        style={st.runWorkoutTitle}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                    >
+                        {workout.name}
+                    </Text>
+                    {!isFinished && (
+                        <View style={st.metaStripTopCenter}>
+                            <Feather
+                                name="clock"
+                                size={16}
+                                color="#F9FAFB"
+                                style={st.metaStripTimeIcon}
+                            />
+                            <View style={st.metaStripTimeTextWrapper}>
+                                <Text style={st.metaStripTimeText}>
+                                    {formatDuration(remainingWorkoutSec)}
+                                </Text>
+                            </View>
+                        </View>
+                    )}
+                </View>
+
+                {/* Meta strip at the very top of the content */}
+                {!isFinished && (
+                    <WorkoutMetaStrip
+                        blockIndex={step.blockIdx}
+                        blockTitle={currentBlock?.title}
+                        currentSetIndex={step.setIdx}
+                        totalSets={totalSets}
+                        setProgress={setProgress}
+                        phaseColor={phaseColor}
+                    />
+                )}
                 {/* ARC + PHASE */}
                 <View style={st.arcContainer}>
                     <PhasePill
@@ -478,19 +532,6 @@ export const WorkoutRunScreen = () => {
 
                 {/* FINISHED CARD */}
                 <FinishedCard visible={isFinished} />
-
-                {/* BLOCK / SET META STRIP */}
-                {!isFinished && (
-                    <WorkoutMetaStrip
-                        blockIndex={step.blockIdx}
-                        blockTitle={currentBlock?.title}
-                        currentSetIndex={step.setIdx}
-                        totalSets={totalSets}
-                        remainingWorkoutSec={remainingWorkoutSec}
-                        setProgress={setProgress}
-                        phaseColor={phaseColor}
-                    />
-                )}
             </MainContainer>
 
             {/* FOOTER BUTTONS */}
@@ -503,34 +544,60 @@ export const WorkoutRunScreen = () => {
                         flex={1}
                     />
                 ) : (
-                    <View style={st.footerRunLayout}>
-                        <View style={st.footerTopRow}>
-                            <Button
-                                title="Skip"
-                                variant="secondary"
+                    <View style={st.footerIconRow}>
+                        {/* Skip (left) */}
+                        <View style={st.footerIconWrapper}>
+                            <TouchableOpacity
                                 onPress={handleSkip}
-                                style={st.smallSecondary}
-                            />
-                            <Button
-                                title="End"
-                                variant="secondary"
-                                onPress={handleEnd}
-                                style={st.smallSecondary}
-                            />
+                                activeOpacity={0.8}
+                                style={st.footerRoundSecondary}
+                            >
+                                <Ionicons
+                                    name="play-skip-forward"
+                                    size={22}
+                                    color="#E5E7EB"
+                                />
+                            </TouchableOpacity>
+                            <Text style={st.footerIconLabel}>Skip</Text>
                         </View>
-                        <View style={st.footerTopRow}>
-                            <Button
-                                title={primaryLabel}
-                                variant="primary"
+
+                        {/* Main play/pause button (center) */}
+                        <View style={st.footerIconWrapper}>
+                            <TouchableOpacity
                                 onPress={handlePrimary}
-                                flex={1}
-                                textStyle={st.bigPrimaryText}
-                                style={
-                                    primaryLabel === 'Pause'
-                                        ? st.primaryAlt
-                                        : undefined
-                                }
-                            />
+                                activeOpacity={0.9}
+                                style={[
+                                    st.footerRoundPrimary,
+                                    {
+                                        backgroundColor: phaseColor,
+                                    },
+                                ]}
+                            >
+                                <Ionicons
+                                    name={running ? 'pause' : 'play'}
+                                    size={30}
+                                    color="#0B0B0C"
+                                />
+                            </TouchableOpacity>
+                            <Text style={st.footerIconLabel}>
+                                {primaryLabel}
+                            </Text>
+                        </View>
+
+                        {/* End (right) */}
+                        <View style={st.footerIconWrapper}>
+                            <TouchableOpacity
+                                onPress={handleEnd}
+                                activeOpacity={0.8}
+                                style={st.footerRoundSecondary}
+                            >
+                                <Ionicons
+                                    name="stop"
+                                    size={22}
+                                    color="#E5E7EB"
+                                />
+                            </TouchableOpacity>
+                            <Text style={st.footerIconLabel}>End</Text>
                         </View>
                     </View>
                 )}
