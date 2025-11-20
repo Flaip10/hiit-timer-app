@@ -1,10 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { Text, View } from 'react-native';
 import Animated, {
-    Easing,
     useAnimatedStyle,
     useSharedValue,
-    withTiming,
 } from 'react-native-reanimated';
 import st from './styles';
 
@@ -61,10 +59,7 @@ export const WorkoutMetaStrip = ({
         }
 
         // Same set: animate smoothly
-        visualProgress.value = withTiming(target, {
-            duration: 1000,
-            easing: Easing.linear,
-        });
+        visualProgress.value = Math.min(Math.max(setProgress, 0), 1);
     }, [setProgress, currentSetIndex, visualProgress]);
 
     const currentFillStyle = useAnimatedStyle(() => ({
