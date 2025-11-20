@@ -11,12 +11,16 @@ import { cancelAll, cancelById, scheduleLocal } from '@core/notify';
 import { MainContainer } from '@components/layout/MainContainer';
 import { FooterBar } from '@components/layout/FooterBar';
 import { Button } from '@components/ui/Button/Button';
+
 import st from './styles';
 import { PhaseArc } from './PhaseArc';
 import { ExerciseInfoCard } from './ExerciseInfoCard';
 import { NextExerciseCarousel } from './NextExerciseCarousel';
 import { FinishedCard } from './FinishedCard';
 import { PhasePill } from './PhasePill';
+import { WorkoutMetaStrip } from './WorkoutMetaStrip';
+
+// -------- helpers --------
 
 const colorFor = (phase: Phase): string => {
     if (phase === 'WORK') return '#22C55E';
@@ -29,6 +33,8 @@ const labelFor = (phase: Phase): string => {
     if (phase === 'REST') return 'Rest';
     return 'Prepare';
 };
+
+// -------- main screen --------
 
 export const WorkoutRunScreen = () => {
     useKeepAwake();
@@ -43,7 +49,7 @@ export const WorkoutRunScreen = () => {
     const shouldAutoStart =
         autoStart === '1' || autoStart === 'true' || autoStart === 'yes';
 
-    // Steps + total duration
+    // Build steps from workout blocks
     const { steps } = useMemo(() => {
         if (!workout) {
             return {
@@ -58,11 +64,13 @@ export const WorkoutRunScreen = () => {
     const lastNotifIdRef = useRef<string | null>(null);
     const autoStartedRef = useRef(false);
 
+    // --- source-of-truth timer state ---
     const [stepIndex, setStepIndex] = useState(0);
-    const [remaining, setRemaining] = useState(0);
+    const [remaining, setRemaining] = useState(0); // seconds (display)
+    const [remainingMs, setRemainingMs] = useState(0); // ms (for smooth progress)
     const [running, setRunning] = useState(false);
 
-    // Breathing animation for last seconds
+    // Breathing animation for last seconds (Animated, not Reanimated)
     const scaleAnim = useRef(new Animated.Value(1)).current;
 
     const stopBreathing = () => {
@@ -71,7 +79,6 @@ export const WorkoutRunScreen = () => {
     };
 
     const startBreathing = () => {
-        // already animating? avoid stacking
         scaleAnim.stopAnimation();
         scaleAnim.setValue(1);
         Animated.loop(
@@ -92,7 +99,8 @@ export const WorkoutRunScreen = () => {
         ).start();
     };
 
-    // Engine setup
+    // -------- engine setup --------
+
     useEffect(() => {
         const setup = async () => {
             await cancelAll();
@@ -104,11 +112,15 @@ export const WorkoutRunScreen = () => {
         engineRef.current = createTimer(steps, (snapshot) => {
             setStepIndex(snapshot.stepIndex);
             setRemaining(snapshot.remainingSec);
+            setRemainingMs(snapshot.remainingMs);
             setRunning(snapshot.running);
         });
 
+        const firstDurationSec = steps[0]?.durationSec ?? 0;
+
         setStepIndex(0);
-        setRemaining(steps[0]?.durationSec ?? 0);
+        setRemaining(firstDurationSec);
+        setRemainingMs(firstDurationSec * 1000);
         setRunning(false);
 
         // auto-start PREP if requested (coming from WorkoutSummary "Start")
@@ -123,7 +135,8 @@ export const WorkoutRunScreen = () => {
         };
     }, [steps, shouldAutoStart]);
 
-    // Notifications on step end
+    // -------- notifications on step end --------
+
     useEffect(() => {
         const schedule = async () => {
             if (lastNotifIdRef.current) {
@@ -157,7 +170,8 @@ export const WorkoutRunScreen = () => {
         void schedule();
     }, [stepIndex, running, remaining, steps]);
 
-    // Foreground resync
+    // -------- foreground resync --------
+
     useEffect(() => {
         const sub = AppState.addEventListener('change', (state) => {
             if (state === 'active') {
@@ -175,7 +189,8 @@ export const WorkoutRunScreen = () => {
         };
     }, []);
 
-    // Breathing toggle (based on remaining time of the current step)
+    // -------- breathing toggle (last 3 seconds) --------
+
     useEffect(() => {
         const step = steps[stepIndex];
         if (!step || !step.durationSec) {
@@ -191,7 +206,8 @@ export const WorkoutRunScreen = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [remaining, stepIndex, steps]);
 
-    // Empty / not found state
+    // -------- empty / not found state --------
+
     if (!workout || steps.length === 0) {
         return (
             <>
@@ -215,15 +231,83 @@ export const WorkoutRunScreen = () => {
         );
     }
 
+    // -------- derived data from current step --------
+
     const step = steps[stepIndex];
     const phase = step.label as Phase;
     const phaseColor = colorFor(phase);
     const phaseLabel = labelFor(phase);
 
+    const currentBlock = workout.blocks[step.blockIdx];
+    const totalSets = currentBlock?.scheme.sets ?? 0;
+
     const isFinished =
         !running && stepIndex === steps.length - 1 && remaining <= 0;
 
-    // Helper to read exercise name for a given step (WORK step only)
+    // continuous phase progress (0..1) based on ms
+    const durationMs = (step?.durationSec ?? 0) * 1000;
+    const safeRemainingMs =
+        durationMs > 0 ? Math.max(0, Math.min(remainingMs, durationMs)) : 0;
+
+    const phaseProgress =
+        durationMs > 0 ? (durationMs - safeRemainingMs) / durationMs : 0;
+
+    // total workout time remaining (current partial step + later steps)
+    const remainingWorkoutSec = steps.reduce((acc, s, idx) => {
+        // Skip PREP steps entirely from "workout time"
+        if (s.label === 'PREP') return acc;
+
+        if (idx > stepIndex) {
+            return acc + (s.durationSec ?? 0);
+        }
+
+        if (idx === stepIndex) {
+            return acc + remaining;
+        }
+
+        return acc;
+    }, 0);
+
+    // progress within the *current set* (0..1, continuous based on ms)
+    let setProgress = 0;
+
+    if (phase !== 'PREP' && totalSets > 0) {
+        let totalSetDurationMs = 0;
+        let elapsedInSetMs = 0;
+
+        for (let i = 0; i < steps.length; i += 1) {
+            const s = steps[i];
+
+            if (
+                s.blockIdx === step.blockIdx &&
+                s.setIdx === step.setIdx &&
+                s.label !== 'PREP' // <- skip prepare steps entirely
+            ) {
+                const stepDurationMs = (s.durationSec ?? 0) * 1000;
+                totalSetDurationMs += stepDurationMs;
+
+                if (i < stepIndex) {
+                    // fully completed steps in this set
+                    elapsedInSetMs += stepDurationMs;
+                } else if (i === stepIndex) {
+                    // partial current step in this set
+                    const clampedRemaining = Math.min(
+                        stepDurationMs,
+                        Math.max(0, remainingMs)
+                    );
+                    const elapsedInThisStep = stepDurationMs - clampedRemaining;
+                    elapsedInSetMs += elapsedInThisStep;
+                }
+            }
+        }
+
+        if (totalSetDurationMs > 0) {
+            const raw = elapsedInSetMs / totalSetDurationMs;
+            setProgress = Math.min(1, Math.max(0, raw));
+        }
+    }
+
+    // helper: exercise name for a WORK step
     const getExerciseNameForStep = (
         s: (typeof steps)[number] | undefined
     ): string | null => {
@@ -237,7 +321,7 @@ export const WorkoutRunScreen = () => {
     let nextExerciseName: string | null = null;
 
     if (phase === 'PREP') {
-        // Look forward from the *current* step and collect first 2 WORK steps
+        // Look forward from the current step and collect the first 2 WORK steps
         const upcoming: (typeof steps)[number][] = [];
 
         for (let i = stepIndex; i < steps.length; i += 1) {
@@ -254,7 +338,7 @@ export const WorkoutRunScreen = () => {
         currentExerciseName = getExerciseNameForStep(firstWork);
         nextExerciseName = getExerciseNameForStep(secondWork);
     } else {
-        // --- CURRENT exercise for WORK / REST ---
+        // CURRENT exercise for WORK / REST
         if (phase === 'WORK') {
             currentExerciseName = getExerciseNameForStep(step);
         } else if (phase === 'REST') {
@@ -268,7 +352,7 @@ export const WorkoutRunScreen = () => {
             }
         }
 
-        // --- NEXT exercise: first WORK step after THIS step ---
+        // NEXT exercise: first WORK step after this step
         for (let i = stepIndex + 1; i < steps.length; i += 1) {
             const future = steps[i];
             if (future.label === 'WORK') {
@@ -278,13 +362,8 @@ export const WorkoutRunScreen = () => {
         }
     }
 
-    // progress inside *this phase*
-    const phaseProgress =
-        step.durationSec && step.durationSec > 0
-            ? (step.durationSec - remaining) / step.durationSec
-            : 0;
+    // -------- controls --------
 
-    // Controls
     const handleStart = () => engineRef.current?.start();
 
     const handlePause = () => {
@@ -310,7 +389,6 @@ export const WorkoutRunScreen = () => {
     };
 
     const handleDone = () => {
-        // natural finish → just go back to previous (summary)
         router.back();
     };
 
@@ -339,9 +417,12 @@ export const WorkoutRunScreen = () => {
         }
     };
 
+    // -------- render --------
+
     return (
         <>
-            <MainContainer title={workout.name} scroll={false}>
+            <MainContainer scroll={false}>
+                {/* ARC + PHASE */}
                 <View style={st.arcContainer}>
                     <PhasePill
                         color={phaseColor}
@@ -367,6 +448,7 @@ export const WorkoutRunScreen = () => {
                     </View>
                 </View>
 
+                {/* CURRENT + NEXT EXERCISE */}
                 <View style={st.metaContainer}>
                     {!isFinished && currentExerciseName && (
                         <ExerciseInfoCard
@@ -385,32 +467,24 @@ export const WorkoutRunScreen = () => {
                     )}
                 </View>
 
+                {/* FINISHED CARD */}
                 <FinishedCard visible={isFinished} />
 
-                {/* Progress bar is commented for now; keep here if you want it later */}
-                {/*
-                <View style={st.progressContainer}>
-                    <View style={st.progressHeaderRow}>
-                        <Text style={st.progressMeta}>{metaLabel}</Text>
-                        <Text style={st.progressText}>
-                            Step {currentStepNumber} / {totalSteps}
-                        </Text>
-                    </View>
-                    <View style={st.progressBarBg}>
-                        <View
-                            style={[st.progressBarFill, { flex: progress }]}
-                        />
-                        <View
-                            style={[
-                                st.progressBarRemaining,
-                                { flex: 1 - progress },
-                            ]}
-                        />
-                    </View>
-                </View>
-                */}
+                {/* BLOCK / SET META STRIP */}
+                {!isFinished && (
+                    <WorkoutMetaStrip
+                        blockIndex={step.blockIdx}
+                        blockTitle={currentBlock?.title}
+                        currentSetIndex={step.setIdx}
+                        totalSets={totalSets}
+                        remainingWorkoutSec={remainingWorkoutSec}
+                        setProgress={setProgress}
+                        phaseColor={phaseColor}
+                    />
+                )}
             </MainContainer>
 
+            {/* FOOTER BUTTONS */}
             <FooterBar>
                 {isFinished ? (
                     <Button

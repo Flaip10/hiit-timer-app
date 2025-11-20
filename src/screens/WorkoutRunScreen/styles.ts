@@ -270,6 +270,64 @@ const st = StyleSheet.create({
     smallSecondary: {
         width: 100,
     },
+    metaStripContainer: {
+        width: '100%',
+        paddingHorizontal: 16,
+        marginTop: 8,
+        gap: 8,
+    },
+    metaStripTopRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    metaStripTopLeft: {
+        flex: 1,
+    },
+    metaStripTopCenter: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    metaStripTopRight: {
+        flex: 1,
+        alignItems: 'flex-end',
+    },
+    metaStripBlockText: {
+        color: '#9CA3AF',
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    metaStripTimeText: {
+        color: '#E5E7EB',
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    metaStripSetText: {
+        color: '#9CA3AF',
+        fontSize: 12,
+        fontWeight: '500',
+    },
+
+    metaStripPillsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    metaStripPillOuter: {
+        flex: 1,
+        height: 8, // slightly taller/wider feel
+        borderRadius: 999,
+        backgroundColor: '#020617',
+        overflow: 'hidden',
+        flexDirection: 'row',
+    },
+    metaStripPillFill: {
+        borderRadius: 999,
+    },
+    metaStripPillRemainder: {
+        borderRadius: 999,
+        backgroundColor: 'transparent',
+    },
 });
 
 export default st;
