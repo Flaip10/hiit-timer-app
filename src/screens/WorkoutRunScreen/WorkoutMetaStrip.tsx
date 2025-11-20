@@ -11,17 +11,8 @@ type WorkoutMetaStripProps = {
     blockTitle?: string | null;
     currentSetIndex: number; // 0-based
     totalSets: number;
-    remainingWorkoutSec: number;
     setProgress: number; // 0..1 (continuous progress inside current set)
     phaseColor: string;
-};
-
-const formatDuration = (sec: number): string => {
-    const total = Math.max(0, Math.floor(sec));
-    const m = Math.floor(total / 60);
-    const s = total % 60;
-    const sStr = s.toString().padStart(2, '0');
-    return m > 0 ? `${m}:${sStr}` : `${s}s`;
 };
 
 export const WorkoutMetaStrip = ({
@@ -29,7 +20,6 @@ export const WorkoutMetaStrip = ({
     blockTitle,
     currentSetIndex,
     totalSets,
-    remainingWorkoutSec,
     setProgress,
     phaseColor,
 }: WorkoutMetaStripProps) => {
@@ -77,27 +67,6 @@ export const WorkoutMetaStrip = ({
 
     return (
         <View style={st.metaStripContainer}>
-            {/* Top row: Block | Time remaining | Set x/y */}
-            <View style={st.metaStripTopRow}>
-                <View style={st.metaStripTopLeft}>
-                    <Text style={st.metaStripBlockText}>
-                        {displayBlockLabel}
-                    </Text>
-                </View>
-
-                <View style={st.metaStripTopCenter}>
-                    <Text style={st.metaStripTimeText}>
-                        {formatDuration(remainingWorkoutSec)} left
-                    </Text>
-                </View>
-
-                <View style={st.metaStripTopRight}>
-                    <Text style={st.metaStripSetText}>
-                        Set {currentSet}/{safeTotalSets}
-                    </Text>
-                </View>
-            </View>
-
             {/* Bottom row: pills per set */}
             <View style={st.metaStripPillsRow}>
                 {pills.map((i) => {
@@ -146,6 +115,20 @@ export const WorkoutMetaStrip = ({
                         </View>
                     );
                 })}
+            </View>
+
+            <View style={st.metaStripTopRow}>
+                <View style={st.metaStripTopLeft}>
+                    <Text style={st.metaStripBlockText}>
+                        {displayBlockLabel}
+                    </Text>
+                </View>
+
+                <View style={st.metaStripTopRight}>
+                    <Text style={st.metaStripSetText}>
+                        Set {currentSet}/{safeTotalSets}
+                    </Text>
+                </View>
             </View>
         </View>
     );
