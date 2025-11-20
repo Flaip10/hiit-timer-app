@@ -7,14 +7,14 @@ const st = StyleSheet.create({
         marginTop: 50,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 50,
-        // backgroundColor: 'red',
+        gap: 30,
     },
 
     phasePill: {
         paddingHorizontal: 16,
         paddingVertical: 6,
         borderRadius: 999,
+        marginBottom: 0,
     },
     phasePillText: {
         color: '#0B0B0C',
@@ -274,7 +274,7 @@ const st = StyleSheet.create({
         width: '100%',
         paddingHorizontal: 16,
         marginTop: 8,
-        gap: 8,
+        gap: 12,
     },
     metaStripTopRow: {
         flexDirection: 'row',
@@ -285,39 +285,52 @@ const st = StyleSheet.create({
         flex: 1,
     },
     metaStripTopCenter: {
-        flex: 1,
+        flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    metaStripTimeIcon: {
+        marginRight: 4,
+    },
+
+    // wrapper with fixed width → layout doesn’t shift
+    metaStripTimeTextWrapper: {
+        width: 57, // tweak as needed, just ensure it's enough for "MM:SS left"
+    },
+
+    metaStripTimeText: {
+        color: '#F9FAFB',
+        fontSize: 18,
+        fontWeight: '700',
+        textAlign: 'left', // anchor to left inside the wrapper
     },
     metaStripTopRight: {
         flex: 1,
         alignItems: 'flex-end',
     },
     metaStripBlockText: {
-        color: '#9CA3AF',
-        fontSize: 12,
-        fontWeight: '500',
-    },
-    metaStripTimeText: {
         color: '#E5E7EB',
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: '600',
     },
+
     metaStripSetText: {
         color: '#9CA3AF',
-        fontSize: 12,
-        fontWeight: '500',
+        fontSize: 14,
+        fontWeight: '700',
     },
 
     metaStripPillsRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
+        gap: 10,
     },
     metaStripPillOuter: {
         flex: 1,
-        height: 8, // slightly taller/wider feel
+        height: 8,
         borderRadius: 999,
-        backgroundColor: '#020617',
+        backgroundColor: '#111827',
         overflow: 'hidden',
         flexDirection: 'row',
     },
@@ -327,6 +340,65 @@ const st = StyleSheet.create({
     metaStripPillRemainder: {
         borderRadius: 999,
         backgroundColor: 'transparent',
+    },
+    timeLeftUnderArc: {
+        marginTop: 8,
+        color: '#9CA3AF',
+        fontSize: 13,
+    },
+    runHeader: {
+        paddingHorizontal: 16,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingTop: 10,
+    },
+    runWorkoutTitle: {
+        color: '#F9FAFB',
+        fontSize: 24,
+        fontWeight: '700',
+        letterSpacing: 0.2,
+    },
+    footerIconRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+        paddingHorizontal: 32,
+    },
+
+    footerIconWrapper: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 4,
+    },
+
+    footerIconLabel: {
+        color: '#E5E7EB',
+        fontSize: 12,
+        fontWeight: '500',
+    },
+
+    footerRoundPrimary: {
+        width: 76,
+        height: 76,
+        borderRadius: 38,
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.35,
+        shadowRadius: 10,
+        elevation: 8,
+    },
+
+    footerRoundSecondary: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: '#111827',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });
 
