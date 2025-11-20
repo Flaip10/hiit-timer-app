@@ -22,15 +22,17 @@ import { WorkoutMetaStrip } from './WorkoutMetaStrip';
 
 // -------- helpers --------
 
-const colorFor = (phase: Phase): string => {
+const colorFor = (phase: Phase, isSetRest: boolean): string => {
     if (phase === 'WORK') return '#22C55E';
-    if (phase === 'REST') return '#60A5FA';
+    if (phase === 'REST') {
+        return isSetRest ? '#F97316' : '#60A5FA'; // e.g. orange for set rest
+    }
     return '#F59E0B';
 };
 
-const labelFor = (phase: Phase): string => {
+const labelFor = (phase: Phase, isSetRest: boolean): string => {
     if (phase === 'WORK') return 'Work';
-    if (phase === 'REST') return 'Rest';
+    if (phase === 'REST') return isSetRest ? 'Set rest' : 'Rest';
     return 'Prepare';
 };
 
@@ -235,8 +237,9 @@ export const WorkoutRunScreen = () => {
 
     const step = steps[stepIndex];
     const phase = step.label as Phase;
-    const phaseColor = colorFor(phase);
-    const phaseLabel = labelFor(phase);
+    const isSetRest = phase === 'REST' && step.id.startsWith('rest-set-');
+    const phaseColor = colorFor(phase, isSetRest);
+    const phaseLabel = labelFor(phase, isSetRest);
 
     const currentBlock = workout.blocks[step.blockIdx];
     const totalSets = currentBlock?.scheme.sets ?? 0;
@@ -271,33 +274,39 @@ export const WorkoutRunScreen = () => {
     // progress within the *current set* (0..1, continuous based on ms)
     let setProgress = 0;
 
-    if (phase !== 'PREP' && totalSets > 0) {
+    if (totalSets > 0) {
         let totalSetDurationMs = 0;
         let elapsedInSetMs = 0;
 
         for (let i = 0; i < steps.length; i += 1) {
             const s = steps[i];
 
-            if (
-                s.blockIdx === step.blockIdx &&
-                s.setIdx === step.setIdx &&
-                s.label !== 'PREP' // <- skip prepare steps entirely
-            ) {
-                const stepDurationMs = (s.durationSec ?? 0) * 1000;
-                totalSetDurationMs += stepDurationMs;
+            // Only consider steps that belong to the current block+set
+            if (s.blockIdx !== step.blockIdx || s.setIdx !== step.setIdx)
+                continue;
 
-                if (i < stepIndex) {
-                    // fully completed steps in this set
-                    elapsedInSetMs += stepDurationMs;
-                } else if (i === stepIndex) {
-                    // partial current step in this set
-                    const clampedRemaining = Math.min(
-                        stepDurationMs,
-                        Math.max(0, remainingMs)
-                    );
-                    const elapsedInThisStep = stepDurationMs - clampedRemaining;
-                    elapsedInSetMs += elapsedInThisStep;
-                }
+            //Ignore PREP for set progress
+            if (s.label === 'PREP') continue;
+
+            // Ignore REST *between sets* for set progress
+            if (s.label === 'REST' && s.id.startsWith('rest-set-')) {
+                continue;
+            }
+
+            const stepDurationMs = (s.durationSec ?? 0) * 1000;
+            totalSetDurationMs += stepDurationMs;
+
+            if (i < stepIndex) {
+                // fully completed steps in this set
+                elapsedInSetMs += stepDurationMs;
+            } else if (i === stepIndex) {
+                // partial current step in this set
+                const clampedRemaining = Math.min(
+                    stepDurationMs,
+                    Math.max(0, remainingMs)
+                );
+                const elapsedInThisStep = stepDurationMs - clampedRemaining;
+                elapsedInSetMs += elapsedInThisStep;
             }
         }
 
