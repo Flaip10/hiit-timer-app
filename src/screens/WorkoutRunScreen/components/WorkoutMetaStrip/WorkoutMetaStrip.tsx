@@ -4,7 +4,7 @@ import Animated, {
     useAnimatedStyle,
     useSharedValue,
 } from 'react-native-reanimated';
-import st from './styles';
+import st from './WorkoutMetaStrip.styles';
 
 type WorkoutMetaStripProps = {
     blockIndex: number; // 0-based

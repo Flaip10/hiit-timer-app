@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Text, View } from 'react-native';
 
 import type { Phase } from '@core/timer';
-import st from './styles';
+import st from './ExerciseInfoCard.styles';
 
 type ExerciseInfoCardProps = {
     phase: Phase;

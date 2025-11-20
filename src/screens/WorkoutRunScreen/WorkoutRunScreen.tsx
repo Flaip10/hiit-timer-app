@@ -12,12 +12,12 @@ import { FooterBar } from '@components/layout/FooterBar';
 import { Button } from '@components/ui/Button/Button';
 
 import st from './styles';
-import { PhaseArc } from './PhaseArc';
-import { ExerciseInfoCard } from './ExerciseInfoCard';
-import { NextExerciseCarousel } from './NextExerciseCarousel';
-import { FinishedCard } from './FinishedCard';
-import { PhasePill } from './PhasePill';
-import { WorkoutMetaStrip } from './WorkoutMetaStrip';
+import { PhaseArc } from './components/PhaseArc/PhaseArc';
+import { ExerciseInfoCard } from './components/ExerciseInfoCard/ExerciseInfoCard';
+import { NextExerciseCarousel } from './components/NextExerciseCarousel/NextExerciseCarousel';
+import { FinishedCard } from './components/FinishedCard/FinishedCard';
+import { PhasePill } from './components/PhasePill/PhasePill';
+import { WorkoutMetaStrip } from './components/WorkoutMetaStrip/WorkoutMetaStrip';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import {
     colorFor,
@@ -26,7 +26,7 @@ import {
     formatDuration,
     labelFor,
 } from './helpers';
-import { useWorkoutRun } from './useWorkoutRun';
+import { useWorkoutRun } from './hooks/useWorkoutRun';
 
 export const WorkoutRunScreen = () => {
     useKeepAwake();
@@ -210,7 +210,7 @@ export const WorkoutRunScreen = () => {
         <>
             <MainContainer scroll={false}>
                 {/* Workout header */}
-                <View style={st.runHeader}>
+                <View style={st.pageHeader}>
                     <Text
                         style={st.runWorkoutTitle}
                         numberOfLines={1}
@@ -219,15 +219,15 @@ export const WorkoutRunScreen = () => {
                         {workout.name}
                     </Text>
                     {!isFinished && (
-                        <View style={st.metaStripTopCenter}>
+                        <View style={st.workoutTimerContainer}>
                             <Feather
                                 name="clock"
                                 size={16}
                                 color="#F9FAFB"
-                                style={st.metaStripTimeIcon}
+                                style={st.workoutTimerIcon}
                             />
-                            <View style={st.metaStripTimeTextWrapper}>
-                                <Text style={st.metaStripTimeText}>
+                            <View style={st.workoutTimerTextWrapper}>
+                                <Text style={st.workoutTimerText}>
                                     {formatDuration(remainingWorkoutSec)}
                                 </Text>
                             </View>
@@ -273,7 +273,7 @@ export const WorkoutRunScreen = () => {
                 </View>
 
                 {/* CURRENT + NEXT EXERCISE */}
-                <View style={st.metaContainer}>
+                <View style={st.exerciseInfoContainer}>
                     {!isFinished && currentExerciseName && (
                         <ExerciseInfoCard
                             phase={phase}

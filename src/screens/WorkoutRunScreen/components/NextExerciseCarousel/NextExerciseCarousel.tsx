@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Text, View } from 'react-native';
-import st from './styles';
 import { Phase } from '@src/core/timer';
+import st from './NextExerciseCarousel.styles';
 
 const OPACITY_DELAY = 220;
 

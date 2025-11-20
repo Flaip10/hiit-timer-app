@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Text, ViewStyle } from 'react-native';
-import st from './styles';
+import st from './FinishedCard.styles';
 
 type FinishedCardProps = {
     visible: boolean;

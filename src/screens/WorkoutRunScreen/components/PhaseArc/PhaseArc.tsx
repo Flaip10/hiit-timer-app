@@ -9,7 +9,7 @@ import Reanimated, {
     Easing,
 } from 'react-native-reanimated';
 
-import { ARC_SIZE } from './styles';
+import { ARC_SIZE } from '../../styles';
 
 const AnimatedPath = Reanimated.createAnimatedComponent(Path);
 
