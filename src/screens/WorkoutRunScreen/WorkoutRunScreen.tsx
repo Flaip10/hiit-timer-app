@@ -73,6 +73,16 @@ export const WorkoutRunScreen = () => {
         transform: [{ scale: 1 + breathingPhase.value * 0.08 }],
     }));
 
+    // Planned total duration (excluding PREP, to match "time left" logic)
+    const totalWorkoutPlannedSec = useMemo(
+        () =>
+            steps.reduce((acc, s) => {
+                if (s.label === 'PREP') return acc;
+                return acc + (s.durationSec ?? 0);
+            }, 0),
+        [steps]
+    );
+
     // -------- empty / not found state --------
 
     if (!workout || steps.length === 0 || !step) {
@@ -106,43 +116,76 @@ export const WorkoutRunScreen = () => {
     return (
         <>
             <MainContainer scroll={false}>
-                {/* Workout header */}
-                <View style={st.pageHeader}>
-                    <Text
-                        style={st.runWorkoutTitle}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                    >
-                        {workout.name}
-                    </Text>
-                    {!isFinished && (
-                        <View style={st.workoutTimerContainer}>
-                            <Feather
-                                name="clock"
-                                size={16}
-                                color="#F9FAFB"
-                                style={st.workoutTimerIcon}
-                            />
-                            <View style={st.workoutTimerTextWrapper}>
-                                <Text style={st.workoutTimerText}>
-                                    {formatDuration(remainingWorkoutSec)}
+                <View style={st.topRegion}>
+                    {isFinished ? (
+                        <View style={st.pageHeader}>
+                            <View>
+                                <Text style={st.finishedTitle}>
+                                    Workout complete
+                                </Text>
+
+                                <Text
+                                    style={st.finishedSubtitle}
+                                    numberOfLines={1}
+                                    ellipsizeMode="tail"
+                                >
+                                    {workout.name}
+                                </Text>
+                            </View>
+
+                            <View style={st.finishedDurationRow}>
+                                <Feather
+                                    name="clock"
+                                    size={16}
+                                    color="#F9FAFB"
+                                    style={st.workoutTimerIcon}
+                                />
+                                <Text style={st.finishedDurationText}>
+                                    {formatDuration(totalWorkoutPlannedSec)}
                                 </Text>
                             </View>
                         </View>
+                    ) : (
+                        <View style={st.pageHeader}>
+                            {/* Running header */}
+                            <View style={st.pageHeaderInfoContainer}>
+                                <Text
+                                    style={st.runWorkoutTitle}
+                                    numberOfLines={1}
+                                    ellipsizeMode="tail"
+                                >
+                                    {workout.name}
+                                </Text>
+
+                                <View style={st.workoutTimerContainer}>
+                                    <Feather
+                                        name="clock"
+                                        size={16}
+                                        color="#F9FAFB"
+                                        style={st.workoutTimerIcon}
+                                    />
+                                    <View style={st.workoutTimerTextWrapper}>
+                                        <Text style={st.workoutTimerText}>
+                                            {formatDuration(
+                                                remainingWorkoutSec
+                                            )}
+                                        </Text>
+                                    </View>
+                                </View>
+                            </View>
+
+                            {/* Meta strip only while running */}
+                            <WorkoutMetaStrip
+                                blockIndex={step.blockIdx}
+                                blockTitle={currentBlock?.title}
+                                currentSetIndex={step.setIdx}
+                                totalSets={totalSets}
+                                setProgress={setProgress}
+                                phaseColor={phaseColor}
+                            />
+                        </View>
                     )}
                 </View>
-
-                {/* Meta strip */}
-                {!isFinished && (
-                    <WorkoutMetaStrip
-                        blockIndex={step.blockIdx}
-                        blockTitle={currentBlock?.title}
-                        currentSetIndex={step.setIdx}
-                        totalSets={totalSets}
-                        setProgress={setProgress}
-                        phaseColor={phaseColor}
-                    />
-                )}
 
                 {/* ARC + PHASE */}
                 <View style={st.arcContainer}>
@@ -191,12 +234,17 @@ export const WorkoutRunScreen = () => {
             {/* FOOTER BUTTONS */}
             <FooterBar>
                 {isFinished ? (
-                    <Button
-                        title="Done"
-                        variant="primary"
-                        onPress={handleDone}
-                        flex={1}
-                    />
+                    <View style={st.footerFinishedWrapper}>
+                        <TouchableOpacity
+                            onPress={handleDone}
+                            activeOpacity={0.9}
+                            style={st.footerFinishedButton}
+                        >
+                            <Text style={st.footerFinishedText}>
+                                Back to summary
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 ) : (
                     <View style={st.footerIconRow}>
                         {/* Skip (left) */}

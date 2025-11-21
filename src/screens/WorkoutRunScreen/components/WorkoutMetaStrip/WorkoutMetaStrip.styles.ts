@@ -3,8 +3,6 @@ import { StyleSheet } from 'react-native';
 const st = StyleSheet.create({
     metaStripContainer: {
         width: '100%',
-        paddingHorizontal: 16,
-        marginTop: 8,
         gap: 12,
     },
     metaStripTopRow: {
