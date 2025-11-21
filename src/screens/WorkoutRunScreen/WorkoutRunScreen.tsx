@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { Animated, Text, View, TouchableOpacity } from 'react-native';
+import { Text, View, TouchableOpacity } from 'react-native';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
@@ -49,7 +50,6 @@ export const WorkoutRunScreen = () => {
     const {
         remaining,
         running,
-        scaleAnim,
         step,
         phase,
         isSetRest,
@@ -62,11 +62,16 @@ export const WorkoutRunScreen = () => {
         totalSets,
         currentExerciseName,
         nextExerciseName,
+        breathingPhase,
         handlePrimary,
         handleSkip,
         handleEnd,
         handleDone,
     } = useWorkoutRun({ steps, workout, shouldAutoStart, router });
+
+    const timerAnimatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: 1 + breathingPhase.value * 0.08 }],
+    }));
 
     // -------- empty / not found state --------
 
@@ -153,13 +158,9 @@ export const WorkoutRunScreen = () => {
                             progress={phaseProgress}
                             color={phaseColor}
                             finished={isFinished}
+                            breathingPhase={breathingPhase}
                         />
-                        <Animated.Text
-                            style={[
-                                st.timer,
-                                { transform: [{ scale: scaleAnim }] },
-                            ]}
-                        >
+                        <Animated.Text style={[st.timer, timerAnimatedStyle]}>
                             {isFinished ? 0 : remaining}
                         </Animated.Text>
                     </View>

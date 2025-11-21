@@ -7,6 +7,7 @@ import Reanimated, {
     withSequence,
     withDelay,
     Easing,
+    SharedValue,
 } from 'react-native-reanimated';
 
 import { ARC_SIZE } from '../../styles';
@@ -54,14 +55,18 @@ const describeArc = (
 };
 
 type PhaseArcProps = {
-    /** 0..1 progress inside the current phase */
     progress: number;
     color: string;
-    /** true when the whole workout is finished */
     finished: boolean;
+    breathingPhase?: SharedValue<number>;
 };
 
-export const PhaseArc = ({ progress, color, finished }: PhaseArcProps) => {
+export const PhaseArc = ({
+    progress,
+    color,
+    finished,
+    breathingPhase,
+}: PhaseArcProps) => {
     const cx = ARC_SIZE / 2;
     const cy = ARC_SIZE / 2;
 
@@ -138,6 +143,20 @@ export const PhaseArc = ({ progress, color, finished }: PhaseArcProps) => {
         };
     });
 
+    const breathingProps = useAnimatedProps(() => {
+        const clampedMain = Math.min(Math.max(mainProgress.value, 0), 1);
+        const strokeDashoffset = ARC_LENGTH * (1 - clampedMain);
+
+        // if prop is missing, treat as 0
+        const breath = breathingPhase ? breathingPhase.value : 0;
+
+        return {
+            strokeDashoffset,
+            // scale halo opacity with breathing phase
+            opacity: breath * 0.6,
+        };
+    });
+
     return (
         <Svg
             width={ARC_SIZE + SVG_PADDING * 2}
@@ -152,6 +171,18 @@ export const PhaseArc = ({ progress, color, finished }: PhaseArcProps) => {
                 fill="transparent"
                 strokeLinecap="round"
             />
+
+            {/* Breathing halo – pulsates when breathingPhase > 0 */}
+            <AnimatedPath
+                d={arcPath}
+                stroke={color}
+                strokeWidth={ARC_STROKE + 8}
+                fill="transparent"
+                strokeLinecap="round"
+                strokeDasharray={`${ARC_LENGTH} ${ARC_LENGTH}`}
+                animatedProps={breathingProps}
+            />
+
             {/* Glow sweep (thicker, fades out) */}
             <AnimatedPath
                 d={arcPath}

@@ -1,11 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
-import { AppState, Animated, Easing } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 
 import { createTimer, type Step, type Phase } from '@core/timer';
 import { cancelAll, cancelById, scheduleLocal } from '@core/notify';
 import type { Router } from 'expo-router';
 
 import { computeRemainingWorkoutSec, computeSetProgress } from '../helpers';
+import {
+    cancelAnimation,
+    Easing,
+    useSharedValue,
+    withRepeat,
+    withSequence,
+    withTiming,
+} from 'react-native-reanimated';
 
 type UseWorkoutRunArgs = {
     steps: Step[];
@@ -28,35 +36,6 @@ export const useWorkoutRun = ({
     const [remaining, setRemaining] = useState(0); // seconds (UI)
     const [remainingMs, setRemainingMs] = useState(0); // ms (for smooth progress)
     const [running, setRunning] = useState(false);
-
-    // breathing animation value (for the big number)
-    const scaleAnim = useRef(new Animated.Value(1)).current;
-
-    const stopBreathing = () => {
-        scaleAnim.stopAnimation();
-        scaleAnim.setValue(1);
-    };
-
-    const startBreathing = () => {
-        scaleAnim.stopAnimation();
-        scaleAnim.setValue(1);
-        Animated.loop(
-            Animated.sequence([
-                Animated.timing(scaleAnim, {
-                    toValue: 1.1,
-                    duration: 500,
-                    easing: Easing.inOut(Easing.ease),
-                    useNativeDriver: true,
-                }),
-                Animated.timing(scaleAnim, {
-                    toValue: 1.0,
-                    duration: 500,
-                    easing: Easing.inOut(Easing.ease),
-                    useNativeDriver: true,
-                }),
-            ])
-        ).start();
-    };
 
     // -------- engine setup --------
     useEffect(() => {
@@ -142,22 +121,6 @@ export const useWorkoutRun = ({
             sub.remove();
         };
     }, []);
-
-    // -------- breathing toggle (last 3 seconds) --------
-    useEffect(() => {
-        const step = steps[stepIndex];
-        if (!step || !step.durationSec) {
-            stopBreathing();
-            return;
-        }
-
-        if (remaining > 0 && remaining <= 3) {
-            startBreathing();
-        } else {
-            stopBreathing();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [remaining, stepIndex, steps]);
 
     // -------- derived values (pure logic) --------
 
@@ -254,6 +217,63 @@ export const useWorkoutRun = ({
         }
     }
 
+    // breathingPhase: 0..1 scalar that UI can map to scale/glow/etc
+    const breathingPhase = useSharedValue(0);
+
+    // Are we in the last 3 seconds of *this step* (independent of running)?
+    const isBreathingWindow = useMemo(() => {
+        if (!step || !step.durationSec) return false;
+        return remaining > 0 && remaining <= 3;
+    }, [step, remaining]);
+
+    // Only animate when in the window *and* actually running
+    const shouldAnimateBreathing = isBreathingWindow && running;
+
+    useEffect(() => {
+        // stop previous animation on every dependency change
+        cancelAnimation(breathingPhase);
+
+        if (isFinished) {
+            // workout done → fade back to "no breath"
+            breathingPhase.value = withTiming(0, {
+                duration: 150,
+                easing: Easing.out(Easing.quad),
+            });
+            return;
+        }
+
+        if (!isBreathingWindow) {
+            // outside the last-3s window → also fade back to 0
+            breathingPhase.value = withTiming(0, {
+                duration: 150,
+                easing: Easing.out(Easing.quad),
+            });
+            return;
+        }
+
+        if (!shouldAnimateBreathing) {
+            // we *are* in the last-3s window, but not running (paused)
+            // → just freeze at the current value, do nothing
+            return;
+        }
+
+        // last-3s *and* running → heartbeat loop on UI thread
+        breathingPhase.value = withRepeat(
+            withSequence(
+                withTiming(1, {
+                    duration: 500,
+                    easing: Easing.linear,
+                }),
+                withTiming(0, {
+                    duration: 500,
+                    easing: Easing.out(Easing.cubic),
+                })
+            ),
+            -1,
+            false
+        );
+    }, [isBreathingWindow, shouldAnimateBreathing, isFinished, breathingPhase]);
+
     // -------- controls --------
 
     const handleStart = () => engineRef.current?.start();
@@ -299,7 +319,6 @@ export const useWorkoutRun = ({
         // raw timer state
         remaining,
         running,
-        scaleAnim,
 
         // derived timer info
         step,
@@ -316,6 +335,9 @@ export const useWorkoutRun = ({
         totalSets,
         currentExerciseName,
         nextExerciseName,
+
+        // breathing scalar for UI (0..1)
+        breathingPhase,
 
         // controls
         handlePrimary,
