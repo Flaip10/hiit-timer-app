@@ -13,25 +13,6 @@ export type Step = {
     nextName?: string;
 };
 
-export type Tick = {
-    stepIndex: number;
-    /** whole seconds left in this step (what you use for UI + notifications) */
-    remainingSec: number;
-    /** precise ms left in this step (for smooth progress / arcs if you need it) */
-    remainingMs: number;
-    running: boolean;
-};
-
-// Monotonic timestamp helper
-const startWallMs = Date.now();
-const startPerf = performance.now();
-/**
- * Monotonic "wall-clock" ms:
- *  - uses performance.now() (monotonic, not affected by system clock jumps)
- *  - anchored to a Date.now() baseline so it's comparable to "real" time if needed
- */
-const nowMs = (): number => startWallMs + (performance.now() - startPerf);
-
 const workDuration = (p: Pace): number => (p.type === 'time' ? p.workSec : 0);
 
 /** Builds workout steps from block-level structure */
@@ -121,96 +102,142 @@ export const buildSteps = (
     return { steps };
 };
 
-/** Timer engine with exact pause/resume semantics */
+// Monotonic timestamp helper (keep your existing implementation)
+const startWallMs = Date.now();
+const startPerf = performance.now();
+const nowMs = (): number => startWallMs + (performance.now() - startPerf);
+
+export type Tick = {
+    stepIndex: number;
+    remainingSec: number;
+    remainingMs: number;
+    running: boolean;
+};
+
+// Timer engine with ~4 Hz tick (good enough for smooth UI)
 export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
+    const TICK_MS = 200; // 5 times per second
+
     let index = 0;
     let running = false;
-    let endAt = 0; // absolute timestamp (ms) when current step ends
+    let endAt = 0; // wall-clock ms when current step should end
     let pausedRemainMs: number | null = null;
-    let raf: number | null = null;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
 
-    /**
-     * Emits a snapshot to the UI.
-     * - remainMs: precise ms left in this step
-     * - remainingSec: ceil(...) so user sees full seconds, not 0.1, 0.2, ...
-     */
-    const issueTick = (remainMs: number) => {
-        const ms = Math.max(0, remainMs);
-        const secLeft = Math.ceil(ms / 1000);
+    const currentStep = () => steps[index];
+
+    const issueTick = (remainMsRaw: number) => {
+        const remainMs = Math.max(0, remainMsRaw);
+        const secLeft = Math.ceil(remainMs / 1000);
         onTick({
             stepIndex: index,
             remainingSec: secLeft,
-            remainingMs: ms,
+            remainingMs: remainMs,
             running,
         });
     };
 
-    /** How many ms are left in the current step, considering running/paused state */
     const currentRemainMs = (): number => {
-        if (!steps[index]) return 0;
+        const step = currentStep();
+        if (!step) return 0;
+
         if (!running) {
-            // if paused, use frozen remain; otherwise use full duration
-            return pausedRemainMs ?? steps[index].durationSec * 1000;
+            const fallback = (step.durationSec ?? 0) * 1000;
+            return pausedRemainMs ?? fallback;
         }
+
         return Math.max(0, endAt - nowMs());
+    };
+
+    const clearTimer = () => {
+        if (intervalId != null) {
+            clearInterval(intervalId);
+            intervalId = null;
+        }
     };
 
     const loop = () => {
         if (!running) return;
+
         const msLeft = currentRemainMs();
-        issueTick(msLeft);
 
         if (msLeft <= 0) {
+            // step finished – move to next or stop
             if (index < steps.length - 1) {
-                // advance to next step
                 index += 1;
-                endAt = nowMs() + steps[index].durationSec * 1000;
-                issueTick(steps[index].durationSec * 1000);
+                const next = currentStep();
+                const durMs = (next?.durationSec ?? 0) * 1000;
+                endAt = nowMs() + durMs;
+                issueTick(durMs);
             } else {
+                // workout finished
                 stop();
-                return;
             }
+            return;
         }
-        raf = requestAnimationFrame(loop);
+
+        // normal tick
+        issueTick(msLeft);
+    };
+
+    const startInterval = () => {
+        clearTimer();
+        intervalId = setInterval(loop, TICK_MS);
     };
 
     const start = () => {
         if (running || steps.length === 0) return;
+
+        const step = currentStep();
+        const durMs = (step?.durationSec ?? 0) * 1000;
+
         running = true;
         pausedRemainMs = null;
-        endAt = nowMs() + steps[index].durationSec * 1000;
-        issueTick(steps[index].durationSec * 1000);
-        raf = requestAnimationFrame(loop);
+        endAt = nowMs() + durMs;
+
+        issueTick(durMs);
+        startInterval();
     };
 
     const pause = () => {
         if (!running) return;
+
+        const remain = currentRemainMs();
         running = false;
-        if (raf != null) cancelAnimationFrame(raf);
-        raf = null;
-        pausedRemainMs = Math.max(0, endAt - nowMs());
-        issueTick(pausedRemainMs);
+        pausedRemainMs = remain;
+        clearTimer();
+        issueTick(remain);
     };
 
     const resume = () => {
         if (running || steps.length === 0) return;
-        const remain = pausedRemainMs ?? steps[index].durationSec * 1000;
-        endAt = nowMs() + remain;
-        pausedRemainMs = null;
+
+        const step = currentStep();
+        const fallback = (step?.durationSec ?? 0) * 1000;
+        const remain = pausedRemainMs ?? fallback;
+
         running = true;
+        pausedRemainMs = null;
+        endAt = nowMs() + remain;
+
         issueTick(remain);
-        raf = requestAnimationFrame(loop);
+        startInterval();
     };
 
     const skip = () => {
+        if (steps.length === 0) return;
+
         if (index < steps.length - 1) {
             index += 1;
+            const step = currentStep();
+            const durMs = (step?.durationSec ?? 0) * 1000;
+
             if (running) {
-                endAt = nowMs() + steps[index].durationSec * 1000;
-                issueTick(steps[index].durationSec * 1000);
+                endAt = nowMs() + durMs;
+                issueTick(durMs);
             } else {
-                pausedRemainMs = steps[index].durationSec * 1000;
-                issueTick(pausedRemainMs);
+                pausedRemainMs = durMs;
+                issueTick(durMs);
             }
         } else {
             stop();
@@ -219,9 +246,20 @@ export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
 
     const stop = () => {
         running = false;
-        if (raf != null) cancelAnimationFrame(raf);
-        raf = null;
+        clearTimer();
         pausedRemainMs = null;
+
+        const step = currentStep();
+        if (!step) {
+            onTick({
+                stepIndex: index,
+                remainingSec: 0,
+                remainingMs: 0,
+                running,
+            });
+            return;
+        }
+
         onTick({
             stepIndex: index,
             remainingSec: 0,
