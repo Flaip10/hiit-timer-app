@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { Text, View } from 'react-native';
 import Animated, {
+    Easing,
     useAnimatedStyle,
     useSharedValue,
+    withTiming,
 } from 'react-native-reanimated';
 import st from './WorkoutMetaStrip.styles';
 
@@ -35,6 +37,15 @@ export const WorkoutMetaStrip = ({
     const visualProgress = useSharedValue(
         Math.min(1, Math.max(0, setProgress ?? 0))
     );
+
+    // Normal phase progress
+    useEffect(() => {
+        // mainProgress.value = Math.min(Math.max(progress, 0), 1);
+        visualProgress.value = withTiming(Math.max(0, setProgress ?? 0), {
+            duration: 200, //to follow 5Hz tick
+            easing: Easing.linear,
+        });
+    }, [visualProgress, setProgress]);
 
     const lastSetIndexRef = useRef(currentSetIndex);
 
