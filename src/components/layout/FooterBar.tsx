@@ -6,6 +6,8 @@ type FooterBarProps = {
     children: ReactNode;
 };
 
+let PADDING_BOTTOM = 16;
+
 export const FooterBar = ({ children }: FooterBarProps) => (
     <SafeAreaView edges={['bottom']} style={st.safe}>
         <View style={st.row}>{children}</View>
@@ -21,6 +23,10 @@ const st = StyleSheet.create({
         gap: 10,
         paddingHorizontal: 14,
         paddingTop: 10,
-        paddingBottom: Platform.OS === 'android' ? 16 : 0,
+        // base is 16 : 0 the added is literal bottom padding
+        paddingBottom:
+            Platform.OS === 'android'
+                ? 16 + PADDING_BOTTOM
+                : 0 + PADDING_BOTTOM,
     },
 });
