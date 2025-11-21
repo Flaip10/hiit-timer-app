@@ -4,7 +4,7 @@ export const ARC_SIZE = 280;
 
 const st = StyleSheet.create({
     arcContainer: {
-        marginTop: 30,
+        marginTop: 25,
         alignItems: 'center',
         justifyContent: 'center',
         gap: 30,
@@ -161,7 +161,7 @@ const st = StyleSheet.create({
 
     footerFinishedWrapper: {
         width: '100%',
-        paddingHorizontal: 24,
+        paddingHorizontal: 16,
     },
     footerFinishedButton: {
         width: '100%',

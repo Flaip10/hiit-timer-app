@@ -37,7 +37,7 @@ const st = StyleSheet.create({
     content: {
         flexGrow: 1,
         padding: 16,
-        paddingHorizontal: 18,
+        paddingHorizontal: 16,
         gap: 8,
         paddingBottom: 24,
     },
