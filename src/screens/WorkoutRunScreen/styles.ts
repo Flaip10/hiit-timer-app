@@ -231,6 +231,17 @@ const st = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
+    finishedDurationPill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderRadius: 999,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        backgroundColor: '#111827',
+        marginTop: 4,
+        justifyContent: 'flex-start',
+        // gap: 6,
+    },
     finishedDurationRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -239,8 +250,58 @@ const st = StyleSheet.create({
     },
     finishedDurationText: {
         color: '#F9FAFB',
+        fontSize: 16,
+    },
+    finishedDurationLabel: {
+        color: '#9CA3AF',
         fontSize: 18,
-        fontWeight: '700',
+        fontWeight: '500',
+    },
+
+    finishedFooterRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+        paddingHorizontal: 16,
+        gap: 12,
+    },
+
+    finishedShareButton: {
+        width: 46,
+        height: 46,
+        borderRadius: 23,
+        backgroundColor: '#111827',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    shareModalBackdrop: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+    },
+
+    shareModalContent: {
+        width: '100%',
+        maxWidth: 380,
+        borderRadius: 24,
+        paddingHorizontal: 16,
+        paddingVertical: 18,
+        backgroundColor: '#020617',
+        gap: 16,
+    },
+
+    shareModalButtonsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+
+    shareModalButtonsSpacer: {
+        width: 12,
     },
 });
 

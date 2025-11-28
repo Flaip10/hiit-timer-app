@@ -1,9 +1,12 @@
-import { useMemo } from 'react';
-import { Text, View, TouchableOpacity } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { Text, View, TouchableOpacity, Modal } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
+
+import { captureRef } from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
 
 import { useWorkout } from '@state/useWorkouts';
 import { buildSteps } from '@core/timer';
@@ -20,11 +23,20 @@ import { FinishedCard } from './components/FinishedCard/FinishedCard';
 import { PhasePill } from './components/PhasePill/PhasePill';
 import { WorkoutMetaStrip } from './components/WorkoutMetaStrip/WorkoutMetaStrip';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { colorFor, formatDuration, labelFor } from './helpers';
+import {
+    colorFor,
+    formatDuration,
+    formatDurationVerbose,
+    labelFor,
+} from './helpers';
 import { useWorkoutRun } from './hooks/useWorkoutRun';
+import { ShareWorkoutCard } from './components/ShareWorkoutCard/ShareWorkoutCard';
 
 export const WorkoutRunScreen = () => {
     useKeepAwake();
+
+    const [shareVisible, setShareVisible] = useState(false);
+    const shareCardRef = useRef<View | null>(null);
 
     const { id, autoStart } = useLocalSearchParams<{
         id?: string;
@@ -113,6 +125,35 @@ export const WorkoutRunScreen = () => {
     const phaseColor = colorFor(phase, !!isSetRest);
     const phaseLabel = labelFor(phase, !!isSetRest);
 
+    const openSharePreview = () => {
+        if (!isFinished) return;
+        setShareVisible(true);
+    };
+
+    const closeSharePreview = () => {
+        setShareVisible(false);
+    };
+
+    const handleConfirmShare = async () => {
+        try {
+            const node = shareCardRef.current;
+            if (!node) return;
+
+            const uri = await captureRef(node, {
+                format: 'png',
+                quality: 1,
+            });
+
+            if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(uri);
+            }
+
+            setShareVisible(false);
+        } catch (err) {
+            console.warn('Share failed', err);
+        }
+    };
+
     return (
         <>
             <MainContainer scroll={false}>
@@ -132,17 +173,31 @@ export const WorkoutRunScreen = () => {
                                     {workout.name}
                                 </Text>
                             </View>
+                            <View
+                                style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                {/* <Text style={st.finishedDurationLabel}>
+                                    {'Duration:'}
+                                </Text> */}
 
-                            <View style={st.finishedDurationRow}>
-                                <Feather
-                                    name="clock"
-                                    size={16}
-                                    color="#F9FAFB"
-                                    style={st.workoutTimerIcon}
-                                />
-                                <Text style={st.finishedDurationText}>
-                                    {formatDuration(totalWorkoutPlannedSec)}
-                                </Text>
+                                <View style={st.finishedDurationPill}>
+                                    <Feather
+                                        name="clock"
+                                        size={16}
+                                        color="#F9FAFB"
+                                        style={st.workoutTimerIcon}
+                                    />
+
+                                    <Text style={st.finishedDurationText}>
+                                        {formatDurationVerbose(
+                                            totalWorkoutPlannedSec
+                                        )}
+                                    </Text>
+                                </View>
                             </View>
                         </View>
                     ) : (
@@ -229,6 +284,66 @@ export const WorkoutRunScreen = () => {
 
                 {/* FINISHED CARD */}
                 <FinishedCard visible={isFinished} />
+
+                {/* Share preview modal – only used on finished state */}
+                {isFinished && (
+                    <View style={st.finishedFooterRow}>
+                        <TouchableOpacity
+                            onPress={openSharePreview}
+                            activeOpacity={0.8}
+                            style={st.finishedShareButton}
+                        >
+                            <Ionicons
+                                name="share-outline"
+                                size={20}
+                                color="#E5E7EB"
+                            />
+                        </TouchableOpacity>
+                    </View>
+                )}
+
+                {isFinished && (
+                    <Modal
+                        visible={shareVisible}
+                        transparent
+                        animationType="slide"
+                        onRequestClose={closeSharePreview}
+                    >
+                        <View style={st.shareModalBackdrop}>
+                            <View style={st.shareModalContent}>
+                                <View
+                                    ref={shareCardRef}
+                                    collapsable={false} // important for Android + view-shot
+                                >
+                                    <ShareWorkoutCard
+                                        workoutName={workout.name}
+                                        durationLabel={formatDurationVerbose(
+                                            totalWorkoutPlannedSec
+                                        )}
+                                        completedLabel="Today" // later you can pass a real date string
+                                        phaseColor={phaseColor}
+                                    />
+                                </View>
+
+                                <View style={st.shareModalButtonsRow}>
+                                    <Button
+                                        title="Cancel"
+                                        variant="secondary"
+                                        onPress={closeSharePreview}
+                                        flex={1}
+                                    />
+                                    <View style={st.shareModalButtonsSpacer} />
+                                    <Button
+                                        title="Share"
+                                        variant="primary"
+                                        onPress={handleConfirmShare}
+                                        flex={1}
+                                    />
+                                </View>
+                            </View>
+                        </View>
+                    </Modal>
+                )}
             </MainContainer>
 
             {/* FOOTER BUTTONS */}
