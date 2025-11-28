@@ -23,6 +23,23 @@ export const formatDuration = (sec: number): string => {
     return `${m}:${s}`;
 };
 
+export const formatDurationVerbose = (sec: number): string => {
+    const total = Math.max(0, Math.floor(sec));
+    const minutes = Math.floor(total / 60);
+    const seconds = total % 60;
+
+    if (minutes === 0) {
+        return `${seconds} sec`;
+    }
+
+    if (seconds === 0) {
+        return `${minutes} min`;
+    }
+
+    const paddedSeconds = seconds.toString().padStart(2, '0');
+    return `${minutes} min ${paddedSeconds} sec`;
+};
+
 export const computeRemainingWorkoutSec = (
     steps: Step[],
     stepIndex: number,
