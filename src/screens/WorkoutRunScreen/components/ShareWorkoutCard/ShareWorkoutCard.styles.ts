@@ -2,8 +2,6 @@ import { StyleSheet } from 'react-native';
 
 const st = StyleSheet.create({
     cardContainer: {
-        width: 360,
-        maxWidth: '100%',
         aspectRatio: 0.5, // 2:1, share-friendly
         borderRadius: 24,
         paddingHorizontal: 20,
