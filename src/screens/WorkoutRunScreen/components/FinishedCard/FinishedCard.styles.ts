@@ -3,7 +3,6 @@ import { StyleSheet } from 'react-native';
 const st = StyleSheet.create({
     finishedCard: {
         marginHorizontal: 16,
-        marginTop: 16,
         paddingVertical: 16,
         paddingHorizontal: 18,
         borderRadius: 18,
