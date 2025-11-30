@@ -1,10 +1,11 @@
-// src/state/useWorkouts.ts
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { useShallow } from 'zustand/react/shallow';
 import { nanoid } from 'nanoid/non-secure';
 
 import type { Workout, WorkoutBlock, Pace } from '@src/core/entities';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type WorkoutsState = {
     // saved workouts
@@ -55,122 +56,134 @@ const starterWorkout = (): Workout => ({
 // --- store --------------------------------------------------------
 
 export const useWorkouts = create<WorkoutsState>()(
-    immer((set, get) => ({
-        workouts: {},
-        order: [],
-        draft: null,
+    persist(
+        immer((set, get) => ({
+            workouts: {},
+            order: [],
+            draft: null,
 
-        // ----- real workouts -----
-        add: (workout) => {
-            const id = workout.id ?? uid();
-            const nextWorkout: Workout = { ...workout, id };
+            // ----- real workouts -----
+            add: (workout) => {
+                const id = workout.id ?? uid();
+                const nextWorkout: Workout = { ...workout, id };
 
-            set((state) => {
-                state.workouts[id] = nextWorkout;
-                state.order = [
-                    id,
-                    ...state.order.filter((x: string) => x !== id),
-                ];
-            });
+                set((state) => {
+                    state.workouts[id] = nextWorkout;
+                    state.order = [
+                        id,
+                        ...state.order.filter((x: string) => x !== id),
+                    ];
+                });
 
-            return id;
-        },
+                return id;
+            },
 
-        update: (id, patch) =>
-            set((state) => {
-                const current = state.workouts[id];
-                if (!current) return;
+            update: (id, patch) =>
+                set((state) => {
+                    const current = state.workouts[id];
+                    if (!current) return;
 
-                const next: Workout = {
-                    ...current,
-                    ...patch,
-                    blocks: patch.blocks ?? current.blocks,
-                };
+                    const next: Workout = {
+                        ...current,
+                        ...patch,
+                        blocks: patch.blocks ?? current.blocks,
+                    };
 
-                state.workouts[id] = next;
+                    state.workouts[id] = next;
+                }),
+
+            remove: (id) =>
+                set((state) => {
+                    const rest = { ...state.workouts };
+                    delete rest[id];
+                    state.workouts = rest;
+                    state.order = state.order.filter((x: string) => x !== id);
+                }),
+
+            // ----- draft workflow -----
+
+            // start a brand new draft
+            startDraftNew: () =>
+                set(() => ({
+                    draft: starterWorkout(),
+                })),
+
+            // start from an existing workout (deep clone)
+            startDraftFromExisting: (id) => {
+                const { workouts } = get();
+                const existing = workouts[id];
+                if (!existing) return;
+
+                const clone: Workout =
+                    typeof structuredClone === 'function'
+                        ? structuredClone(existing)
+                        : (JSON.parse(JSON.stringify(existing)) as Workout);
+
+                // keep a new id or reuse? here we keep the same id so "save" overwrites
+                set(() => ({
+                    draft: clone,
+                }));
+            },
+
+            // patch top-level draft fields (currently name only)
+            updateDraftMeta: (patch) =>
+                set((state) => {
+                    if (!state.draft) return;
+                    Object.assign(state.draft, patch);
+                }),
+
+            // patch a single block inside the draft by blockId
+            updateDraftBlock: (blockId, patch) =>
+                set((state) => {
+                    if (!state.draft) return;
+                    const block = state.draft.blocks.find(
+                        (b: WorkoutBlock) => b.id === blockId
+                    );
+                    if (!block) return;
+                    Object.assign(block, patch);
+                }),
+
+            // replace all draft blocks (e.g. when coming back from BlockEditScreen)
+            setDraftBlocks: (blocks) =>
+                set((state) => {
+                    if (!state.draft) return;
+                    // assume blocks is already a safe copy
+                    state.draft.blocks = blocks;
+                }),
+
+            // commit draft into real workouts and clear it
+            commitDraft: () => {
+                const { draft, order } = get();
+                if (!draft) return null;
+
+                const id = draft.id ?? uid();
+                const workout: Workout = { ...draft, id };
+
+                set((state) => {
+                    state.workouts[id] = workout;
+                    state.order = [id, ...order.filter((x) => x !== id)];
+                    state.draft = null;
+                });
+
+                return id;
+            },
+
+            clearDraft: () =>
+                set((state) => {
+                    state.draft = null;
+                }),
+        })),
+        {
+            name: 'workouts-storage-v1',
+            storage: createJSONStorage(() => AsyncStorage),
+
+            // persist only "real" workouts, not drafts
+            partialize: (state) => ({
+                workouts: state.workouts,
+                order: state.order,
             }),
-
-        remove: (id) =>
-            set((state) => {
-                const rest = { ...state.workouts };
-                delete rest[id];
-                state.workouts = rest;
-                state.order = state.order.filter((x: string) => x !== id);
-            }),
-
-        // ----- draft workflow -----
-
-        // start a brand new draft
-        startDraftNew: () =>
-            set(() => ({
-                draft: starterWorkout(),
-            })),
-
-        // start from an existing workout (deep clone)
-        startDraftFromExisting: (id) => {
-            const { workouts } = get();
-            const existing = workouts[id];
-            if (!existing) return;
-
-            const clone: Workout =
-                typeof structuredClone === 'function'
-                    ? structuredClone(existing)
-                    : (JSON.parse(JSON.stringify(existing)) as Workout);
-
-            // keep a new id or reuse? here we keep the same id so "save" overwrites
-            set(() => ({
-                draft: clone,
-            }));
-        },
-
-        // patch top-level draft fields (currently name only)
-        updateDraftMeta: (patch) =>
-            set((state) => {
-                if (!state.draft) return;
-                Object.assign(state.draft, patch);
-            }),
-
-        // patch a single block inside the draft by blockId
-        updateDraftBlock: (blockId, patch) =>
-            set((state) => {
-                if (!state.draft) return;
-                const block = state.draft.blocks.find(
-                    (b: WorkoutBlock) => b.id === blockId
-                );
-                if (!block) return;
-                Object.assign(block, patch);
-            }),
-
-        // replace all draft blocks (e.g. when coming back from BlockEditScreen)
-        setDraftBlocks: (blocks) =>
-            set((state) => {
-                if (!state.draft) return;
-                // assume blocks is already a safe copy
-                state.draft.blocks = blocks;
-            }),
-
-        // commit draft into real workouts and clear it
-        commitDraft: () => {
-            const { draft, order } = get();
-            if (!draft) return null;
-
-            const id = draft.id ?? uid();
-            const workout: Workout = { ...draft, id };
-
-            set((state) => {
-                state.workouts[id] = workout;
-                state.order = [id, ...order.filter((x) => x !== id)];
-                state.draft = null;
-            });
-
-            return id;
-        },
-
-        clearDraft: () =>
-            set((state) => {
-                state.draft = null;
-            }),
-    }))
+        }
+    )
 );
 
 // ----- selectors --------------------------------------------------
