@@ -39,6 +39,5 @@ const st = StyleSheet.create({
         padding: 16,
         paddingHorizontal: 16,
         gap: 8,
-        paddingBottom: 24,
     },
 });
