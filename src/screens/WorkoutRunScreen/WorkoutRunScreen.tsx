@@ -31,6 +31,7 @@ import {
 } from './helpers';
 import { useWorkoutRun } from './hooks/useWorkoutRun';
 import { ShareWorkoutCard } from './components/ShareWorkoutCard/ShareWorkoutCard';
+import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
 
 export const WorkoutRunScreen = () => {
     useKeepAwake();
@@ -158,88 +159,85 @@ export const WorkoutRunScreen = () => {
         <>
             <MainContainer scroll={false}>
                 <View style={st.topRegion}>
-                    {isFinished ? (
-                        <View style={st.pageHeader}>
-                            <View>
-                                <Text style={st.finishedTitle}>
-                                    Workout complete
-                                </Text>
-
-                                <Text
-                                    style={st.finishedSubtitle}
-                                    numberOfLines={1}
-                                    ellipsizeMode="tail"
-                                >
-                                    {workout.name}
-                                </Text>
-                            </View>
-                            <View
-                                style={{
-                                    flexDirection: 'row',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                }}
+                    <AppearingView
+                        visible={!isFinished}
+                        style={st.pageHeader}
+                        offsetY={0}
+                        offsetX={-12}
+                    >
+                        {/* Running header */}
+                        <View style={st.pageHeaderInfoContainer}>
+                            <Text
+                                style={st.runWorkoutTitle}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
                             >
-                                {/* <Text style={st.finishedDurationLabel}>
-                                    {'Duration:'}
-                                </Text> */}
+                                {workout.name}
+                            </Text>
 
-                                <View style={st.finishedDurationPill}>
-                                    <Feather
-                                        name="clock"
-                                        size={16}
-                                        color="#F9FAFB"
-                                        style={st.workoutTimerIcon}
-                                    />
-
-                                    <Text style={st.finishedDurationText}>
-                                        {formatDurationVerbose(
-                                            totalWorkoutPlannedSec
-                                        )}
+                            <View style={st.workoutTimerContainer}>
+                                <Feather
+                                    name="clock"
+                                    size={16}
+                                    color="#F9FAFB"
+                                    style={st.workoutTimerIcon}
+                                />
+                                <View style={st.workoutTimerTextWrapper}>
+                                    <Text style={st.workoutTimerText}>
+                                        {formatDuration(remainingWorkoutSec)}
                                     </Text>
                                 </View>
                             </View>
                         </View>
-                    ) : (
-                        <View style={st.pageHeader}>
-                            {/* Running header */}
-                            <View style={st.pageHeaderInfoContainer}>
-                                <Text
-                                    style={st.runWorkoutTitle}
-                                    numberOfLines={1}
-                                    ellipsizeMode="tail"
-                                >
-                                    {workout.name}
-                                </Text>
 
-                                <View style={st.workoutTimerContainer}>
-                                    <Feather
-                                        name="clock"
-                                        size={16}
-                                        color="#F9FAFB"
-                                        style={st.workoutTimerIcon}
-                                    />
-                                    <View style={st.workoutTimerTextWrapper}>
-                                        <Text style={st.workoutTimerText}>
-                                            {formatDuration(
-                                                remainingWorkoutSec
-                                            )}
-                                        </Text>
-                                    </View>
-                                </View>
-                            </View>
+                        {/* Meta strip only while running */}
+                        <WorkoutMetaStrip
+                            blockIndex={step.blockIdx}
+                            blockTitle={currentBlock?.title}
+                            currentSetIndex={step.setIdx}
+                            totalSets={totalSets}
+                            setProgress={setProgress}
+                            phaseColor={phaseColor}
+                        />
+                    </AppearingView>
 
-                            {/* Meta strip only while running */}
-                            <WorkoutMetaStrip
-                                blockIndex={step.blockIdx}
-                                blockTitle={currentBlock?.title}
-                                currentSetIndex={step.setIdx}
-                                totalSets={totalSets}
-                                setProgress={setProgress}
-                                phaseColor={phaseColor}
-                            />
+                    <AppearingView
+                        visible={isFinished}
+                        style={st.pageHeader}
+                        offsetY={0}
+                        offsetX={-12}
+                        delay={260} //Provide enough time for previous view to unmount
+                    >
+                        <View>
+                            <Text style={st.finishedTitle}>
+                                Workout complete
+                            </Text>
+
+                            <Text
+                                style={st.finishedSubtitle}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                            >
+                                {workout.name}
+                            </Text>
                         </View>
-                    )}
+                        <View style={st.finishedDurationPillContainer}>
+                            <View style={st.finishedDurationPill}>
+                                <Feather
+                                    name="clock"
+                                    size={16}
+                                    color="#F9FAFB"
+                                    style={st.workoutTimerIcon}
+                                />
+
+                                <Text style={st.finishedDurationText}>
+                                    {formatDurationVerbose(
+                                        totalWorkoutPlannedSec
+                                    )}
+                                </Text>
+                            </View>
+                        </View>
+                    </AppearingView>
                 </View>
 
                 {/* ARC + PHASE */}
@@ -286,21 +284,23 @@ export const WorkoutRunScreen = () => {
                 <FinishedCard visible={isFinished} />
 
                 {/* Share preview modal – only used on finished state */}
-                {isFinished && (
-                    <View style={st.finishedFooterRow}>
-                        <TouchableOpacity
-                            onPress={openSharePreview}
-                            activeOpacity={0.8}
-                            style={st.finishedShareButton}
-                        >
-                            <Ionicons
-                                name="share-outline"
-                                size={20}
-                                color="#E5E7EB"
-                            />
-                        </TouchableOpacity>
-                    </View>
-                )}
+
+                <AppearingView
+                    visible={isFinished}
+                    style={st.finishedFooterRow}
+                >
+                    <TouchableOpacity
+                        onPress={openSharePreview}
+                        activeOpacity={0.8}
+                        style={st.finishedShareButton}
+                    >
+                        <Ionicons
+                            name="share-outline"
+                            size={22}
+                            color="#E5E7EB"
+                        />
+                    </TouchableOpacity>
+                </AppearingView>
 
                 {isFinished && (
                     <Modal

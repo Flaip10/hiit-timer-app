@@ -231,6 +231,11 @@ const st = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
+    finishedDurationPillContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
     finishedDurationPill: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -240,7 +245,6 @@ const st = StyleSheet.create({
         backgroundColor: '#111827',
         marginTop: 4,
         justifyContent: 'flex-start',
-        // gap: 6,
     },
     finishedDurationRow: {
         flexDirection: 'row',
@@ -261,16 +265,15 @@ const st = StyleSheet.create({
     finishedFooterRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         width: '100%',
-        paddingHorizontal: 16,
-        gap: 12,
+        flex: 1,
     },
 
     finishedShareButton: {
-        width: 46,
-        height: 46,
-        borderRadius: 23,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
         backgroundColor: '#111827',
         alignItems: 'center',
         justifyContent: 'center',
