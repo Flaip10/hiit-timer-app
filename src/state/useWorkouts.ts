@@ -23,6 +23,7 @@ type WorkoutsState = {
     // draft workflow
     startDraftNew: () => void;
     startDraftFromExisting: (id: string) => void;
+    startDraftFromImported: (workout: Workout) => void;
     updateDraftMeta: (patch: Partial<Pick<Workout, 'name'>>) => void;
     updateDraftBlock: (blockId: string, patch: Partial<WorkoutBlock>) => void;
     setDraftBlocks: (blocks: WorkoutBlock[]) => void;
@@ -124,6 +125,22 @@ export const useWorkouts = create<WorkoutsState>()(
                     draft: clone,
                 }));
             },
+
+            startDraftFromImported: (imported) =>
+                set(() => {
+                    // deep clone to avoid mutating the imported object
+                    const clone: Workout =
+                        typeof structuredClone === 'function'
+                            ? structuredClone(imported)
+                            : (JSON.parse(JSON.stringify(imported)) as Workout);
+
+                    // let commitDraft decide the final ID
+                    clone.id = uid();
+
+                    return {
+                        draft: clone,
+                    };
+                }),
 
             // patch top-level draft fields (currently name only)
             updateDraftMeta: (patch) =>
