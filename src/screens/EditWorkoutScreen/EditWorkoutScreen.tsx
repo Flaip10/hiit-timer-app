@@ -21,7 +21,10 @@ const createEmptyBlock = (): WorkoutBlock => ({
 });
 
 const EditWorkoutScreen = () => {
-    const { id } = useLocalSearchParams<{ id?: string }>();
+    const { id, importing } = useLocalSearchParams<{
+        id?: string;
+        importing?: string;
+    }>();
     const router = useRouter();
 
     const draft = useWorkouts((state) => state.draft);
@@ -39,6 +42,9 @@ const EditWorkoutScreen = () => {
 
     // initialise / cleanup draft
     useEffect(() => {
+        // If we are importing, DO NOT touch the draft.
+        if (importing === '1') return;
+
         if (id) {
             startDraftFromExisting(id);
         } else {
@@ -48,8 +54,7 @@ const EditWorkoutScreen = () => {
         return () => {
             clearDraft();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id]);
+    }, [clearDraft, id, importing, startDraftFromExisting, startDraftNew]);
 
     const name = draft?.name ?? 'New Workout';
     const blocks = draft?.blocks ?? [];
