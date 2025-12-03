@@ -18,7 +18,7 @@ import {
 
 type UseWorkoutRunArgs = {
     steps: Step[];
-    workout: Workout; // we only read blocks/exercises/name, keep this loose
+    workout: Workout;
     shouldAutoStart: boolean;
     router: Router;
 };
