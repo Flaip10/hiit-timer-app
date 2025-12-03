@@ -1,4 +1,4 @@
-import type { WorkoutBlock, Pace } from './entities';
+import type { WorkoutBlock } from './entities';
 
 export type Phase = 'PREP' | 'WORK' | 'REST';
 
@@ -13,9 +13,11 @@ export type Step = {
     nextName?: string;
 };
 
-const workDuration = (p: Pace): number => (p.type === 'time' ? p.workSec : 0);
-
-/** Builds workout steps from block-level structure */
+/**
+ * Builds workout steps from block-level structure.
+ *
+ * For now, non-timed exercises (mode === 'reps') are ignored in the run.
+ */
 export const buildSteps = (
     prepSec: number,
     blocks: WorkoutBlock[]
@@ -24,23 +26,29 @@ export const buildSteps = (
     let firstWorkAdded = false;
 
     blocks.forEach((block, bi) => {
-        const L = block.exercises.length;
-        const sets = Math.max(0, block.scheme.sets);
+        // Only consider exercises that have a timed duration
+        const workExercises = block.exercises
+            .map((ex, exIdx) => ({ ex, exIdx }))
+            .filter(({ ex }) => ex.mode === 'time' && ex.value > 0);
+
+        const L = workExercises.length;
+        const sets = Math.max(0, block.sets);
+
+        if (L === 0 || sets === 0) return;
 
         for (let si = 0; si < sets; si++) {
-            for (let ei = 0; ei < L; ei++) {
-                const ex = block.exercises[ei];
-                const pace = ex.paceOverride ?? block.defaultPace;
-                const workSec = workDuration(pace);
+            for (let wi = 0; wi < L; wi++) {
+                const { ex, exIdx } = workExercises[wi];
+                const workSec = ex.value;
 
-                // Optional global PREP at the *very* beginning
+                // Optional global PREP at the very beginning
                 if (!firstWorkAdded && prepSec > 0) {
                     steps.push({
-                        id: `prep-${bi}-${si}-${ei}`,
+                        id: `prep-${bi}-${si}-${exIdx}`,
                         label: 'PREP',
                         durationSec: prepSec,
                         blockIdx: bi,
-                        exIdx: ei,
+                        exIdx,
                         setIdx: si,
                         name: ex.name,
                     });
@@ -52,25 +60,25 @@ export const buildSteps = (
 
                 // WORK step for this exercise
                 steps.push({
-                    id: `work-${bi}-${si}-${ei}`,
+                    id: `work-${bi}-${si}-${exIdx}`,
                     label: 'WORK',
                     durationSec: workSec,
                     blockIdx: bi,
-                    exIdx: ei,
+                    exIdx,
                     setIdx: si,
                     name: ex.name,
                 });
 
-                // REST between exercises (within same set)
-                const lastExerciseInSet = ei === L - 1;
-                const restEx = block.scheme.restBetweenExercisesSec;
+                // REST between exercises (within same set, but only between timed ones)
+                const lastExerciseInSet = wi === L - 1;
+                const restEx = block.restBetweenExercisesSec;
                 if (!lastExerciseInSet && restEx > 0) {
                     steps.push({
-                        id: `rest-ex-${bi}-${si}-${ei}`,
+                        id: `rest-ex-${bi}-${si}-${exIdx}`,
                         label: 'REST',
                         durationSec: restEx,
                         blockIdx: bi,
-                        exIdx: ei,
+                        exIdx,
                         setIdx: si,
                         name: ex.name,
                     });
@@ -79,14 +87,14 @@ export const buildSteps = (
 
             // REST between sets (after the last exercise of the set)
             const lastSet = si === sets - 1;
-            const restSet = block.scheme.restBetweenSetsSec;
+            const restSet = block.restBetweenSetsSec;
             if (!lastSet && restSet > 0) {
                 steps.push({
                     id: `rest-set-${bi}-${si}`,
                     label: 'REST',
                     durationSec: restSet,
                     blockIdx: bi,
-                    exIdx: 0,
+                    exIdx: 0, // arbitrary; the run UI only cares about setIdx here
                     setIdx: si,
                 });
             }
@@ -102,7 +110,8 @@ export const buildSteps = (
     return { steps };
 };
 
-// Monotonic timestamp helper (keep your existing implementation)
+// --------- timer engine ------------------------------
+
 const startWallMs = Date.now();
 const startPerf = performance.now();
 const nowMs = (): number => startWallMs + (performance.now() - startPerf);
@@ -114,7 +123,7 @@ export type Tick = {
     running: boolean;
 };
 
-// Timer engine with ~4 Hz tick (good enough for smooth UI)
+// Timer engine with ~5 Hz tick (good enough for smooth UI)
 export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
     const TICK_MS = 200; // 5 times per second
 
