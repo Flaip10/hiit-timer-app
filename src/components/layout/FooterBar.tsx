@@ -6,7 +6,7 @@ type FooterBarProps = {
     children: ReactNode;
 };
 
-let PADDING_BOTTOM = 16;
+let PADDING_BOTTOM = 20;
 
 export const FooterBar = ({ children }: FooterBarProps) => (
     <SafeAreaView edges={['bottom']} style={st.safe}>
