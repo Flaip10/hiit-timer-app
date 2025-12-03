@@ -3,8 +3,7 @@ import { AppState } from 'react-native';
 import type { Router } from 'expo-router';
 
 import { createTimer, type Step, type Phase } from '@core/timer';
-import { cancelAll, cancelById, scheduleLocal } from '@core/notify';
-import { Workout } from '@core/entities';
+import type { Workout } from '@core/entities';
 
 import { computeRemainingWorkoutSec, computeSetProgress } from '../helpers';
 import {
@@ -30,7 +29,6 @@ export const useWorkoutRun = ({
     router,
 }: UseWorkoutRunArgs) => {
     const engineRef = useRef<ReturnType<typeof createTimer> | null>(null);
-    const lastNotifIdRef = useRef<string | null>(null);
     const autoStartedRef = useRef(false);
 
     const [stepIndex, setStepIndex] = useState(0);
@@ -40,11 +38,6 @@ export const useWorkoutRun = ({
 
     // -------- engine setup --------
     useEffect(() => {
-        const setup = async () => {
-            await cancelAll();
-        };
-        void setup();
-
         if (steps.length === 0) return;
 
         engineRef.current = createTimer(steps, (snapshot) => {
@@ -67,43 +60,8 @@ export const useWorkoutRun = ({
 
         return () => {
             engineRef.current?.stop();
-            void cancelAll();
         };
     }, [steps, shouldAutoStart]);
-
-    // -------- notifications on step end --------
-    useEffect(() => {
-        const schedule = async () => {
-            if (lastNotifIdRef.current) {
-                await cancelById(lastNotifIdRef.current).catch(() => {});
-                lastNotifIdRef.current = null;
-            }
-
-            if (!running) return;
-
-            const step = steps[stepIndex];
-            if (!step || remaining <= 0) return;
-
-            const title =
-                step.label === 'WORK'
-                    ? 'Work done'
-                    : step.label === 'REST'
-                      ? 'Rest done'
-                      : 'Prep done';
-
-            const next = steps[stepIndex + 1];
-            const body = next
-                ? `Next: ${next.label}${
-                      next.nextName ? ` • ${next.nextName}` : ''
-                  }`
-                : 'Workout finished';
-
-            const id = await scheduleLocal(remaining, title, body);
-            lastNotifIdRef.current = id;
-        };
-
-        void schedule();
-    }, [stepIndex, running, remaining, steps]);
 
     // -------- foreground resync --------
     useEffect(() => {
@@ -164,13 +122,13 @@ export const useWorkoutRun = ({
             : 'Resume';
 
     // workout structure (block, sets, exercise names)
-    const blocks = workout?.blocks ?? [];
+    const blocks = workout.blocks ?? [];
     const currentBlock = step ? blocks[step.blockIdx] : undefined;
     const totalSets = currentBlock?.sets ?? 0;
 
     const getExerciseNameForStep = (s: Step | undefined): string | null => {
-        if (!s || s.label !== 'WORK' || !workout) return null;
-        const blk = workout.blocks[s.blockIdx];
+        if (!s || s.label !== 'WORK') return null;
+        const blk = blocks[s.blockIdx];
         const ex = blk?.exercises?.[s.exIdx];
         return ex?.name ?? null;
     };
@@ -178,7 +136,7 @@ export const useWorkoutRun = ({
     let currentExerciseName: string | null = null;
     let nextExerciseName: string | null = null;
 
-    if (step && workout) {
+    if (step) {
         if (phase === 'PREP') {
             const upcoming: Step[] = [];
 
@@ -218,7 +176,7 @@ export const useWorkoutRun = ({
         }
     }
 
-    // breathingPhase: 0..1 scalar that UI can map to scale/glow/etc
+    // -------- breathingPhase: 0..1 scalar for UI (timer + arc) --------
     const breathingPhase = useSharedValue(0);
 
     // Are we in the last 3 seconds of *this step* (independent of running)?
@@ -231,11 +189,9 @@ export const useWorkoutRun = ({
     const shouldAnimateBreathing = isBreathingWindow && running;
 
     useEffect(() => {
-        // stop previous animation on every dependency change
         cancelAnimation(breathingPhase);
 
         if (isFinished) {
-            // workout done → fade back to "no breath"
             breathingPhase.value = withTiming(0, {
                 duration: 150,
                 easing: Easing.out(Easing.quad),
@@ -244,7 +200,6 @@ export const useWorkoutRun = ({
         }
 
         if (!isBreathingWindow) {
-            // outside the last-3s window → also fade back to 0
             breathingPhase.value = withTiming(0, {
                 duration: 150,
                 easing: Easing.out(Easing.quad),
@@ -253,12 +208,10 @@ export const useWorkoutRun = ({
         }
 
         if (!shouldAnimateBreathing) {
-            // we *are* in the last-3s window, but not running (paused)
-            // → just freeze at the current value, do nothing
+            // paused inside the window → freeze
             return;
         }
 
-        // last-3s *and* running → heartbeat loop on UI thread
         breathingPhase.value = withRepeat(
             withSequence(
                 withTiming(1, {
@@ -278,22 +231,12 @@ export const useWorkoutRun = ({
     // -------- controls --------
 
     const handleStart = () => engineRef.current?.start();
-
-    const handlePause = () => {
-        engineRef.current?.pause();
-        if (lastNotifIdRef.current) {
-            void cancelById(lastNotifIdRef.current);
-            lastNotifIdRef.current = null;
-        }
-    };
-
+    const handlePause = () => engineRef.current?.pause();
     const handleResume = () => engineRef.current?.resume();
-
     const handleSkip = () => engineRef.current?.skip();
 
     const handleEnd = () => {
         handlePause();
-        void cancelAll();
         router.back();
     };
 
