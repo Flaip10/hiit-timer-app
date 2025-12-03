@@ -5,7 +5,16 @@ import { ExportedWorkoutFileV1 } from '../exportWorkout/exportTypes';
 
 export const HIIT_WORKOUT_MIME = 'application/vnd.hiittimer.workout+json';
 
-export const exportWorkoutToFile = async (workout: Workout) => {
+export type ExportResult =
+    | { ok: true }
+    | {
+          ok: false;
+          error: 'SHARING_UNAVAILABLE' | 'WRITE_FAILED' | 'SHARE_FAILED';
+      };
+
+export const exportWorkoutToFile = async (
+    workout: Workout
+): Promise<ExportResult> => {
     const payload: ExportedWorkoutFileV1 = {
         version: 1,
         kind: 'hiit-timer/workout',
@@ -18,22 +27,38 @@ export const exportWorkoutToFile = async (workout: Workout) => {
     };
 
     const json = JSON.stringify(payload, null, 2);
-
     const safeName = workout.name.replace(/[^\w\s-]/g, '').trim() || 'Workout';
     const filename = `${safeName}.hitw`;
-
     const filePath = `${RNFS.TemporaryDirectoryPath}/${filename}`;
 
-    await RNFS.writeFile(filePath, json, 'utf8');
-
-    const canShare = await Sharing.isAvailableAsync();
-    if (!canShare) {
-        console.warn('Sharing is not available on this device');
-        return;
+    try {
+        await RNFS.writeFile(filePath, json, 'utf8');
+    } catch (err) {
+        console.warn('Export write failed', err);
+        return { ok: false, error: 'WRITE_FAILED' };
     }
 
-    await Sharing.shareAsync(filePath, {
-        mimeType: HIIT_WORKOUT_MIME,
-        dialogTitle: `Share workout "${workout.name}"`,
-    });
+    let canShare = false;
+    try {
+        canShare = await Sharing.isAvailableAsync();
+    } catch (err) {
+        console.warn('Sharing availability check failed', err);
+        return { ok: false, error: 'SHARING_UNAVAILABLE' };
+    }
+
+    if (!canShare) {
+        return { ok: false, error: 'SHARING_UNAVAILABLE' };
+    }
+
+    try {
+        await Sharing.shareAsync(filePath, {
+            mimeType: HIIT_WORKOUT_MIME,
+            dialogTitle: `Share workout "${workout.name}"`,
+        });
+
+        return { ok: true };
+    } catch (err) {
+        console.warn('Share failed', err);
+        return { ok: false, error: 'SHARE_FAILED' };
+    }
 };
