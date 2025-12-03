@@ -1,43 +1,51 @@
 export type UUID = string;
 
-/** Defines how an exercise is performed */
-export type TimePace = { type: 'time'; workSec: number };
-export type RepsPace = { type: 'reps'; reps: number; tempo?: string };
-export type Pace = TimePace | RepsPace;
+/**
+ * - 'time' → value is seconds
+ * - 'reps' → value is reps (tempo may optionally describe cadence)
+ */
+export type ExerciseMode = 'time' | 'reps';
 
-/** Minimal exercise model */
+/**
+ * Option 1:
+ *   mode: 'time'
+ *   value: <seconds>
+ *
+ * Option 2:
+ *   mode: 'reps'
+ *   value: <reps>
+ *   tempo?: '3-1-3' | '2-0-2' | string
+ */
 export interface Exercise {
     id: UUID;
     name: string;
-    paceOverride?: Pace; // optional override when advanced mode is on
-}
 
-/** Defines the structure of a block (a circuit) */
-export interface BlockScheme {
-    sets: number;
-    restBetweenSetsSec: number;
-    restBetweenExercisesSec: number;
-}
+    mode: ExerciseMode;
 
-/** One workout block (circuit) */
+    /**
+     * When mode === 'time' → value is duration in seconds.
+     * When mode === 'reps' → value is number of reps.
+     */
+    value: number;
+
+    /**
+     * Optional tempo / cadence for reps (ignored for time mode).
+     */
+    tempo?: string;
+}
 export interface WorkoutBlock {
     id: UUID;
     title?: string;
 
-    defaultPace: Pace; // applies to all exercises unless overridden
-    scheme: BlockScheme; // sets + rests
+    sets: number;
+    restBetweenSetsSec: number;
+    restBetweenExercisesSec: number;
 
-    advanced?: boolean; // toggles per-exercise overrides
     exercises: Exercise[];
 }
 
-/** Whole workout */
 export interface Workout {
     id: UUID;
     name: string;
     blocks: WorkoutBlock[];
 }
-
-/** Type guards */
-export const isTimePace = (p: Pace): p is TimePace => p.type === 'time';
-export const isRepsPace = (p: Pace): p is RepsPace => p.type === 'reps';
