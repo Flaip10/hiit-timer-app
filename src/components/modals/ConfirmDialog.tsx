@@ -34,32 +34,32 @@ const ConfirmDialog = ({
     return (
         <Modal visible={visible} onRequestClose={onCancel}>
             <View style={{ gap: 12 }}>
-                <Text style={s.title}>{title}</Text>
+                <Text style={st.title}>{title}</Text>
                 {cachedMessage ? (
-                    <Text style={s.message}>{cachedMessage}</Text>
+                    <Text style={st.message}>{cachedMessage}</Text>
                 ) : null}
 
-                <View style={s.row}>
+                <View style={st.row}>
                     <Pressable
                         onPress={onCancel}
                         style={({ pressed }) => [
-                            s.btn,
-                            s.secondary,
-                            pressed && s.pressed,
+                            st.btn,
+                            st.secondary,
+                            pressed && st.pressed,
                         ]}
                     >
-                        <Text style={s.btnText}>{cancelLabel}</Text>
+                        <Text style={st.btnText}>{cancelLabel}</Text>
                     </Pressable>
 
                     <Pressable
                         onPress={onConfirm}
                         style={({ pressed }) => [
-                            s.btn,
-                            destructive ? s.destructive : s.primary,
-                            pressed && s.pressed,
+                            st.btn,
+                            destructive ? st.destructive : st.primary,
+                            pressed && st.pressed,
                         ]}
                     >
-                        <Text style={s.btnText}>{confirmLabel}</Text>
+                        <Text style={st.btnText}>{confirmLabel}</Text>
                     </Pressable>
                 </View>
             </View>
@@ -67,7 +67,7 @@ const ConfirmDialog = ({
     );
 };
 
-const s = StyleSheet.create({
+const st = StyleSheet.create({
     title: { color: '#F2F2F2', fontSize: 18, fontWeight: '700' },
     message: { color: '#A1A1AA', fontSize: 14 },
     row: { flexDirection: 'row', gap: 12, marginTop: 8 },
