@@ -85,7 +85,6 @@ export const PhaseArc = ({
 
     // Normal phase progress
     useEffect(() => {
-        // mainProgress.value = Math.min(Math.max(progress, 0), 1);
         mainProgress.value = withTiming(Math.min(Math.max(progress, 0), 1), {
             duration: 200, //to follow 5Hz tick
             easing: Easing.linear,
