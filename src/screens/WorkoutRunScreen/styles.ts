@@ -248,15 +248,6 @@ const st = StyleSheet.create({
         flex: 1,
     },
 
-    finishedShareButton: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: '#111827',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-
     shareModalBackdrop: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.7)',
