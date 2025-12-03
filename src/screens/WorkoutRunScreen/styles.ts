@@ -137,28 +137,6 @@ const st = StyleSheet.create({
         fontWeight: '500',
     },
 
-    footerRoundPrimary: {
-        width: 76,
-        height: 76,
-        borderRadius: 38,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.35,
-        shadowRadius: 10,
-        elevation: 8,
-    },
-
-    footerRoundSecondary: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: '#111827',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-
     footerFinishedWrapper: {
         width: '100%',
         paddingHorizontal: 16,

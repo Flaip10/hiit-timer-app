@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { Text, View, TouchableOpacity, Modal } from 'react-native';
+import { Text, View, Pressable, Modal } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -32,6 +32,7 @@ import {
 import { useWorkoutRun } from './hooks/useWorkoutRun';
 import { ShareWorkoutCard } from './components/ShareWorkoutCard/ShareWorkoutCard';
 import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
+import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
 
 export const WorkoutRunScreen = () => {
     useKeepAwake();
@@ -289,17 +290,16 @@ export const WorkoutRunScreen = () => {
                     visible={isFinished}
                     style={st.finishedFooterRow}
                 >
-                    <TouchableOpacity
+                    <CircleIconButton
                         onPress={openSharePreview}
-                        activeOpacity={0.8}
-                        style={st.finishedShareButton}
+                        variant="secondary"
                     >
                         <Ionicons
                             name="share-outline"
                             size={22}
                             color="#E5E7EB"
                         />
-                    </TouchableOpacity>
+                    </CircleIconButton>
                 </AppearingView>
 
                 {isFinished && (
@@ -350,50 +350,49 @@ export const WorkoutRunScreen = () => {
             <FooterBar>
                 {isFinished ? (
                     <View style={st.footerFinishedWrapper}>
-                        <TouchableOpacity
+                        <Pressable
                             onPress={handleDone}
-                            activeOpacity={0.9}
-                            style={st.footerFinishedButton}
+                            style={({ pressed }) => [
+                                st.footerFinishedButton,
+                                pressed && { opacity: 0.7 },
+                            ]}
                         >
                             <Text style={st.footerFinishedText}>
                                 Back to summary
                             </Text>
-                        </TouchableOpacity>
+                        </Pressable>
                     </View>
                 ) : (
                     <View style={st.footerIconRow}>
                         {/* Skip (left) */}
                         <View style={st.footerIconWrapper}>
-                            <TouchableOpacity
+                            <CircleIconButton
                                 onPress={handleSkip}
-                                activeOpacity={0.8}
-                                style={st.footerRoundSecondary}
+                                variant="secondary"
                             >
                                 <Ionicons
                                     name="play-skip-forward"
                                     size={22}
                                     color="#E5E7EB"
                                 />
-                            </TouchableOpacity>
+                            </CircleIconButton>
                             <Text style={st.footerIconLabel}>Skip</Text>
                         </View>
 
                         {/* Main play/pause button (center) */}
                         <View style={st.footerIconWrapper}>
-                            <TouchableOpacity
+                            <CircleIconButton
                                 onPress={handlePrimary}
-                                activeOpacity={0.9}
-                                style={[
-                                    st.footerRoundPrimary,
-                                    { backgroundColor: phaseColor },
-                                ]}
+                                variant="primary"
+                                backgroundColor={phaseColor}
+                                size={76} // matches previous design
                             >
                                 <Ionicons
                                     name={running ? 'pause' : 'play'}
                                     size={30}
                                     color="#0B0B0C"
                                 />
-                            </TouchableOpacity>
+                            </CircleIconButton>
                             <Text style={st.footerIconLabel}>
                                 {primaryLabel}
                             </Text>
@@ -401,17 +400,16 @@ export const WorkoutRunScreen = () => {
 
                         {/* End (right) */}
                         <View style={st.footerIconWrapper}>
-                            <TouchableOpacity
+                            <CircleIconButton
                                 onPress={handleEnd}
-                                activeOpacity={0.8}
-                                style={st.footerRoundSecondary}
+                                variant="secondary"
                             >
                                 <Ionicons
                                     name="stop"
                                     size={22}
                                     color="#E5E7EB"
                                 />
-                            </TouchableOpacity>
+                            </CircleIconButton>
                             <Text style={st.footerIconLabel}>End</Text>
                         </View>
                     </View>
