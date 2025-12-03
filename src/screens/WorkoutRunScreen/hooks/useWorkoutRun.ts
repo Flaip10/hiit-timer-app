@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
+import type { Router } from 'expo-router';
 
 import { createTimer, type Step, type Phase } from '@core/timer';
 import { cancelAll, cancelById, scheduleLocal } from '@core/notify';
-import type { Router } from 'expo-router';
+import { Workout } from '@core/entities';
 
 import { computeRemainingWorkoutSec, computeSetProgress } from '../helpers';
 import {
@@ -17,7 +18,7 @@ import {
 
 type UseWorkoutRunArgs = {
     steps: Step[];
-    workout: any; // we only read blocks/exercises/name, keep this loose
+    workout: Workout; // we only read blocks/exercises/name, keep this loose
     shouldAutoStart: boolean;
     router: Router;
 };
@@ -165,7 +166,7 @@ export const useWorkoutRun = ({
     // workout structure (block, sets, exercise names)
     const blocks = workout?.blocks ?? [];
     const currentBlock = step ? blocks[step.blockIdx] : undefined;
-    const totalSets = currentBlock?.scheme?.sets ?? 0;
+    const totalSets = currentBlock?.sets ?? 0;
 
     const getExerciseNameForStep = (s: Step | undefined): string | null => {
         if (!s || s.label !== 'WORK' || !workout) return null;

@@ -3,7 +3,7 @@ import { immer } from 'zustand/middleware/immer';
 import { useShallow } from 'zustand/react/shallow';
 import { nanoid } from 'nanoid/non-secure';
 
-import type { Workout, WorkoutBlock, Pace } from '@src/core/entities';
+import type { Workout, WorkoutBlock } from '@src/core/entities';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -38,13 +38,28 @@ const uid = (): string => nanoid(12);
 const starterBlock = (): WorkoutBlock => ({
     id: uid(),
     title: 'Basic HIIT',
-    defaultPace: { type: 'time', workSec: 5 } as Pace,
-    scheme: { sets: 3, restBetweenSetsSec: 20, restBetweenExercisesSec: 10 },
-    advanced: false,
+    sets: 3,
+    restBetweenSetsSec: 20,
+    restBetweenExercisesSec: 10,
     exercises: [
-        { id: uid(), name: 'Jumping Jacks' },
-        { id: uid(), name: 'High Knees' },
-        { id: uid(), name: 'Mountain Climbers' },
+        {
+            id: uid(),
+            name: 'Jumping Jacks',
+            mode: 'time',
+            value: 30, // 30s
+        },
+        {
+            id: uid(),
+            name: 'High Knees',
+            mode: 'time',
+            value: 30,
+        },
+        {
+            id: uid(),
+            name: 'Mountain Climbers',
+            mode: 'time',
+            value: 30,
+        },
     ],
 });
 
@@ -191,10 +206,8 @@ export const useWorkouts = create<WorkoutsState>()(
                 }),
         })),
         {
-            name: 'workouts-storage-v1',
+            name: 'workouts-storage-v2',
             storage: createJSONStorage(() => AsyncStorage),
-
-            // persist only "real" workouts, not drafts
             partialize: (state) => ({
                 workouts: state.workouts,
                 order: state.order,
