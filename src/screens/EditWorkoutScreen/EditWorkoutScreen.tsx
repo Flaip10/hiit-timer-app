@@ -14,10 +14,17 @@ import { FooterBar } from '@src/components/layout/FooterBar';
 const createEmptyBlock = (): WorkoutBlock => ({
     id: uid(),
     title: '',
-    defaultPace: { type: 'time', workSec: 20 },
-    scheme: { sets: 3, restBetweenSetsSec: 30, restBetweenExercisesSec: 10 },
-    advanced: false,
-    exercises: [{ id: uid(), name: 'Exercise 1' }],
+    sets: 3,
+    restBetweenSetsSec: 30,
+    restBetweenExercisesSec: 10,
+    exercises: [
+        {
+            id: uid(),
+            name: 'Exercise 1',
+            mode: 'time',
+            value: 20,
+        },
+    ],
 });
 
 const EditWorkoutScreen = () => {
@@ -148,13 +155,16 @@ const EditWorkoutScreen = () => {
                         onRemove={onRemoveBlock}
                     />
                 ))}
+
                 <Button
                     title="＋ Add Block"
                     onPress={onAddBlock}
                     style={st.addBlock}
                 />
+
                 {errorBox}
             </MainContainer>
+
             <FooterBar>
                 <Button
                     title="Cancel"

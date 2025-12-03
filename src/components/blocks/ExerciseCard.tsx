@@ -1,63 +1,39 @@
-// src/components/blocks/ExerciseCard.tsx
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import type { Exercise, Pace, TimePace, RepsPace } from '../../core/entities';
-import { isTimePace, isRepsPace } from '../../core/entities';
+import type { Exercise } from '../../core/entities';
 import { Stepper } from '../ui/Stepper';
+
+type Props = {
+    index: number;
+    exercise: Exercise;
+    onChange: (next: Exercise) => void;
+    onRemove: () => void;
+};
 
 export const ExerciseCard = ({
     index,
     exercise,
-    advanced,
     onChange,
     onRemove,
-}: {
-    index: number;
-    exercise: Exercise;
-    advanced: boolean;
-    onChange: (next: Exercise) => void;
-    onRemove: () => void;
-}) => {
-    if (!advanced) return null;
+}: Props) => {
+    const setName = (v: string) => {
+        onChange({ ...exercise, name: v });
+    };
 
-    const override = exercise.paceOverride;
-    const overrideTime = override && isTimePace(override);
-    const overrideReps = override && isRepsPace(override);
-
-    const setName = (v: string) => onChange({ ...exercise, name: v });
-    const setType = (t: 'time' | 'reps') =>
+    const setDurationSec = (n: number) => {
+        // For now we treat everything as time-based.
+        // Ensure mode stays 'time' while editing in this screen.
         onChange({
             ...exercise,
-            paceOverride:
-                t === 'time'
-                    ? ({ type: 'time', workSec: 20 } as TimePace)
-                    : ({ type: 'reps', reps: 10 } as RepsPace),
+            mode: 'time',
+            value: n,
         });
-
-    const setWorkSecNum = (n: number) =>
-        overrideTime &&
-        onChange({
-            ...exercise,
-            paceOverride: { ...(override as TimePace), workSec: n },
-        });
-
-    const setRepsNum = (n: number) =>
-        overrideReps &&
-        onChange({
-            ...exercise,
-            paceOverride: { ...(override as RepsPace), reps: n },
-        });
-
-    const setTempo = (v: string) =>
-        overrideReps &&
-        onChange({
-            ...exercise,
-            paceOverride: { ...(override as RepsPace), tempo: v || undefined },
-        });
+    };
 
     return (
         <View style={st.exercise}>
             <View style={st.rowSpread}>
                 <Text style={st.exTitle}>Exercise {index + 1}</Text>
+
                 <Pressable
                     onPress={onRemove}
                     style={({ pressed }) => [
@@ -77,66 +53,14 @@ export const ExerciseCard = ({
                 style={st.input}
             />
 
-            <Text style={st.subLabel}>Type</Text>
-            <View style={st.segment}>
-                <Pressable
-                    onPress={() => setType('time')}
-                    style={[
-                        st.segmentBtn,
-                        overrideTime ? st.segmentBtnActive : null,
-                    ]}
-                >
-                    <Text
-                        style={
-                            overrideTime ? st.segmentTextActive : st.segmentText
-                        }
-                    >
-                        Time
-                    </Text>
-                </Pressable>
-                <Pressable
-                    onPress={() => setType('reps')}
-                    style={[
-                        st.segmentBtn,
-                        overrideReps ? st.segmentBtnActive : null,
-                    ]}
-                >
-                    <Text
-                        style={
-                            overrideReps ? st.segmentTextActive : st.segmentText
-                        }
-                    >
-                        Reps
-                    </Text>
-                </Pressable>
-            </View>
-
-            {overrideTime ? (
-                <Stepper
-                    label="Work (sec)"
-                    value={(override as TimePace).workSec}
-                    onChange={setWorkSecNum}
-                    min={0}
-                    step={5}
-                />
-            ) : null}
-
-            {overrideReps ? (
-                <>
-                    <Stepper
-                        label="Reps"
-                        value={(override as RepsPace).reps}
-                        onChange={setRepsNum}
-                        min={0}
-                    />
-                    <Text style={st.subLabel}>Tempo (optional)</Text>
-                    <TextInput
-                        value={(override as RepsPace).tempo ?? ''}
-                        onChangeText={setTempo}
-                        style={st.input}
-                    />
-                </>
-            ) : null}
+            <Text style={st.subLabel}>Duration (sec)</Text>
+            <Stepper
+                label="Duration"
+                value={exercise.value}
+                onChange={setDurationSec}
+                min={1}
+                step={5}
+            />
         </View>
     );
 };
@@ -168,19 +92,6 @@ const st = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#1F1F23',
     },
-
-    segment: {
-        flexDirection: 'row',
-        backgroundColor: '#0F0F12',
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#1F1F23',
-        overflow: 'hidden',
-    },
-    segmentBtn: { flex: 1, alignItems: 'center', paddingVertical: 10 },
-    segmentBtnActive: { backgroundColor: '#1F2937' },
-    segmentText: { color: '#A1A1AA', fontWeight: '700' },
-    segmentTextActive: { color: '#F2F2F2', fontWeight: '700' },
 
     removeTag: {
         paddingHorizontal: 8,
