@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { Text, View } from 'react-native';
 import Animated, {
     Easing,
@@ -40,28 +40,11 @@ export const WorkoutMetaStrip = ({
 
     // Normal phase progress
     useEffect(() => {
-        // mainProgress.value = Math.min(Math.max(progress, 0), 1);
         visualProgress.value = withTiming(Math.max(0, setProgress ?? 0), {
             duration: 200, //to follow 5Hz tick
             easing: Easing.linear,
         });
     }, [visualProgress, setProgress]);
-
-    const lastSetIndexRef = useRef(currentSetIndex);
-
-    useEffect(() => {
-        const target = Math.min(1, Math.max(0, setProgress ?? 0));
-
-        // If we just moved to a new set, snap to the new progress (usually 0)
-        if (lastSetIndexRef.current !== currentSetIndex) {
-            visualProgress.value = target;
-            lastSetIndexRef.current = currentSetIndex;
-            return;
-        }
-
-        // Same set: animate smoothly
-        visualProgress.value = Math.min(Math.max(setProgress, 0), 1);
-    }, [setProgress, currentSetIndex, visualProgress]);
 
     const currentFillStyle = useAnimatedStyle(() => ({
         flex: visualProgress.value,

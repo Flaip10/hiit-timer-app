@@ -21,7 +21,7 @@ const st = StyleSheet.create({
     },
     metaStripPillOuter: {
         flex: 1,
-        height: 8,
+        height: 4,
         borderRadius: 999,
         backgroundColor: '#111827',
         overflow: 'hidden',
