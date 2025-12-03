@@ -1,11 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import type { WorkoutBlock, Pace } from '../../core/entities';
-import { isTimePace } from '../../core/entities';
-
-const describeDefaultPace = (p: Pace): string =>
-    isTimePace(p)
-        ? `Time • ${p.workSec}s`
-        : `Reps • ${p.reps}${p.tempo ? ` @ ${p.tempo}` : ''}`;
+import type { WorkoutBlock } from '../../core/entities';
 
 export const BlockSummary = ({
     block,
@@ -19,33 +13,24 @@ export const BlockSummary = ({
             Block {index + 1}
             {block.title ? ` — ${block.title}` : ''}
         </Text>
+
         <View style={st.grid}>
             <Text style={st.line}>
-                Sets: <Text style={st.mono}>{block.scheme.sets}</Text>
+                Sets: <Text style={st.mono}>{block.sets}</Text>
             </Text>
+
             <Text style={st.line}>
-                # Exercises:{' '}
-                <Text style={st.mono}>{block.exercises.length}</Text>
+                Exercises: <Text style={st.mono}>{block.exercises.length}</Text>
             </Text>
+
             <Text style={st.line}>
                 Rest / set:{' '}
-                <Text style={st.mono}>{block.scheme.restBetweenSetsSec}s</Text>
+                <Text style={st.mono}>{block.restBetweenSetsSec}s</Text>
             </Text>
+
             <Text style={st.line}>
                 Rest / exercise:{' '}
-                <Text style={st.mono}>
-                    {block.scheme.restBetweenExercisesSec}s
-                </Text>
-            </Text>
-            <Text style={st.line}>
-                Default:{' '}
-                <Text style={st.mono}>
-                    {describeDefaultPace(block.defaultPace)}
-                </Text>
-            </Text>
-            <Text style={st.line}>
-                Advanced:{' '}
-                <Text style={st.mono}>{block.advanced ? 'On' : 'Off'}</Text>
+                <Text style={st.mono}>{block.restBetweenExercisesSec}s</Text>
             </Text>
         </View>
     </View>

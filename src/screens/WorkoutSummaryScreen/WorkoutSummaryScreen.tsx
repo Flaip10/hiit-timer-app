@@ -1,12 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Text, View, TouchableOpacity } from 'react-native';
+import { Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { useWorkout } from '@state/useWorkouts';
 import { MainContainer } from '@src/components/layout/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
 import { Button } from '@src/components/ui/Button/Button';
-import { isRepsPace, isTimePace } from '@src/core/entities';
 
 import {
     summarizeWorkout,
@@ -63,13 +62,9 @@ const WorkoutSummaryScreen = () => {
             if (result.error === 'SHARING_UNAVAILABLE') {
                 setExportError('Sharing is not available on this device.');
             } else if (result.error === 'WRITE_FAILED') {
-                setExportError(
-                    'Could not prepare the workout file for sharing.'
-                );
-            } else if (result.error === 'SHARE_FAILED') {
-                setExportError(
-                    'Something went wrong while opening the share sheet.'
-                );
+                setExportError('Could not prepare the file for sharing.');
+            } else {
+                setExportError('Failed to export workout.');
             }
         }
 
@@ -86,12 +81,14 @@ const WorkoutSummaryScreen = () => {
                             <Text style={st.metricLabel}>Blocks</Text>
                             <Text style={st.metricValue}>{summary.blocks}</Text>
                         </View>
+
                         <View style={st.metric}>
                             <Text style={st.metricLabel}>Exercises</Text>
                             <Text style={st.metricValue}>
                                 {summary.exercises}
                             </Text>
                         </View>
+
                         <View style={st.metric}>
                             <Text style={st.metricLabel}>Estimated time</Text>
                             <Text style={st.metricValue}>{timeLabel}</Text>
@@ -107,31 +104,25 @@ const WorkoutSummaryScreen = () => {
                 </AppearingView>
 
                 <Text style={st.sectionTitle}>Blocks</Text>
-                {workout.blocks.map((block, index) => {
-                    const paceLabel = isTimePace(block.defaultPace)
-                        ? `${block.defaultPace.workSec}s work`
-                        : isRepsPace(block.defaultPace)
-                          ? `${block.defaultPace.reps} reps`
-                          : '';
 
+                {workout.blocks.map((block, index) => {
                     return (
                         <View key={block.id} style={st.blockItem}>
                             <Text style={st.blockTitle}>
                                 Block {index + 1}
                                 {block.title ? ` — ${block.title}` : ''}
                             </Text>
+
                             <Text style={st.blockMeta}>
-                                {block.scheme.sets} sets •{' '}
-                                {block.exercises.length} exercises
-                                {paceLabel ? ` • ${paceLabel}` : ''}
+                                {block.sets} sets • {block.exercises.length}{' '}
+                                exercises
                             </Text>
                         </View>
                     );
                 })}
 
                 <Text style={st.hint}>
-                    You can edit this workout or start it now. The timer will
-                    follow the configured sets, rests and exercise order.
+                    You can edit this workout or start it now.
                 </Text>
 
                 <View style={st.exportContainer}>

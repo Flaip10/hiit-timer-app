@@ -1,4 +1,4 @@
-import { isRepsPace, isTimePace, type Workout } from '@core/entities';
+import type { Workout } from '@core/entities';
 
 export interface WorkoutSummary {
     blocks: number;
@@ -20,26 +20,23 @@ export const summarizeWorkout = (w: Workout | undefined): WorkoutSummary => {
         const L = b.exercises.length;
         exercises += L;
 
-        const sets = Math.max(0, b.scheme.sets);
-        const restSet = b.scheme.restBetweenSetsSec;
-        const restEx = b.scheme.restBetweenExercisesSec;
+        // detect reps
+        if (b.exercises.some((ex) => ex.mode === 'reps')) {
+            hasReps = true;
+        }
 
-        // base pace
-        const baseTime = isTimePace(b.defaultPace) ? b.defaultPace.workSec : 0;
+        // TIME ESTIMATE — only count time-mode exercises
+        const timePerSet = b.exercises.reduce(
+            (acc, ex, idx) =>
+                acc +
+                (ex.mode === 'time' ? ex.value : 0) +
+                (idx < L - 1 ? b.restBetweenExercisesSec : 0),
+            0
+        );
 
-        // detect reps anywhere
-        if (isRepsPace(b.defaultPace)) hasReps = true;
-        b.exercises.forEach((ex) => {
-            if (ex.paceOverride && isRepsPace(ex.paceOverride)) {
-                hasReps = true;
-            }
-        });
-
-        // rough time (only for timed parts)
-        const timedPerExercise = isTimePace(b.defaultPace) ? baseTime : 0;
-        const timedPerSet = timedPerExercise * L + Math.max(0, L - 1) * restEx;
         const totalForBlock =
-            sets * timedPerSet + Math.max(0, sets - 1) * restSet;
+            b.sets * timePerSet +
+            Math.max(0, b.sets - 1) * b.restBetweenSetsSec;
 
         approxSec += totalForBlock;
     });

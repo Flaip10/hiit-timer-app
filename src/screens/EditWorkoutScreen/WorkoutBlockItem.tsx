@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { isRepsPace, isTimePace, type WorkoutBlock } from '@src/core/entities';
+import type { WorkoutBlock } from '@src/core/entities';
 import st from './styles';
 
 type WorkoutBlockItemProps = {
@@ -16,13 +16,34 @@ export const WorkoutBlockItem = ({
     onEdit,
     onRemove,
 }: WorkoutBlockItemProps) => {
-    const { scheme, exercises, title, defaultPace } = block;
+    const { sets, exercises, title } = block;
 
-    const paceLabel = isTimePace(defaultPace)
-        ? `${defaultPace.workSec}s work`
-        : isRepsPace(defaultPace)
-          ? `${defaultPace.reps} reps`
-          : '';
+    const exerciseSummary = (() => {
+        if (exercises.length === 0) return '';
+
+        const first = exercises[0];
+        const allSame = exercises.every(
+            (ex) => ex.mode === first.mode && ex.value === first.value
+        );
+
+        if (!allSame) return '';
+
+        if (first.mode === 'time') {
+            return `${first.value}s each`;
+        }
+
+        // reps mode (kept for future use even if run-logic ignores reps for now)
+        return `${first.value} reps each`;
+    })();
+
+    const metaParts = [
+        `${sets} ${sets === 1 ? 'set' : 'sets'}`,
+        `${exercises.length} ${exercises.length === 1 ? 'exercise' : 'exercises'}`,
+    ];
+
+    if (exerciseSummary) {
+        metaParts.push(exerciseSummary);
+    }
 
     return (
         <View style={st.blockCard}>
@@ -33,9 +54,7 @@ export const WorkoutBlockItem = ({
                 </Text>
             </View>
 
-            <Text style={st.blockInfo}>
-                {scheme.sets} sets • {exercises.length} exercises • {paceLabel}
-            </Text>
+            <Text style={st.blockInfo}>{metaParts.join(' • ')}</Text>
 
             <View style={st.blockActions}>
                 <Pressable
