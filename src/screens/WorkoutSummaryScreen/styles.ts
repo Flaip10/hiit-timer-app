@@ -1,4 +1,3 @@
-// src/screens/WorkoutSummary/styles.ts
 import { StyleSheet } from 'react-native';
 
 const st = StyleSheet.create({
@@ -78,6 +77,19 @@ const st = StyleSheet.create({
         color: '#6B7280',
         fontSize: 12,
         marginTop: 12,
+    },
+
+    exportContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 10,
+        gap: 10,
+    },
+
+    exportText: {
+        color: '#6B7280',
+        borderBottomColor: '#6B7280',
+        borderBottomWidth: 1,
     },
 });
 
