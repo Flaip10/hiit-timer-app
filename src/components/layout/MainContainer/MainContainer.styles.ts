@@ -10,5 +10,8 @@ export const useMainContainerStyles = createStyles((theme) =>
             gap: 8,
             backgroundColor: theme.palette.background.primary,
         },
+        kav: {
+            flex: 1,
+        },
     })
 );

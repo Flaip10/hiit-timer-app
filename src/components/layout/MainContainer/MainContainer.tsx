@@ -1,10 +1,10 @@
-import { ReactNode } from 'react';
-import { ScrollView, View } from 'react-native';
+// MainContainer.tsx
+import React, { ReactNode } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 
 import { TopBar } from '@src/components/navigation/TopBar';
-
-import { useMainContainerStyles } from './MainContainer.styles';
 import { ScreenShell } from '../ScreenShell';
+import { useMainContainerStyles } from './MainContainer.styles';
 
 type MainContainerProps = {
     title?: string;
@@ -19,25 +19,27 @@ export const MainContainer = ({
 }: MainContainerProps) => {
     const st = useMainContainerStyles();
 
-    if (scroll) {
-        return (
-            <ScreenShell>
-                {title ? <TopBar title={title} /> : null}
-
-                <ScrollView
-                    contentContainerStyle={st.content}
-                    keyboardShouldPersistTaps="handled"
-                >
-                    {children}
-                </ScrollView>
-            </ScreenShell>
-        );
-    }
+    const content = scroll ? (
+        <ScrollView
+            contentContainerStyle={st.content}
+            keyboardShouldPersistTaps="handled"
+        >
+            {children}
+        </ScrollView>
+    ) : (
+        <View style={st.content}>{children}</View>
+    );
 
     return (
         <ScreenShell>
             {title ? <TopBar title={title} /> : null}
-            <View style={st.content}>{children}</View>
+
+            <KeyboardAvoidingView
+                style={st.kav}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+                {content}
+            </KeyboardAvoidingView>
         </ScreenShell>
     );
 };
