@@ -1,8 +1,13 @@
-import { StyleSheet, Text, View, StatusBar } from 'react-native';
+import React from 'react';
+import { StatusBar, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import { useRouter, useSegments } from 'expo-router';
+
 import { IconButton } from '../ui/IconButton/IconButton';
+import { AppText } from '@src/components/ui/Typography/AppText';
+import { createStyles } from '@src/theme/createStyles';
+import { useTheme } from '@src/theme/ThemeProvider';
 
 type Props = {
     title?: string;
@@ -10,6 +15,37 @@ type Props = {
     forceBack?: boolean;
     onTitlePress?: () => void;
 };
+
+const useStyles = createStyles((theme) => ({
+    root: {
+        backgroundColor: theme.palette.background.primary,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.palette.border.subtle,
+    },
+    bar: {
+        height: 56,
+        backgroundColor: theme.palette.background.primary,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        gap: 8,
+    },
+    titleWrapper: {
+        flex: 1,
+    },
+    titleInteractive: {
+        opacity: 0.95,
+    },
+    right: {
+        width: 36,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    leftPlaceholder: {
+        width: 36,
+        height: 36,
+    },
+}));
 
 export const TopBar = ({
     title,
@@ -20,12 +56,11 @@ export const TopBar = ({
     const nav = useNavigation();
     const router = useRouter();
     const segments = useSegments();
+    const { theme, themeName } = useTheme();
+    const st = useStyles();
 
-    // ✅ detect if we're in the drawer
     const isInDrawer = segments[0] === '(drawer)';
 
-    // ✅ detect back availability
-    // @ts-ignore
     const canGoBack =
         forceBack || (typeof nav.canGoBack === 'function' && nav.canGoBack());
 
@@ -36,51 +71,52 @@ export const TopBar = ({
         try {
             router.back();
         } catch {
-            // @ts-ignore fallback to nav if router fails
-            if (typeof nav.goBack === 'function' && nav.canGoBack?.())
+            if (typeof nav.goBack === 'function' && nav.canGoBack?.()) {
                 nav.goBack();
+            }
         }
     };
 
     const onOpenDrawer = () => {
         try {
-            // @ts-ignore safe dispatch
             nav.dispatch?.(DrawerActions.openDrawer());
-        } catch {
-            // no-op if drawer doesn't exist
-        }
+        } catch {}
     };
+
+    const iconColor = theme.palette.text.primary;
+    const barStyle = themeName === 'dark' ? 'light-content' : 'dark-content';
 
     return (
         <View style={st.root}>
-            <StatusBar barStyle="light-content" />
+            <StatusBar barStyle={barStyle} />
             <View style={st.bar}>
                 {showBack ? (
                     <IconButton onPress={onBack}>
                         <Ionicons
                             name="chevron-back"
                             size={22}
-                            color="#E5E7EB"
+                            color={iconColor}
                         />
                     </IconButton>
                 ) : showHamburger ? (
                     <IconButton onPress={onOpenDrawer}>
-                        <Ionicons name="menu" size={22} color="#E5E7EB" />
+                        <Ionicons name="menu" size={22} color={iconColor} />
                     </IconButton>
                 ) : (
-                    <View style={{ width: 36, height: 36 }} />
+                    <View style={st.leftPlaceholder} />
                 )}
 
-                <Text
-                    numberOfLines={1}
-                    onPress={onTitlePress}
-                    style={[
-                        st.title,
-                        onTitlePress ? st.titleInteractive : null,
-                    ]}
-                >
-                    {title ?? ''}
-                </Text>
+                <View style={st.titleWrapper}>
+                    <AppText
+                        variant="title2"
+                        align="center"
+                        numberOfLines={1}
+                        onPress={onTitlePress}
+                        style={onTitlePress ? st.titleInteractive : undefined}
+                    >
+                        {title ?? ''}
+                    </AppText>
+                </View>
 
                 <View style={st.right}>
                     {right ?? <View style={{ width: 22, height: 22 }} />}
@@ -89,28 +125,3 @@ export const TopBar = ({
         </View>
     );
 };
-
-const st = StyleSheet.create({
-    root: {
-        backgroundColor: '#0B0B0C',
-        borderBottomWidth: 1,
-        borderBottomColor: '#1F1F23',
-    },
-    bar: {
-        height: 56,
-        backgroundColor: '#0B0B0C',
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 12,
-        gap: 8,
-    },
-    title: {
-        flex: 1,
-        color: '#F2F2F2',
-        fontSize: 16,
-        fontWeight: '700',
-        textAlign: 'center',
-    },
-    titleInteractive: { opacity: 0.95 },
-    right: { width: 36, alignItems: 'center', justifyContent: 'center' },
-});
