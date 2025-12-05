@@ -7,6 +7,7 @@ import type { MetaCardProps } from './MetaCard.interfaces';
 import { useMetaCardStyles } from './MetaCard.styles';
 import MinHeightCollapse from '../MinHeightCollapse/MinHeightCollapse';
 import { useTheme } from '@src/theme/ThemeProvider';
+import { CurvedActionStrip } from './CurvedActionStrip/CurvedActionStrip';
 
 const getPillDate = (isoDate?: string | null, hideHours?: boolean): string => {
     if (!isoDate) return '';
@@ -189,19 +190,13 @@ export const MetaCard: FC<MetaCardProps> = ({
                         )}
                     </View>
                 )}
-
                 {actionStrip && (
-                    <Pressable
+                    <CurvedActionStrip
+                        width={60}
                         onPress={actionStrip.onPress}
-                        style={[
-                            st.actionStrip,
-                            actionStrip.backgroundColor && {
-                                backgroundColor: actionStrip.backgroundColor,
-                            },
-                        ]}
-                    >
-                        {actionStrip.icon}
-                    </Pressable>
+                        icon={actionStrip.icon}
+                        backgroundColorOverride={actionStrip.backgroundColor}
+                    />
                 )}
             </View>
 

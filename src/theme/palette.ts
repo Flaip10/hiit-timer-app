@@ -189,7 +189,7 @@ export const darkPalette: Palette = {
             text: colors.black.main,
         },
         statusBadge: {
-            background: colors.violet[400],
+            background: colors.violet[500],
             text: colors.gray[50],
         },
         actionButton: {
@@ -198,8 +198,8 @@ export const darkPalette: Palette = {
             icon: colors.violet[400],
         },
         actionStrip: {
-            background: colors.violet[400],
-            icon: colors.gray[50],
+            background: colors.gray.secondaryButton,
+            icon: colors.red[500],
         },
     },
     overlay: {

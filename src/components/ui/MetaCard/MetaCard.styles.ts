@@ -104,19 +104,6 @@ export const useMetaCardStyles = createStyles((theme) =>
             color: theme.palette.metaCard.statusBadge.text,
         },
 
-        actionStrip: {
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            bottom: 0,
-            width: 50,
-            backgroundColor: theme.palette.metaCard.actionStrip.background,
-            alignItems: 'flex-start',
-            justifyContent: 'flex-end',
-            paddingTop: 6,
-            paddingRight: 4,
-        },
-
         actionButtonsContainer: {
             position: 'absolute',
             top: 0,
