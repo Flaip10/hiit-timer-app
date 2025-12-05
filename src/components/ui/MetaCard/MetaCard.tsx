@@ -130,6 +130,7 @@ export const MetaCard: FC<MetaCardProps> = ({
                                 },
                             ]}
                         >
+                            {topLeftContent.icon}
                             <Text
                                 style={{
                                     color: topLeftContent.color ?? '#F9FAFB',

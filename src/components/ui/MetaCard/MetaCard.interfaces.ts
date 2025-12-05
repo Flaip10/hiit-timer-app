@@ -22,6 +22,7 @@ export interface ActionButtonProps {
 
 export interface TopLeftContentProps {
     text?: string;
+    icon?: ReactNode;
     backgroundColor?: string;
     color?: string;
     borderColor?: string;
