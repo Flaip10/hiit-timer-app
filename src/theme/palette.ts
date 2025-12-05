@@ -39,6 +39,10 @@ export interface Palette {
         errorText: string;
     };
     metaCard: {
+        container: {
+            background: string;
+            border: string;
+        };
         topLeftContent: {
             background: string;
             border: string;
@@ -51,6 +55,7 @@ export interface Palette {
         actionButton: {
             background: string;
             border: string;
+            icon: string;
         };
         actionStrip: {
             background: string;
@@ -98,9 +103,13 @@ export const lightPalette: Palette = {
         errorText: colors.red[700], // readable error text
     },
     metaCard: {
+        container: {
+            background: colors.violet[200],
+            border: colors.violet[200],
+        },
         topLeftContent: {
-            background: colors.gray[900],
-            border: colors.gray[300],
+            background: colors.violet[500],
+            border: colors.violet[500],
             text: colors.gray[50],
         },
         statusBadge: {
@@ -108,12 +117,13 @@ export const lightPalette: Palette = {
             text: colors.white.main,
         },
         actionButton: {
-            background: colors.gray[100],
-            border: colors.gray[200],
+            background: colors.violet[300],
+            border: colors.violet[300],
+            icon: colors.violet[400],
         },
         actionStrip: {
             background: colors.violet[500],
-            icon: colors.white.main,
+            icon: colors.violet[300],
         },
     },
 };
@@ -157,10 +167,14 @@ export const darkPalette: Palette = {
         errorText: colors.red[200], // soft red text
     },
     metaCard: {
+        container: {
+            background: colors.gray.background,
+            border: colors.gray.background,
+        },
         topLeftContent: {
-            background: colors.gray[900],
-            border: colors.gray[800],
-            text: colors.gray[50],
+            background: colors.violet[600],
+            border: colors.violet[600],
+            text: colors.violet[200],
         },
         statusBadge: {
             background: colors.violet[400],
@@ -168,7 +182,8 @@ export const darkPalette: Palette = {
         },
         actionButton: {
             background: colors.gray.secondaryButton,
-            border: colors.gray[800],
+            border: colors.gray.secondaryButton,
+            icon: colors.violet[400],
         },
         actionStrip: {
             background: colors.violet[400],

@@ -4,14 +4,14 @@ import { createStyles } from '@src/theme/createStyles';
 export const useMetaCardStyles = createStyles((theme) =>
     StyleSheet.create({
         cardContainer: {
-            backgroundColor: theme.palette.background.card,
+            backgroundColor: theme.palette.metaCard.container.background,
             borderRadius: 14,
             padding: 14,
             flexDirection: 'column',
             position: 'relative',
             overflow: 'hidden',
             borderWidth: 1,
-            borderColor: theme.palette.border.subtle,
+            borderColor: theme.palette.metaCard.container.border,
             gap: 10,
         },
         cardContainerNoTopContent: {
@@ -56,6 +56,7 @@ export const useMetaCardStyles = createStyles((theme) =>
 
         topLeftContent: {
             flexDirection: 'row',
+            alignItems: 'center',
             gap: 6,
             backgroundColor: theme.palette.metaCard.topLeftContent.background,
             borderTopLeftRadius: 14,
@@ -93,7 +94,7 @@ export const useMetaCardStyles = createStyles((theme) =>
             paddingBottom: 3,
             paddingHorizontal: 18,
             borderBottomRightRadius: 14,
-            marginLeft: -12,
+            marginLeft: -14,
             overflow: 'hidden',
             backgroundColor: theme.palette.metaCard.statusBadge.background,
         },

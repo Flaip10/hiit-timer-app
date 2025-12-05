@@ -49,6 +49,7 @@ export const colors = {
     },
 
     violet: {
+        600: '#2f2a89',
         500: '#4F46E5', // main brand accent (light mode)
         400: '#818CF8', // softer accent (dark mode)
         300: '#dcdffc',
