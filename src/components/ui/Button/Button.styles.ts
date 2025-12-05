@@ -46,7 +46,7 @@ export const useButtonStyles = createStyles((theme: AppTheme) =>
             color: theme.palette.text.inverted,
         },
         textSecondary: {
-            color: theme.palette.text.primary,
+            color: theme.palette.button.text.secondary,
         },
         textGhost: {
             color: theme.palette.accent.primary,
