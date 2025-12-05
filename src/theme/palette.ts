@@ -21,6 +21,7 @@ export interface Palette {
     accent: {
         primary: string; // brand color (buttons, key actions)
         soft: string; // low-emphasis accent bg (chips, pills)
+        surfaces: string;
     };
     button: {
         secondary: string;
@@ -51,6 +52,7 @@ export const lightPalette: Palette = {
     accent: {
         primary: colors.violet[500], // main accent
         soft: colors.violet[300], // soft pill background
+        surfaces: colors.gray[900],
     },
     button: {
         secondary: colors.gray.secondaryButton,
@@ -81,6 +83,7 @@ export const darkPalette: Palette = {
     accent: {
         primary: colors.violet[400], // a bit softer in dark mode
         soft: colors.gray[900], // subtle pill on dark bg
+        surfaces: colors.gray[900],
     },
     button: {
         secondary: colors.gray.secondaryButton,

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, type StyleProp, type ViewStyle } from 'react-native';
-import st from './CircleIconButton.styles';
+
+import { useCircleIconButtonStyles } from './CircleIconButton.styles';
 
 type CircleIconButtonProps = {
     onPress: () => void;
@@ -22,8 +23,9 @@ export const CircleIconButton = ({
     disabled = false,
     style,
 }: CircleIconButtonProps) => {
-    const baseSize = size ?? (variant === 'primary' ? 76 : 56);
+    const st = useCircleIconButtonStyles();
 
+    const baseSize = size ?? (variant === 'primary' ? 76 : 56);
     const baseStyle =
         variant === 'primary' ? st.primaryCircle : st.secondaryCircle;
 
