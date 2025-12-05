@@ -15,6 +15,7 @@ export const colors = {
         900: '#111827',
         950: '#020617',
         secondaryButton: '#1C1C1F',
+        background: '#131316',
     },
 
     // Neutral “surfaces” we often reuse

@@ -38,12 +38,31 @@ export interface Palette {
         errorIcon: string;
         errorText: string;
     };
+    metaCard: {
+        topLeftContent: {
+            background: string;
+            border: string;
+            text: string;
+        };
+        statusBadge: {
+            background: string;
+            text: string;
+        };
+        actionButton: {
+            background: string;
+            border: string;
+        };
+        actionStrip: {
+            background: string;
+            icon: string;
+        };
+    };
 }
 
 export const lightPalette: Palette = {
     background: {
         primary: colors.gray[50], // page bg
-        card: colors.white.main, // clean white cards
+        card: colors.violet[200],
     },
     text: {
         primary: colors.gray[900],
@@ -78,12 +97,31 @@ export const lightPalette: Palette = {
         errorIcon: colors.red[600], // strong red icon
         errorText: colors.red[700], // readable error text
     },
+    metaCard: {
+        topLeftContent: {
+            background: colors.gray[900],
+            border: colors.gray[300],
+            text: colors.gray[50],
+        },
+        statusBadge: {
+            background: colors.violet[500],
+            text: colors.white.main,
+        },
+        actionButton: {
+            background: colors.gray[100],
+            border: colors.gray[200],
+        },
+        actionStrip: {
+            background: colors.violet[500],
+            icon: colors.white.main,
+        },
+    },
 };
 
 export const darkPalette: Palette = {
     background: {
         primary: colors.black.main, // OLED black
-        card: colors.gray[900], // slightly lifted dark card
+        card: colors.gray.background,
     },
     text: {
         primary: colors.gray[50],
@@ -117,5 +155,24 @@ export const darkPalette: Palette = {
         errorBorder: colors.red[700], // strong red border
         errorIcon: colors.red[300], // light red icon
         errorText: colors.red[200], // soft red text
+    },
+    metaCard: {
+        topLeftContent: {
+            background: colors.gray[900],
+            border: colors.gray[800],
+            text: colors.gray[50],
+        },
+        statusBadge: {
+            background: colors.violet[400],
+            text: colors.gray[50],
+        },
+        actionButton: {
+            background: colors.gray.secondaryButton,
+            border: colors.gray[800],
+        },
+        actionStrip: {
+            background: colors.violet[400],
+            icon: colors.gray[50],
+        },
     },
 };

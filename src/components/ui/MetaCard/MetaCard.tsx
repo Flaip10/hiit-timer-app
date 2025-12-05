@@ -1,11 +1,12 @@
 import type { FC } from 'react';
 import React, { useState } from 'react';
-import { Image, LayoutChangeEvent, Pressable, Text, View } from 'react-native';
+import { Image, LayoutChangeEvent, Pressable, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import type { MetaCardProps } from './MetaCard.interfaces';
-import { metaCardStyles as st } from './MetaCard.styles';
+import { useMetaCardStyles } from './MetaCard.styles';
 import MinHeightCollapse from '../MinHeightCollapse/MinHeightCollapse';
+import { useTheme } from '@src/theme/ThemeProvider';
 
 const getPillDate = (isoDate?: string | null, hideHours?: boolean): string => {
     if (!isoDate) return '';
@@ -52,39 +53,27 @@ export const MetaCard: FC<MetaCardProps> = ({
     const [overflowing, setOverflowing] = useState(false);
     const [measured, setMeasured] = useState(false);
 
+    const st = useMetaCardStyles();
+    const { theme } = useTheme();
+
     const handleContentLayout = (e: LayoutChangeEvent) => {
         const h = e.nativeEvent.layout.height;
-
         if (h <= 0) return;
 
         setMeasured(true);
-
-        if (typeof minHeight === 'number') {
-            setOverflowing(h > minHeight);
-        } else {
-            setOverflowing(false);
-        }
+        setOverflowing(typeof minHeight === 'number' && h > minHeight);
     };
 
     const handleExpand = () => {
         setExpanded((prev) => !prev);
     };
 
-    // ---- Decide when collapsing is even allowed ----
     const enableCollapse = expandable && measured && overflowing;
-
-    // If we can collapse (enableCollapse), use minHeight; otherwise fully expanded
     const collapseMinHeight = enableCollapse ? minHeight : 0;
-
-    // While not measured or no overflow, keep it visually expanded
     const collapseExpanded = enableCollapse ? expanded : true;
 
     const noTopContent = !topLeftContent && !statusBadge && !date;
-    const hasAnyAction = !!(
-        actionStrip ||
-        actionButton ||
-        secondaryActionButton
-    );
+    const hasAnyAction = actionStrip || actionButton || secondaryActionButton;
 
     return (
         <Pressable
@@ -104,14 +93,7 @@ export const MetaCard: FC<MetaCardProps> = ({
                 >
                     {date ? (
                         <View style={st.dateTimePill}>
-                            <Text
-                                style={{
-                                    color: '#F9FAFB',
-                                    fontSize: 13,
-                                    fontWeight: '700',
-                                }}
-                                numberOfLines={1}
-                            >
+                            <Text style={st.dateTimePillText} numberOfLines={1}>
                                 {getPillDate(date, hideHours)}
                             </Text>
                         </View>
@@ -132,11 +114,12 @@ export const MetaCard: FC<MetaCardProps> = ({
                         >
                             {topLeftContent.icon}
                             <Text
-                                style={{
-                                    color: topLeftContent.color ?? '#F9FAFB',
-                                    fontSize: 13,
-                                    fontWeight: '700',
-                                }}
+                                style={[
+                                    st.topLeftContentText,
+                                    topLeftContent.color && {
+                                        color: topLeftContent.color,
+                                    },
+                                ]}
                                 numberOfLines={2}
                             >
                                 {topLeftContent.text ?? ''}
@@ -158,12 +141,12 @@ export const MetaCard: FC<MetaCardProps> = ({
                                 {statusBadge.icon}
                                 {!!statusBadge.label && (
                                     <Text
-                                        style={{
-                                            color:
-                                                statusBadge.color ?? '#F9FAFB',
-                                            fontSize: 13,
-                                            fontWeight: '700',
-                                        }}
+                                        style={[
+                                            st.statusBadgeText,
+                                            statusBadge.color && {
+                                                color: statusBadge.color,
+                                            },
+                                        ]}
                                         numberOfLines={1}
                                     >
                                         {statusBadge.label}
@@ -244,7 +227,7 @@ export const MetaCard: FC<MetaCardProps> = ({
                         </View>
                     ) : null}
 
-                    <View style={{ flex: 1 }}>{children}</View>
+                    <View style={st.contentInner}>{children}</View>
                 </View>
             </MinHeightCollapse>
 
@@ -260,7 +243,11 @@ export const MetaCard: FC<MetaCardProps> = ({
                     ]}
                     onPress={handleExpand}
                 >
-                    <Ionicons name="chevron-down" size={18} color="#4B5563" />
+                    <Ionicons
+                        name="chevron-down"
+                        size={18}
+                        color={theme.palette.text.secondary}
+                    />
                 </Pressable>
             )}
         </Pressable>
