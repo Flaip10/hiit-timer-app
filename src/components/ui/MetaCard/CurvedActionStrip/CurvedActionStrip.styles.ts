@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { createStyles } from '@src/theme/createStyles';
 import type { AppTheme } from '@src/theme/theme';
 
-export const useCurvedActionStripStyles = createStyles((_: AppTheme) =>
+export const useCurvedActionStripStyles = createStyles((theme: AppTheme) =>
     StyleSheet.create({
         touchArea: {
             position: 'absolute',
@@ -10,8 +10,8 @@ export const useCurvedActionStripStyles = createStyles((_: AppTheme) =>
             right: -14,
             height: 60,
             width: 70,
-            justifyContent: 'flex-end',
             alignItems: 'flex-start',
+            justifyContent: 'flex-end',
         },
         svg: {
             position: 'absolute',
@@ -20,8 +20,8 @@ export const useCurvedActionStripStyles = createStyles((_: AppTheme) =>
         },
         iconContainer: {
             position: 'absolute',
-            top: 8,
             right: 6,
+            top: 8,
         },
     })
 );
