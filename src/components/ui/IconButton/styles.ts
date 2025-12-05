@@ -1,17 +1,14 @@
 import { StyleSheet } from 'react-native';
 
-const st = StyleSheet.create({
+export default StyleSheet.create({
     btn: {
-        height: 36,
         width: 36,
-        borderRadius: 10,
-        backgroundColor: '#131316',
-        borderWidth: 1,
-        borderColor: '#1F1F23',
+        height: 36,
+        borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    pressed: { opacity: 0.9 },
+    pressed: {
+        opacity: 0.75,
+    },
 });
-
-export default st;
