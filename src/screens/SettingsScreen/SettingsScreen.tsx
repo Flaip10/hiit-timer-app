@@ -1,29 +1,25 @@
-// src/app/settings/index.tsx (or wherever)
-import { MainContainer } from '@src/components/layout/MainContainer';
-import { useTheme } from '@src/theme/ThemeProvider';
-import { AppText } from '@src/components/ui/Typography/AppText';
+import React from 'react';
 import { View, Pressable } from 'react-native';
+
+import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
+import { AppText } from '@src/components/ui/Typography/AppText';
+import { useTheme } from '@src/theme/ThemeProvider';
+import { useSettingsStyles } from './SettingsScreen.styles';
 
 const SettingsScreen = () => {
     const { theme, preference, themeName, setPreference } = useTheme();
+    const st = useSettingsStyles();
 
     return (
         <MainContainer title="Settings">
-            <View style={{ gap: 16 }}>
-                <AppText variant="title">Appearance</AppText>
+            <View style={st.section}>
+                <AppText variant="title1">Appearance</AppText>
 
                 <AppText variant="bodySmall" tone="muted">
                     Current theme: {themeName} ({preference})
                 </AppText>
 
-                {/* Simple triple switch for now */}
-                <View
-                    style={{
-                        flexDirection: 'row',
-                        gap: 8,
-                        marginTop: 8,
-                    }}
-                >
+                <View style={st.switchRow}>
                     {(['light', 'dark', 'system'] as const).map((opt) => {
                         const isActive = preference === opt;
 
@@ -31,18 +27,15 @@ const SettingsScreen = () => {
                             <Pressable
                                 key={opt}
                                 onPress={() => setPreference(opt)}
-                                style={{
-                                    paddingHorizontal: 12,
-                                    paddingVertical: 8,
-                                    borderRadius: 999,
-                                    borderWidth: 1,
-                                    borderColor: isActive
-                                        ? theme.palette.accent.primary
-                                        : theme.palette.border.subtle,
-                                    backgroundColor: isActive
-                                        ? theme.palette.accent.soft
-                                        : 'transparent',
-                                }}
+                                style={[
+                                    st.pill,
+                                    isActive && {
+                                        borderColor:
+                                            theme.palette.accent.primary,
+                                        backgroundColor:
+                                            theme.palette.accent.soft,
+                                    },
+                                ]}
                             >
                                 <AppText
                                     variant="bodySmall"
