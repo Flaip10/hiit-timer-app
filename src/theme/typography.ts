@@ -1,51 +1,51 @@
 import type { TextStyle } from 'react-native';
+import type { AppTheme } from './theme';
 
 export type TextVariant =
-    | 'display'
-    | 'title'
+    | 'title1'
+    | 'title2'
     | 'subtitle'
     | 'body'
     | 'bodySmall'
-    | 'caption'
-    | 'overline';
+    | 'caption';
 
-export const typography: Record<TextVariant, TextStyle> = {
-    display: {
-        fontSize: 28,
+type TypographyMap = Record<TextVariant, TextStyle>;
+
+export const createTypography = (theme: AppTheme): TypographyMap => ({
+    title1: {
+        fontSize: 24,
         fontWeight: '700',
-        lineHeight: 32,
+        letterSpacing: 0.2,
+        color: theme.palette.text.primary,
     },
-    title: {
+    title2: {
         fontSize: 20,
-        fontWeight: '700',
-        lineHeight: 24,
+        fontWeight: '600',
+        letterSpacing: 0.15,
+        color: theme.palette.text.primary,
     },
     subtitle: {
         fontSize: 16,
         fontWeight: '600',
-        lineHeight: 20,
+        letterSpacing: 0.1,
+        color: theme.palette.text.secondary,
     },
     body: {
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: '400',
-        lineHeight: 20,
+        letterSpacing: 0.1,
+        color: theme.palette.text.primary,
     },
     bodySmall: {
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: '400',
-        lineHeight: 18,
+        letterSpacing: 0,
+        color: theme.palette.text.secondary,
     },
     caption: {
         fontSize: 12,
         fontWeight: '400',
-        lineHeight: 16,
-        letterSpacing: 0.2,
+        letterSpacing: 0,
+        color: theme.palette.text.muted,
     },
-    overline: {
-        fontSize: 11,
-        fontWeight: '600',
-        lineHeight: 14,
-        letterSpacing: 0.8,
-        textTransform: 'uppercase',
-    },
-};
+});

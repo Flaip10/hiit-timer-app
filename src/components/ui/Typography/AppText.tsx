@@ -1,7 +1,7 @@
-import React, { type FC } from 'react';
+import React, { type FC, useMemo } from 'react';
 import { Text, type TextProps, type TextStyle } from 'react-native';
 import { useTheme } from '@src/theme/ThemeProvider';
-import { typography, type TextVariant } from '@src/theme/typography';
+import { createTypography, type TextVariant } from '@src/theme/typography';
 
 export type TextTone =
     | 'primary'
@@ -29,6 +29,7 @@ export const AppText: FC<AppTextProps> = ({
 }) => {
     const { theme } = useTheme();
 
+    const typography = useMemo(() => createTypography(theme), [theme]);
     const variantStyle = typography[variant];
 
     const color = theme.palette.text[tone] ?? theme.palette.text.primary;
