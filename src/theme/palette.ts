@@ -12,6 +12,7 @@ export interface Palette {
         inverted: string;
         danger: string;
         success: string;
+        header: string;
     };
     border: {
         subtle: string;
@@ -20,6 +21,9 @@ export interface Palette {
     accent: {
         primary: string;
         soft: string;
+    };
+    surface: {
+        navigation: string;
     };
 }
 
@@ -35,6 +39,7 @@ export const lightPalette: Palette = {
         inverted: colors.gray[50],
         danger: colors.red[600],
         success: colors.emerald[600],
+        header: '#1F2937',
     },
     border: {
         subtle: colors.gray[200],
@@ -43,6 +48,9 @@ export const lightPalette: Palette = {
     accent: {
         primary: colors.violet[500],
         soft: colors.violet[300],
+    },
+    surface: {
+        navigation: '#FFFFFF',
     },
 };
 
@@ -58,6 +66,7 @@ export const darkPalette: Palette = {
         inverted: colors.gray[950],
         danger: colors.red[300],
         success: colors.emerald[500],
+        header: '#F3F4F6',
     },
     border: {
         subtle: colors.gray[800],
@@ -66,5 +75,8 @@ export const darkPalette: Palette = {
     accent: {
         primary: colors.violet[400],
         soft: colors.gray[900],
+    },
+    surface: {
+        navigation: '#111827',
     },
 };

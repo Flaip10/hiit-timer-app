@@ -11,6 +11,17 @@ export const colors = {
         800: '#1F2937',
         900: '#111827',
         950: '#020617',
+        headerLight: '#1F2937',
+        headerDark: '#F3F4F6',
+    },
+
+    navigation: {
+        light: '#FFFFFF',
+        dark: '#111827',
+    },
+    textHeader: {
+        light: '#1F2937',
+        dark: '#F3F4F6',
     },
 
     slate: {
