@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { View } from 'react-native';
 
-import { Modal } from './Modal';
+import { Modal } from '../Modal';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { Button } from '@src/components/ui/Button/Button';
 import { useConfirmDialogStyles } from './ConfirmDialog.styles';

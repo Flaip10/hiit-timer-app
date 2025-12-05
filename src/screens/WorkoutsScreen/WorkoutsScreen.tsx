@@ -3,7 +3,7 @@ import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { useAllWorkouts, useWorkouts } from '@state/useWorkouts';
-import ConfirmDialog from '@src/components/modals/ConfirmDialog';
+import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 import { WorkoutItem } from '@components/workouts/WorkoutItem';
 import st from './styles';
 import { importWorkoutFromFile } from '@src/core/importWorkout/importWorkout';
