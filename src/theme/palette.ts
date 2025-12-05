@@ -24,6 +24,7 @@ export interface Palette {
         surfaces: string;
     };
     button: {
+        primary: string;
         secondary: string;
         danger: string;
         text: {
@@ -70,7 +71,7 @@ export interface Palette {
 
 export const lightPalette: Palette = {
     background: {
-        primary: colors.gray[50], // page bg
+        primary: colors.gray[50],
         card: colors.violet[200],
     },
     text: {
@@ -87,11 +88,12 @@ export const lightPalette: Palette = {
         strong: colors.gray[300],
     },
     accent: {
-        primary: colors.violet[500], // main accent
-        soft: colors.violet[300], // soft pill background
+        primary: colors.violet[400],
+        soft: colors.violet[300],
         surfaces: colors.gray[900],
     },
     button: {
+        primary: colors.violet[400],
         secondary: colors.violet[300],
         danger: colors.red[300],
         text: {
@@ -155,11 +157,12 @@ export const darkPalette: Palette = {
         strong: colors.gray[700],
     },
     accent: {
-        primary: colors.violet[400], // a bit softer in dark mode
-        soft: colors.gray[900], // subtle pill on dark bg
+        primary: colors.violet[400],
+        soft: colors.gray[900],
         surfaces: colors.gray[900],
     },
     button: {
+        primary: colors.violet[400],
         secondary: colors.gray.secondaryButton,
         danger: colors.red[600],
         text: {

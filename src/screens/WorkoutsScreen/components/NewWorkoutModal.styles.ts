@@ -4,10 +4,11 @@ import { createStyles } from '@src/theme/createStyles';
 export const useNewWorkoutModalStyles = createStyles((theme) =>
     StyleSheet.create({
         mainContainer: {
-            gap: 20,
+            gap: 14,
         },
         textContainer: {
-            gap: 8,
+            padding: 6,
+            gap: 6,
         },
 
         title: {
@@ -23,7 +24,7 @@ export const useNewWorkoutModalStyles = createStyles((theme) =>
 
         buttonsContainer: {
             display: 'flex',
-            gap: 12,
+            gap: 14,
         },
 
         cancelButton: {

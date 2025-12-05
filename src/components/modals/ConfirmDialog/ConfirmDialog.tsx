@@ -41,19 +41,21 @@ const ConfirmDialog = ({
     return (
         <Modal visible={visible} onRequestClose={onCancel}>
             <View style={st.container}>
-                <AppText variant="title2" style={st.title}>
-                    {title}
-                </AppText>
-
-                {cachedMessage ? (
-                    <AppText
-                        variant="bodySmall"
-                        tone="secondary"
-                        style={st.message}
-                    >
-                        {cachedMessage}
+                <View style={st.textContainer}>
+                    <AppText variant="title2" style={st.title}>
+                        {title}
                     </AppText>
-                ) : null}
+
+                    {cachedMessage ? (
+                        <AppText
+                            variant="bodySmall"
+                            tone="secondary"
+                            style={st.message}
+                        >
+                            {cachedMessage}
+                        </AppText>
+                    ) : null}
+                </View>
 
                 <View style={st.row}>
                     <Button

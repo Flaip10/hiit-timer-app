@@ -14,7 +14,7 @@ export const useModalStyles = createStyles((theme: AppTheme) =>
         centerWrap: {
             flex: 1,
             justifyContent: 'center',
-            padding: 24,
+            padding: 20,
         },
         sheet: {
             backgroundColor: theme.palette.background.card,
