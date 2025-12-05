@@ -7,6 +7,7 @@ export const useButtonStyles = createStyles((theme: AppTheme) =>
         base: {
             borderRadius: 999,
             paddingVertical: 12,
+            paddingHorizontal: 14,
             alignItems: 'center',
             justifyContent: 'center',
             flexDirection: 'row',

@@ -16,8 +16,7 @@ import { Button } from '@src/components/ui/Button/Button';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useWorkoutsScreenStyles } from './WorkoutScreen.styles';
 
-const EmptyWorkouts = () => {
-    const router = useRouter();
+const EmptyWorkouts = ({ onPressButton }: { onPressButton: () => void }) => {
     const st = useWorkoutsScreenStyles();
 
     return (
@@ -33,9 +32,9 @@ const EmptyWorkouts = () => {
             </AppText>
 
             <Button
-                title="＋ Create your first workout"
+                title="＋ Create workout"
                 variant="primary"
-                onPress={() => router.push('/workouts/edit')}
+                onPress={() => onPressButton()}
                 style={st.emptyButton}
             />
         </View>
@@ -151,7 +150,11 @@ const WorkoutsScreen = () => {
                     ) : null
                 }
                 contentContainerStyle={st.listContent}
-                ListEmptyComponent={EmptyWorkouts}
+                ListEmptyComponent={
+                    <EmptyWorkouts
+                        onPressButton={() => setModalVisible(true)}
+                    />
+                }
             />
 
             <NewWorkoutModal

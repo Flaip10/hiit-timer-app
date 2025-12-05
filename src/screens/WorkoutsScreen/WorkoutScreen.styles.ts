@@ -14,7 +14,7 @@ export const useWorkoutsScreenStyles = createStyles((theme: AppTheme) =>
         search: {
             flex: 1,
             borderRadius: 999,
-            paddingHorizontal: 16,
+            paddingHorizontal: 18,
             paddingVertical: 8,
             backgroundColor: theme.palette.background.card,
             borderWidth: 1,
@@ -29,7 +29,7 @@ export const useWorkoutsScreenStyles = createStyles((theme: AppTheme) =>
 
         listContent: {
             paddingBottom: 24,
-            gap: 10,
+            gap: 14,
         },
 
         separator: {
@@ -41,7 +41,7 @@ export const useWorkoutsScreenStyles = createStyles((theme: AppTheme) =>
             alignItems: 'center',
             justifyContent: 'center',
             paddingVertical: 32,
-            gap: 8,
+            gap: 12,
         },
 
         emptyDescription: {
