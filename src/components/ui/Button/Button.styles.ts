@@ -30,7 +30,7 @@ export const useButtonStyles = createStyles((theme: AppTheme) =>
             borderColor: theme.palette.button.secondary,
         },
         danger: {
-            backgroundColor: theme.palette.text.danger,
+            backgroundColor: theme.palette.button.danger,
         },
         ghost: {
             backgroundColor: 'transparent',
@@ -47,6 +47,9 @@ export const useButtonStyles = createStyles((theme: AppTheme) =>
         },
         textSecondary: {
             color: theme.palette.button.text.secondary,
+        },
+        textDanger: {
+            color: theme.palette.text.danger,
         },
         textGhost: {
             color: theme.palette.accent.primary,

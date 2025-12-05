@@ -64,6 +64,7 @@ export const Button = ({
                         st.text,
                         variant === 'primary' && st.textPrimary,
                         variant === 'secondary' && st.textSecondary,
+                        variant === 'danger' && st.textDanger,
                         variant === 'ghost' && st.textGhost,
                         textStyle,
                     ]}

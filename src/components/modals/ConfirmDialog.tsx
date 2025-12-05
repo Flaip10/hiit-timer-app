@@ -1,6 +1,10 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Modal } from '../Modal';
+import { View } from 'react-native';
+
+import { Modal } from './Modal';
+import { AppText } from '@src/components/ui/Typography/AppText';
+import { Button } from '@src/components/ui/Button/Button';
+import { useConfirmDialogStyles } from './ConfirmDialog.styles';
 
 type ConfirmDialogProps = {
     visible: boolean;
@@ -25,63 +29,50 @@ const ConfirmDialog = ({
 }: ConfirmDialogProps) => {
     // Cache message while visible so it doesn't vanish during exit animation
     const [cachedMessage, setCachedMessage] = useState<ReactNode>(message);
+    const st = useConfirmDialogStyles();
 
     useEffect(() => {
-        if (visible && message !== undefined) setCachedMessage(message);
-        // do NOT clear on hide; component will unmount after Modal exit
+        if (visible && message !== undefined) {
+            setCachedMessage(message);
+        }
+        // do not clear on hide; Modal unmount will handle it
     }, [visible, message]);
 
     return (
         <Modal visible={visible} onRequestClose={onCancel}>
-            <View style={{ gap: 12 }}>
-                <Text style={st.title}>{title}</Text>
+            <View style={st.container}>
+                <AppText variant="title2" style={st.title}>
+                    {title}
+                </AppText>
+
                 {cachedMessage ? (
-                    <Text style={st.message}>{cachedMessage}</Text>
+                    <AppText
+                        variant="bodySmall"
+                        tone="secondary"
+                        style={st.message}
+                    >
+                        {cachedMessage}
+                    </AppText>
                 ) : null}
 
                 <View style={st.row}>
-                    <Pressable
+                    <Button
+                        title={cancelLabel}
+                        variant="secondary"
                         onPress={onCancel}
-                        style={({ pressed }) => [
-                            st.btn,
-                            st.secondary,
-                            pressed && st.pressed,
-                        ]}
-                    >
-                        <Text style={st.btnText}>{cancelLabel}</Text>
-                    </Pressable>
+                        style={st.button}
+                    />
 
-                    <Pressable
+                    <Button
+                        title={confirmLabel}
+                        variant={destructive ? 'danger' : 'primary'}
                         onPress={onConfirm}
-                        style={({ pressed }) => [
-                            st.btn,
-                            destructive ? st.destructive : st.primary,
-                            pressed && st.pressed,
-                        ]}
-                    >
-                        <Text style={st.btnText}>{confirmLabel}</Text>
-                    </Pressable>
+                        style={st.button}
+                    />
                 </View>
             </View>
         </Modal>
     );
 };
-
-const st = StyleSheet.create({
-    title: { color: '#F2F2F2', fontSize: 18, fontWeight: '700' },
-    message: { color: '#A1A1AA', fontSize: 14 },
-    row: { flexDirection: 'row', gap: 12, marginTop: 8 },
-    btn: {
-        flex: 1,
-        borderRadius: 12,
-        paddingVertical: 12,
-        alignItems: 'center',
-    },
-    primary: { backgroundColor: '#2563EB' },
-    secondary: { backgroundColor: '#1C1C1F' },
-    destructive: { backgroundColor: '#DC2626' },
-    btnText: { color: '#fff', fontWeight: '700' },
-    pressed: { opacity: 0.9 },
-});
 
 export default ConfirmDialog;

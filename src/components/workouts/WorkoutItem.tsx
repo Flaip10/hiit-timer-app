@@ -71,9 +71,9 @@ export const WorkoutItem = ({
             }}
             expandable
             withBottomFade={false}
-            minHeight={42}
+            minHeight={50}
         >
-            <View>
+            <View style={st.contentContainer}>
                 <AppText
                     variant="subtitle"
                     tone="primary"
@@ -99,6 +99,7 @@ export const WorkoutItem = ({
 };
 
 const st = StyleSheet.create({
+    contentContainer: { gap: 4, padding: 4 },
     extraRow: {
         marginTop: 4,
     },

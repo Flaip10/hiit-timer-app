@@ -25,6 +25,7 @@ export interface Palette {
     };
     button: {
         secondary: string;
+        danger: string;
         text: {
             secondary: string;
         };
@@ -74,10 +75,10 @@ export const lightPalette: Palette = {
     },
     text: {
         primary: colors.gray[900],
-        secondary: colors.gray[600],
+        secondary: colors.gray.text,
         muted: colors.gray[400],
         inverted: colors.gray[50],
-        danger: colors.red[600],
+        danger: colors.red.errorBgDark,
         success: colors.emerald[600],
         header: colors.textHeader.light,
     },
@@ -92,6 +93,7 @@ export const lightPalette: Palette = {
     },
     button: {
         secondary: colors.violet[300],
+        danger: colors.red[300],
         text: {
             secondary: colors.violet.dark,
         },
@@ -141,15 +143,15 @@ export const darkPalette: Palette = {
     },
     text: {
         primary: colors.gray[50],
-        secondary: colors.gray[200],
+        secondary: colors.gray.text,
         muted: colors.gray[400],
         inverted: colors.black.main,
-        danger: colors.red[300],
+        danger: colors.gray[50],
         success: colors.emerald[500],
         header: colors.textHeader.dark,
     },
     border: {
-        subtle: colors.gray[800],
+        subtle: colors.gray.border,
         strong: colors.gray[700],
     },
     accent: {
@@ -159,6 +161,7 @@ export const darkPalette: Palette = {
     },
     button: {
         secondary: colors.gray.secondaryButton,
+        danger: colors.red[600],
         text: {
             secondary: colors.gray[50],
         },
