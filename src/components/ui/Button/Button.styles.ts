@@ -5,7 +5,7 @@ import type { AppTheme } from '@src/theme/theme';
 export const useButtonStyles = createStyles((theme: AppTheme) =>
     StyleSheet.create({
         base: {
-            borderRadius: 12,
+            borderRadius: 999,
             paddingVertical: 12,
             alignItems: 'center',
             justifyContent: 'center',
@@ -20,9 +20,9 @@ export const useButtonStyles = createStyles((theme: AppTheme) =>
             borderColor: theme.palette.border.subtle,
         },
         primary: {
-            backgroundColor: theme.palette.accent.primary,
+            backgroundColor: theme.palette.button.primary,
             borderWidth: 1,
-            borderColor: theme.palette.accent.primary,
+            borderColor: theme.palette.button.primary,
         },
         secondary: {
             backgroundColor: theme.palette.button.secondary,
