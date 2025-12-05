@@ -1,4 +1,6 @@
 export const colors = {
+    black: { main: '#000000' },
+
     gray: {
         50: '#F9FAFB',
         100: '#F3F4F6',
@@ -34,17 +36,22 @@ export const colors = {
         500: '#22C55E',
         600: '#16A34A',
     },
-
     red: {
+        50: '#FEF2F2',
+        200: '#FECACA',
+        300: '#FCA5A5',
         500: '#EF4444',
         600: '#DC2626',
-        300: '#FCA5A5',
+        700: '#B91C1C',
+        errorBgDark: '#451A1A',
     },
 
     violet: {
         500: '#4F46E5', // main brand accent (light mode)
         400: '#818CF8', // softer accent (dark mode)
-        300: '#EEF2FF', // subtle background / chip
+        300: '#dcdffc',
+        200: '#EEF2FF', // subtle background / chip
+        dark: '#171544',
     },
 
     cyan: {

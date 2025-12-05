@@ -25,9 +25,18 @@ export interface Palette {
     };
     button: {
         secondary: string;
+        text: {
+            secondary: string;
+        };
     };
     surface: {
         navigation: string; // top bar / bottom bar / drawers
+    };
+    feedback: {
+        errorBg: string;
+        errorBorder: string;
+        errorIcon: string;
+        errorText: string;
     };
 }
 
@@ -55,23 +64,32 @@ export const lightPalette: Palette = {
         surfaces: colors.gray[900],
     },
     button: {
-        secondary: colors.gray.secondaryButton,
+        secondary: colors.violet[300],
+        text: {
+            secondary: colors.violet.dark,
+        },
     },
     surface: {
         navigation: colors.navigation.light,
+    },
+    feedback: {
+        errorBg: colors.red[50], // soft red background
+        errorBorder: colors.red[300], // light red border
+        errorIcon: colors.red[600], // strong red icon
+        errorText: colors.red[700], // readable error text
     },
 };
 
 export const darkPalette: Palette = {
     background: {
-        primary: '#000000', // OLED black
+        primary: colors.black.main, // OLED black
         card: colors.gray[900], // slightly lifted dark card
     },
     text: {
         primary: colors.gray[50],
         secondary: colors.gray[200],
         muted: colors.gray[400],
-        inverted: '#000000',
+        inverted: colors.black.main,
         danger: colors.red[300],
         success: colors.emerald[500],
         header: colors.textHeader.dark,
@@ -87,8 +105,17 @@ export const darkPalette: Palette = {
     },
     button: {
         secondary: colors.gray.secondaryButton,
+        text: {
+            secondary: colors.black.main,
+        },
     },
     surface: {
         navigation: colors.navigation.dark,
+    },
+    feedback: {
+        errorBg: colors.red.errorBgDark, // deep red background
+        errorBorder: colors.red[700], // strong red border
+        errorIcon: colors.red[300], // light red icon
+        errorText: colors.red[200], // soft red text
     },
 };
