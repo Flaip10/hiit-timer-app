@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { Exercise } from '../../core/entities';
-import { Stepper } from '../ui/Stepper';
+import { Stepper } from '../ui/Stepper/Stepper';
 
 type Props = {
     index: number;

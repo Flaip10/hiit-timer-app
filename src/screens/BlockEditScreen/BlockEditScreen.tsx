@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import { Stepper } from '@components/ui/Stepper';
+import { Stepper } from '@src/components/ui/Stepper/Stepper';
 import { ExerciseCard } from '@components/blocks/ExerciseCard';
 import { FooterBar } from '@src/components/layout/FooterBar';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';

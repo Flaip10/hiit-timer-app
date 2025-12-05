@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useCallback, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
+import { Pressable, Text, TextInput, View } from 'react-native';
+import { useStepperStyles } from './Stepper.styles';
 
 type Props = {
     value: number;
@@ -26,16 +27,19 @@ export const Stepper = ({
     label,
     testID,
 }: Props) => {
+    const st = useStepperStyles();
     const ref = useRef<TextInput>(null);
 
     const inc = useCallback(
         () => onChange(clamp(value + step, min, max)),
         [onChange, value, step, min, max]
     );
+
     const dec = useCallback(
         () => onChange(clamp(value - step, min, max)),
         [onChange, value, step, min, max]
     );
+
     const onText = useCallback(
         (txt: string) => {
             const n = parseInt((txt || '0').replace(/\D+/g, ''), 10);
@@ -56,6 +60,7 @@ export const Stepper = ({
                 >
                     <Text style={st.btnText}>–</Text>
                 </Pressable>
+
                 <TextInput
                     ref={ref}
                     keyboardType="number-pad"
@@ -65,6 +70,7 @@ export const Stepper = ({
                     returnKeyType="done"
                     testID={testID}
                 />
+
                 <Pressable
                     onPress={inc}
                     style={({ pressed }) => [st.btn, pressed && st.pressed]}
@@ -77,34 +83,3 @@ export const Stepper = ({
         </View>
     );
 };
-
-const st = StyleSheet.create({
-    wrap: { gap: 6 },
-    label: { color: '#A1A1AA' },
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    btn: {
-        backgroundColor: '#1C1C1F',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderWidth: 1,
-        borderColor: '#1F1F23',
-    },
-    btnText: { color: '#E5E7EB', fontWeight: '700', fontSize: 18 },
-    input: {
-        flex: 1,
-        textAlign: 'center',
-        backgroundColor: '#131316',
-        color: '#E5E7EB',
-        borderRadius: 12,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        borderWidth: 1,
-        borderColor: '#1F1F23',
-    },
-    pressed: { opacity: 0.9 },
-});
