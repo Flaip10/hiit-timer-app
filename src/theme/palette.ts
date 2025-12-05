@@ -2,8 +2,8 @@ import { colors } from './colors';
 
 export interface Palette {
     background: {
-        primary: string;
-        card: string;
+        primary: string; // whole-screen background
+        card: string; // cards / panels
     };
     text: {
         primary: string;
@@ -12,25 +12,25 @@ export interface Palette {
         inverted: string;
         danger: string;
         success: string;
-        header: string;
+        header: string; // titles / top bar text
     };
     border: {
         subtle: string;
         strong: string;
     };
     accent: {
-        primary: string;
-        soft: string;
+        primary: string; // brand color (buttons, key actions)
+        soft: string; // low-emphasis accent bg (chips, pills)
     };
     surface: {
-        navigation: string;
+        navigation: string; // top bar / bottom bar / drawers
     };
 }
 
 export const lightPalette: Palette = {
     background: {
-        primary: colors.gray[50],
-        card: colors.gray[100],
+        primary: colors.gray[50], // page bg
+        card: '#FFFFFF', // clean white cards
     },
     text: {
         primary: colors.gray[900],
@@ -39,44 +39,44 @@ export const lightPalette: Palette = {
         inverted: colors.gray[50],
         danger: colors.red[600],
         success: colors.emerald[600],
-        header: '#1F2937',
+        header: colors.textHeader.light,
     },
     border: {
         subtle: colors.gray[200],
         strong: colors.gray[300],
     },
     accent: {
-        primary: colors.violet[500],
-        soft: colors.violet[300],
+        primary: colors.violet[500], // main accent
+        soft: colors.violet[300], // soft pill background
     },
     surface: {
-        navigation: '#FFFFFF',
+        navigation: colors.navigation.light,
     },
 };
 
 export const darkPalette: Palette = {
     background: {
-        primary: colors.gray[950],
-        card: colors.gray[900],
+        primary: '#000000', // OLED black
+        card: colors.gray[900], // slightly lifted dark card
     },
     text: {
         primary: colors.gray[50],
         secondary: colors.gray[200],
         muted: colors.gray[400],
-        inverted: colors.gray[950],
+        inverted: '#000000',
         danger: colors.red[300],
         success: colors.emerald[500],
-        header: '#F3F4F6',
+        header: colors.textHeader.dark,
     },
     border: {
         subtle: colors.gray[800],
         strong: colors.gray[700],
     },
     accent: {
-        primary: colors.violet[400],
-        soft: colors.gray[900],
+        primary: colors.violet[400], // a bit softer in dark mode
+        soft: colors.gray[900], // subtle pill on dark bg
     },
     surface: {
-        navigation: '#111827',
+        navigation: colors.navigation.dark,
     },
 };

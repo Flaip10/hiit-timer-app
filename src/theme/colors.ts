@@ -11,14 +11,15 @@ export const colors = {
         800: '#1F2937',
         900: '#111827',
         950: '#020617',
-        headerLight: '#1F2937',
-        headerDark: '#F3F4F6',
     },
 
+    // Neutral “surfaces” we often reuse
     navigation: {
         light: '#FFFFFF',
-        dark: '#111827',
+        dark: '#000000',
     },
+
+    // “Header text” bases – palette maps them
     textHeader: {
         light: '#1F2937',
         dark: '#F3F4F6',
@@ -40,9 +41,18 @@ export const colors = {
     },
 
     violet: {
-        500: '#4F46E5',
-        300: '#EEF2FF',
-        400: '#818CF8',
+        500: '#4F46E5', // main brand accent (light mode)
+        400: '#818CF8', // softer accent (dark mode)
+        300: '#EEF2FF', // subtle background / chip
+    },
+
+    cyan: {
+        500: '#06B6D4',
+        300: '#CFFAFE',
+    },
+    amber: {
+        500: '#F59E0B',
+        300: '#FEF3C7',
     },
 } as const;
 
