@@ -11,7 +11,7 @@ import * as Sharing from 'expo-sharing';
 import { useWorkout } from '@state/useWorkouts';
 import { buildSteps } from '@core/timer';
 
-import { MainContainer } from '@components/layout/MainContainer';
+import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@components/layout/FooterBar';
 import { Button } from '@components/ui/Button/Button';
 

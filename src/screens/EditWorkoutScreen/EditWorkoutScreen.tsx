@@ -8,7 +8,7 @@ import { useWorkouts } from '@src/state/useWorkouts';
 import { WorkoutBlockItem } from './WorkoutBlockItem';
 import st from './styles';
 import { Button } from '@src/components/ui/Button/Button';
-import { MainContainer } from '@src/components/layout/MainContainer';
+import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
 
 const createEmptyBlock = (): WorkoutBlock => ({

@@ -1,4 +1,4 @@
-import { MainContainer } from '@src/components/layout/MainContainer';
+import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { StyleSheet, Text } from 'react-native';
 
 const HomeScreen = () => (

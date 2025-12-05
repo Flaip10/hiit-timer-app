@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MainContainer } from '@components/layout/MainContainer';
+import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { useAllWorkouts, useWorkouts } from '@state/useWorkouts';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog';
 import { WorkoutItem } from '@components/workouts/WorkoutItem';

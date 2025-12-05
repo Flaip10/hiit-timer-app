@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Stepper } from '@components/ui/Stepper';
 import { ExerciseCard } from '@components/blocks/ExerciseCard';
 import { FooterBar } from '@src/components/layout/FooterBar';
-import { MainContainer } from '@src/components/layout/MainContainer';
+import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { Button } from '@src/components/ui/Button/Button';
 
 import { useWorkouts } from '@state/useWorkouts';
