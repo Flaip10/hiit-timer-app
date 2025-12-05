@@ -3,10 +3,10 @@ import {
     Modal as RNModal,
     View,
     Pressable,
-    StyleSheet,
     Animated,
     Easing,
 } from 'react-native';
+import { useModalStyles } from './Modal.styles';
 
 type ModalProps = {
     visible: boolean;
@@ -24,6 +24,8 @@ export const Modal = ({
     const fade = useRef(new Animated.Value(0)).current;
     const scale = useRef(new Animated.Value(0.96)).current;
     const [rendered, setRendered] = useState(visible);
+
+    const st = useModalStyles();
 
     useEffect(() => {
         if (visible) {
@@ -63,22 +65,25 @@ export const Modal = ({
 
     return (
         <RNModal
-            visible
+            visible={visible}
             transparent
             animationType="none"
             onRequestClose={onRequestClose}
             statusBarTranslucent
         >
-            <Animated.View style={[s.backdrop, { opacity: fade }]}>
+            <Animated.View style={[st.backdrop, { opacity: fade }]}>
                 <Pressable
-                    style={s.backdropPress}
+                    style={st.backdropPress}
                     onPress={dismissOnBackdrop ? onRequestClose : undefined}
                 />
             </Animated.View>
 
-            <View style={s.centerWrap} pointerEvents="box-none">
+            <View style={st.centerWrap} pointerEvents="box-none">
                 <Animated.View
-                    style={[s.sheet, { transform: [{ scale }], opacity: fade }]}
+                    style={[
+                        st.sheet,
+                        { transform: [{ scale }], opacity: fade },
+                    ]}
                 >
                     {children}
                 </Animated.View>
@@ -86,23 +91,3 @@ export const Modal = ({
         </RNModal>
     );
 };
-
-const s = StyleSheet.create({
-    backdrop: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.45)',
-    },
-    backdropPress: { flex: 1 },
-    centerWrap: { flex: 1, justifyContent: 'center', padding: 24 },
-    sheet: {
-        backgroundColor: '#131316',
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: '#1F1F23',
-        padding: 16,
-        shadowColor: '#000',
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
-        elevation: 8,
-    },
-});
