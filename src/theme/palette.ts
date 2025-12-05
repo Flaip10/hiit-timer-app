@@ -43,7 +43,7 @@ export interface Palette {
 export const lightPalette: Palette = {
     background: {
         primary: colors.gray[50], // page bg
-        card: '#FFFFFF', // clean white cards
+        card: colors.white.main, // clean white cards
     },
     text: {
         primary: colors.gray[900],
@@ -106,7 +106,7 @@ export const darkPalette: Palette = {
     button: {
         secondary: colors.gray.secondaryButton,
         text: {
-            secondary: colors.black.main,
+            secondary: colors.gray[50],
         },
     },
     surface: {
