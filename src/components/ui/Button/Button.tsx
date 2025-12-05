@@ -6,7 +6,8 @@ import {
     TextStyle,
     ViewStyle,
 } from 'react-native';
-import st from './styles';
+import { useTheme } from '@src/theme/ThemeProvider';
+import { useButtonStyles } from './Button.styles';
 
 type ButtonVariant = 'default' | 'primary' | 'secondary' | 'danger' | 'ghost';
 
@@ -31,7 +32,15 @@ export const Button = ({
     style,
     flex,
 }: ButtonProps) => {
+    const { theme } = useTheme();
+    const st = useButtonStyles();
+
     const isDisabled = disabled || loading;
+
+    const spinnerColor =
+        variant === 'primary' || variant === 'danger'
+            ? theme.palette.text.inverted
+            : theme.palette.text.primary;
 
     return (
         <Pressable
@@ -48,7 +57,7 @@ export const Button = ({
             ]}
         >
             {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={spinnerColor} />
             ) : (
                 <Text
                     style={[
