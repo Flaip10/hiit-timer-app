@@ -62,6 +62,9 @@ export interface Palette {
             icon: string;
         };
     };
+    overlay: {
+        scrim: string;
+    };
 }
 
 export const lightPalette: Palette = {
@@ -108,8 +111,8 @@ export const lightPalette: Palette = {
             border: colors.violet[200],
         },
         topLeftContent: {
-            background: colors.violet[500],
-            border: colors.violet[500],
+            background: colors.violet[400],
+            border: colors.violet[400],
             text: colors.gray[50],
         },
         statusBadge: {
@@ -117,7 +120,7 @@ export const lightPalette: Palette = {
             text: colors.white.main,
         },
         actionButton: {
-            background: colors.violet[300],
+            background: colors.violet[200],
             border: colors.violet[300],
             icon: colors.violet[400],
         },
@@ -125,6 +128,9 @@ export const lightPalette: Palette = {
             background: colors.violet[500],
             icon: colors.violet[300],
         },
+    },
+    overlay: {
+        scrim: colors.overlay.scrim,
     },
 };
 
@@ -172,16 +178,16 @@ export const darkPalette: Palette = {
             border: colors.gray.background,
         },
         topLeftContent: {
-            background: colors.violet[600],
-            border: colors.violet[600],
-            text: colors.violet[200],
+            background: colors.violet[400],
+            border: colors.violet[400],
+            text: colors.black.main,
         },
         statusBadge: {
             background: colors.violet[400],
             text: colors.gray[50],
         },
         actionButton: {
-            background: colors.gray.secondaryButton,
+            background: colors.gray.background,
             border: colors.gray.secondaryButton,
             icon: colors.violet[400],
         },
@@ -189,5 +195,8 @@ export const darkPalette: Palette = {
             background: colors.violet[400],
             icon: colors.gray[50],
         },
+    },
+    overlay: {
+        scrim: colors.overlay.scrim,
     },
 };

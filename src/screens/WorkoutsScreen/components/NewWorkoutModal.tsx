@@ -1,7 +1,11 @@
-import { Pressable, Text, View } from 'react-native';
-import { Modal } from '@src/components/Modal';
+import React from 'react';
+import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import st from './NewWorkoutModal.styles';
+
+import { Modal } from '@src/components/modals/Modal';
+import { AppText } from '@src/components/ui/Typography/AppText';
+import { Button } from '@src/components/ui/Button/Button';
+import { useNewWorkoutModalStyles } from './NewWorkoutModal.styles';
 
 type NewWorkoutModalProps = {
     visible: boolean;
@@ -15,36 +19,47 @@ const NewWorkoutModal = ({
     handleImportFromFile,
 }: NewWorkoutModalProps) => {
     const router = useRouter();
+    const st = useNewWorkoutModalStyles();
+
+    const handleCreateNew = () => {
+        closeModal();
+        router.push('/workouts/edit');
+    };
+
+    const handleImport = async () => {
+        await handleImportFromFile();
+    };
 
     return (
         <Modal visible={visible} onRequestClose={closeModal}>
             <View style={st.mainContainer}>
                 <View style={st.textContainer}>
-                    <Text style={st.modalTitle}>New workout</Text>
-                    <Text style={st.modalSubtitle}>
+                    <AppText variant="title2" tone="primary">
+                        New workout
+                    </AppText>
+
+                    <AppText variant="bodySmall" tone="muted">
                         Choose how you want to start:
-                    </Text>
+                    </AppText>
                 </View>
-                <View style={st.btnsContainer}>
-                    <Pressable
-                        onPress={() => {
-                            closeModal();
-                            router.push('/workouts/edit');
-                        }}
-                        style={[st.modalBtn, st.primary]}
-                    >
-                        <Text style={st.modalBtnText}>Create new</Text>
-                    </Pressable>
 
-                    <Pressable
-                        onPress={handleImportFromFile}
-                        style={[st.modalBtn, st.secondary]}
-                    >
-                        <Text style={st.modalBtnText}>Import from file</Text>
-                    </Pressable>
+                <View style={st.buttonsContainer}>
+                    <Button
+                        title="Create new"
+                        variant="primary"
+                        onPress={handleCreateNew}
+                    />
 
-                    <Pressable onPress={closeModal} style={st.modalCancelBtn}>
-                        <Text style={st.modalCancelText}>Cancel</Text>
+                    <Button
+                        title="Import from file"
+                        variant="secondary"
+                        onPress={handleImport}
+                    />
+
+                    <Pressable onPress={closeModal} style={st.cancelButton}>
+                        <AppText variant="bodySmall" tone="muted">
+                            Cancel
+                        </AppText>
                     </Pressable>
                 </View>
             </View>

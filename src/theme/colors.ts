@@ -65,6 +65,9 @@ export const colors = {
         500: '#F59E0B',
         300: '#FEF3C7',
     },
+    overlay: {
+        scrim: 'rgba(0,0,0,0.45)',
+    },
 } as const;
 
 export type Colors = typeof colors;
