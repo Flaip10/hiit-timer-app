@@ -11,9 +11,7 @@ const PADDING_BOTTOM = 20;
 
 const useStyles = createStyles((theme) => ({
     safe: {
-        backgroundColor: theme.palette.background.card,
-        borderTopWidth: 1,
-        borderTopColor: theme.palette.border.subtle,
+        backgroundColor: theme.palette.background.primary,
     },
     row: {
         flexDirection: 'row',
