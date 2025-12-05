@@ -1,16 +1,24 @@
+import { StyleSheet } from 'react-native';
+
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
-import { StyleSheet, Text } from 'react-native';
+import { AppText } from '@src/components/ui/Typography/AppText';
 
 const HomeScreen = () => (
     <MainContainer title="Home">
-        <Text style={st.h1}>Welcome</Text>
-        <Text style={st.p}>Use the menu to navigate to your workouts.</Text>
+        <AppText variant="title2" style={st.heading}>
+            Welcome
+        </AppText>
+
+        <AppText variant="bodySmall" tone="secondary">
+            Use the menu to navigate to your workouts.
+        </AppText>
     </MainContainer>
 );
 
 const st = StyleSheet.create({
-    h1: { color: '#F2F2F2', fontSize: 22, fontWeight: '700' },
-    p: { color: '#A1A1AA' },
+    heading: {
+        marginBottom: 4,
+    },
 });
 
 export default HomeScreen;
