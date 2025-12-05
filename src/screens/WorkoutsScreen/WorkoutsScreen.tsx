@@ -1,28 +1,43 @@
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { FlatList, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
+
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { useAllWorkouts, useWorkouts } from '@state/useWorkouts';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 import { WorkoutItem } from '@components/workouts/WorkoutItem';
-import st from './styles';
 import { importWorkoutFromFile } from '@src/core/importWorkout/importWorkout';
 import { ErrorBanner } from '@src/components/ui/ErrorBanner/ErrorBanner';
 import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
 import NewWorkoutModal from './components/NewWorkoutModal';
 
+import { AppText } from '@src/components/ui/Typography/AppText';
+import { Button } from '@src/components/ui/Button/Button';
+import { useTheme } from '@src/theme/ThemeProvider';
+import { useWorkoutsScreenStyles } from './WorkoutScreen.styles';
+
 const EmptyWorkouts = () => {
     const router = useRouter();
+    const st = useWorkoutsScreenStyles();
 
     return (
         <View style={st.emptyContainer}>
-            <Text style={st.emptyText}>No workouts yet</Text>
-            <Pressable
-                onPress={() => router.push('/workouts/edit')}
-                style={({ pressed }) => [st.newBtn, pressed && st.pressed]}
+            <AppText variant="title2">No workouts yet</AppText>
+
+            <AppText
+                variant="bodySmall"
+                tone="secondary"
+                style={st.emptyDescription}
             >
-                <Text style={st.newBtnText}>＋ Create your first workout</Text>
-            </Pressable>
+                Create your first workout to get started.
+            </AppText>
+
+            <Button
+                title="＋ Create your first workout"
+                variant="primary"
+                onPress={() => router.push('/workouts/edit')}
+                style={st.emptyButton}
+            />
         </View>
     );
 };
@@ -38,6 +53,9 @@ const WorkoutsScreen = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [importError, setImportError] = useState<string | null>(null);
     const [importing, setImporting] = useState(false);
+
+    const { theme } = useTheme();
+    const st = useWorkoutsScreenStyles();
 
     const data = useMemo(() => {
         const qq = q.trim().toLowerCase();
@@ -58,7 +76,6 @@ const WorkoutsScreen = () => {
             const result = await importWorkoutFromFile();
 
             if (!result.ok) {
-                // ignore silent cancel
                 if (result.error === 'CANCELLED') return;
 
                 if (result.error === 'INVALID_KIND') {
@@ -73,7 +90,6 @@ const WorkoutsScreen = () => {
                 return;
             }
 
-            // ok === true → we have a Workout
             startDraftFromImported(result.workout);
 
             router.push({
@@ -97,17 +113,16 @@ const WorkoutsScreen = () => {
                     value={q}
                     onChangeText={setQ}
                     placeholder="Search workouts"
-                    placeholderTextColor="#6B7280"
+                    placeholderTextColor={theme.palette.text.muted}
                     style={st.search}
                 />
-                <Pressable
-                    onPress={() => {
-                        setModalVisible(true);
-                    }}
-                    style={({ pressed }) => [st.newBtn, pressed && st.pressed]}
-                >
-                    <Text style={st.newBtnText}>＋ New</Text>
-                </Pressable>
+
+                <Button
+                    title="＋ New"
+                    variant="primary"
+                    onPress={() => setModalVisible(true)}
+                    style={st.newButton}
+                />
             </View>
 
             <AppearingView visible={!!importError}>
@@ -135,8 +150,7 @@ const WorkoutsScreen = () => {
                         />
                     ) : null
                 }
-                ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-                contentContainerStyle={{ paddingBottom: 24 }}
+                contentContainerStyle={st.listContent}
                 ListEmptyComponent={EmptyWorkouts}
             />
 
