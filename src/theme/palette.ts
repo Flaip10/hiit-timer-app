@@ -181,7 +181,7 @@ export const darkPalette: Palette = {
     metaCard: {
         container: {
             background: colors.gray.background,
-            border: colors.gray.background,
+            border: colors.gray.border,
         },
         topLeftContent: {
             background: colors.violet[400],
@@ -193,8 +193,8 @@ export const darkPalette: Palette = {
             text: colors.gray[50],
         },
         actionButton: {
-            background: colors.gray.background,
-            border: colors.gray.secondaryButton,
+            background: colors.gray.secondaryButton,
+            border: colors.gray.border,
             icon: colors.violet[400],
         },
         actionStrip: {

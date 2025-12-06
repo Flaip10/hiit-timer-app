@@ -6,10 +6,11 @@ import type { WorkoutBlock } from '@src/core/entities';
 import { uid } from '@src/core/id';
 import { useWorkouts } from '@src/state/useWorkouts';
 import { WorkoutBlockItem } from './WorkoutBlockItem';
-import st from './styles';
 import { Button } from '@src/components/ui/Button/Button';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
+import { useTheme } from '@src/theme/ThemeProvider';
+import { useEditWorkoutScreenStyles } from './EditWorkoutScreen.styles';
 
 const createEmptyBlock = (): WorkoutBlock => ({
     id: uid(),
@@ -46,6 +47,9 @@ const EditWorkoutScreen = () => {
 
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
+
+    const { theme } = useTheme();
+    const st = useEditWorkoutScreenStyles();
 
     // initialise / cleanup draft
     useEffect(() => {
@@ -124,7 +128,7 @@ const EditWorkoutScreen = () => {
                     ))}
                 </View>
             ) : null,
-        [errors]
+        [errors, st.errorBox, st.errorText]
     );
 
     const isEditingExisting = !!id;
@@ -141,7 +145,7 @@ const EditWorkoutScreen = () => {
                         updateDraftMeta({ name: value ?? '' })
                     }
                     placeholder="e.g., Conditioning A"
-                    placeholderTextColor="#6B7280"
+                    placeholderTextColor={theme.palette.text.muted}
                     style={st.input}
                 />
 
@@ -160,6 +164,7 @@ const EditWorkoutScreen = () => {
                     title="＋ Add Block"
                     onPress={onAddBlock}
                     style={st.addBlock}
+                    variant="secondary"
                 />
 
                 {errorBox}
