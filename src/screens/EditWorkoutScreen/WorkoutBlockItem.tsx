@@ -38,14 +38,18 @@ export const WorkoutBlockItem = ({
         if (first.mode === 'time') {
             return `${first.value}s each`;
         }
+
         // reps mode kept for future extension
+
         return `${first.value} reps each`;
     }, [exercises]);
 
     const metaParts = useMemo(() => {
         const parts: string[] = [
             `${sets} ${sets === 1 ? 'set' : 'sets'}`,
-            `${exercises.length} ${exercises.length === 1 ? 'exercise' : 'exercises'}`,
+            `${exercises.length} ${
+                exercises.length === 1 ? 'exercise' : 'exercises'
+            }`,
         ];
         if (exerciseSummary) parts.push(exerciseSummary);
         return parts;
@@ -97,57 +101,60 @@ export const WorkoutBlockItem = ({
                 backgroundColor: theme.palette.metaCard.actionStrip.background,
                 onPress: () => onRemove(block.id),
             }}
-            expandable={true}
+            expandable
             withBottomFade={false}
-            minHeight={70}
+            minHeight={0}
             onPress={() => onEdit(block.id)}
-        >
-            <View style={st.body}>
-                <View style={st.blockInfoRow}>
-                    <Ionicons
-                        name="timer-outline"
-                        size={14}
-                        color={theme.palette.metaCard.statusBadge.text}
-                    />
-                    <AppText variant="bodySmall" tone="secondary">
-                        {metaParts.join(' • ')}
-                    </AppText>
+            summaryContent={
+                <View style={st.body}>
+                    <View style={st.blockInfoRow}>
+                        <Ionicons
+                            name="timer-outline"
+                            size={14}
+                            color={theme.palette.metaCard.statusBadge.text}
+                        />
+                        <AppText variant="bodySmall" tone="secondary">
+                            {metaParts.join(' • ')}
+                        </AppText>
+                    </View>
                 </View>
-                <View style={st.exercisesContainer}>
-                    {exercises.map((ex, i) => (
-                        <View key={ex.id ?? i} style={st.exerciseRow}>
-                            <View style={st.exerciseIndexBubble}>
-                                <AppText
-                                    variant="caption"
-                                    style={st.exerciseIndexText}
-                                >
-                                    {i + 1}
-                                </AppText>
-                            </View>
+            }
+            collapsibleContent={
+                <View style={st.body}>
+                    <View style={st.exercisesContainer}>
+                        {exercises.map((ex, i) => (
+                            <View key={ex.id ?? i} style={st.exerciseRow}>
+                                <View style={st.exerciseIndexBubble}>
+                                    <AppText
+                                        variant="caption"
+                                        style={st.exerciseIndexText}
+                                    >
+                                        {i + 1}
+                                    </AppText>
+                                </View>
 
-                            <View style={st.exerciseTexts}>
-                                <AppText
-                                    variant="bodySmall"
-                                    tone="primary"
-                                    style={st.exerciseName}
-                                    numberOfLines={1}
-                                >
-                                    {ex.name ?? `Exercise ${i + 1}`}
-                                </AppText>
+                                <View style={st.exerciseTexts}>
+                                    <AppText
+                                        variant="bodySmall"
+                                        tone="primary"
+                                        numberOfLines={1}
+                                    >
+                                        {ex.name ?? `Exercise ${i + 1}`}
+                                    </AppText>
 
-                                <AppText
-                                    variant="caption"
-                                    tone="muted"
-                                    style={st.exerciseMeta}
-                                    numberOfLines={1}
-                                >
-                                    {formatExerciseMeta(ex.mode, ex.value)}
-                                </AppText>
+                                    <AppText
+                                        variant="caption"
+                                        tone="muted"
+                                        numberOfLines={1}
+                                    >
+                                        {formatExerciseMeta(ex.mode, ex.value)}
+                                    </AppText>
+                                </View>
                             </View>
-                        </View>
-                    ))}
+                        ))}
+                    </View>
                 </View>
-            </View>
-        </MetaCard>
+            }
+        />
     );
 };

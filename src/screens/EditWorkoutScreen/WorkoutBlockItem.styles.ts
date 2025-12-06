@@ -12,13 +12,8 @@ export const useWorkoutBlockItemStyles = createStyles((theme: AppTheme) =>
             alignItems: 'center',
             gap: 6,
         },
-        blockInfoText: {
-            // AppText handles color; this is spacing only
-        },
-
         exercisesContainer: {
-            marginTop: 8,
-            gap: 6,
+            gap: 10,
         },
         exerciseRow: {
             flexDirection: 'row',
@@ -39,13 +34,7 @@ export const useWorkoutBlockItemStyles = createStyles((theme: AppTheme) =>
             color: theme.palette.accent.primary,
         },
         exerciseTexts: {
-            flex: 1,
-        },
-        exerciseName: {
-            // AppText variant handles size/weight; small vertical spacing
-        },
-        exerciseMeta: {
-            marginTop: 2,
+            gap: 4,
         },
     })
 );
