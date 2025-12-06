@@ -24,9 +24,7 @@ export const useEditWorkoutScreenStyles = createStyles((theme: AppTheme) =>
             marginTop: 12,
             marginBottom: 6,
         },
-        addBlock: {
-            marginTop: 12,
-        },
+
         errorBox: {
             backgroundColor: theme.palette.feedback.errorBg,
             borderColor: theme.palette.feedback.errorBorder,

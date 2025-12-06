@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import type { WorkoutBlock } from '@src/core/entities';
@@ -9,7 +9,8 @@ import { WorkoutBlockItem } from './WorkoutBlockItem';
 import { Button } from '@src/components/ui/Button/Button';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
-import { useTheme } from '@src/theme/ThemeProvider';
+import { TextField } from '@src/components/ui/TextField/TextField';
+import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
 import { useEditWorkoutScreenStyles } from './EditWorkoutScreen.styles';
 
 const createEmptyBlock = (): WorkoutBlock => ({
@@ -48,7 +49,6 @@ const EditWorkoutScreen = () => {
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
 
-    const { theme } = useTheme();
     const st = useEditWorkoutScreenStyles();
 
     // initialise / cleanup draft
@@ -138,34 +138,34 @@ const EditWorkoutScreen = () => {
             <MainContainer
                 title={isEditingExisting ? 'Edit Workout' : 'New Workout'}
             >
-                <Text style={st.label}>Workout Name</Text>
-                <TextInput
+                <TextField
+                    label="Name"
                     value={name}
                     onChangeText={(value) =>
                         updateDraftMeta({ name: value ?? '' })
                     }
                     placeholder="e.g., Conditioning A"
-                    placeholderTextColor={theme.palette.text.muted}
-                    style={st.input}
+                    autoCapitalize="sentences"
+                    returnKeyType="done"
                 />
 
-                <Text style={st.sectionTitle}>Blocks</Text>
-                {blocks.map((block, index) => (
-                    <WorkoutBlockItem
-                        key={block.id}
-                        block={block}
-                        index={index}
-                        onEdit={onEditBlock}
-                        onRemove={onRemoveBlock}
+                <ScreenSection title="Blocks">
+                    {blocks.map((block, index) => (
+                        <WorkoutBlockItem
+                            key={block.id}
+                            block={block}
+                            index={index}
+                            onEdit={onEditBlock}
+                            onRemove={onRemoveBlock}
+                        />
+                    ))}
+
+                    <Button
+                        title="＋ Add Block"
+                        onPress={onAddBlock}
+                        variant="secondary"
                     />
-                ))}
-
-                <Button
-                    title="＋ Add Block"
-                    onPress={onAddBlock}
-                    style={st.addBlock}
-                    variant="secondary"
-                />
+                </ScreenSection>
 
                 {errorBox}
             </MainContainer>
