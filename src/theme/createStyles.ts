@@ -3,19 +3,34 @@ import { ImageStyle, StyleSheet, TextStyle, ViewStyle } from 'react-native';
 import type { AppTheme } from './theme';
 import { useTheme } from './ThemeProvider';
 
-// Same pattern as React Native's StyleSheet.NamedStyles
 type NamedStyles<T> = {
-    [P in keyof T]: ViewStyle | TextStyle | ImageStyle;
+    [K in keyof T]: ViewStyle | TextStyle | ImageStyle;
 };
 
-export const createStyles = <T extends NamedStyles<T>>(
-    styleFactory: (theme: AppTheme) => T
+// 1) Overload surface type
+export interface CreateStyles {
+    // theme-only
+    <T extends NamedStyles<T>>(styleFactory: (theme: AppTheme) => T): () => T;
+
+    // theme + props
+    <T extends NamedStyles<T>, P>(
+        styleFactory: (theme: AppTheme, props: P) => T
+    ): (props: P) => T;
+}
+
+// 2) Single arrow implementation
+const _createStyles = <T extends NamedStyles<T>, P>(
+    styleFactory: (theme: AppTheme, props?: P) => T
 ) => {
-    return () => {
+    return (props?: P) => {
         const { theme } = useTheme();
 
-        // StyleSheet.create keeps literals like 'row' narrow,
-        // and also validates against ViewStyle/TextStyle/ImageStyle.
-        return useMemo(() => StyleSheet.create(styleFactory(theme)), [theme]);
+        return useMemo(
+            () => StyleSheet.create(styleFactory(theme, props)),
+            [theme, props]
+        );
     };
 };
+
+// 3) Export with the overloaded type
+export const createStyles: CreateStyles = _createStyles as CreateStyles;
