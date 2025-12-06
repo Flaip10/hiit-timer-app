@@ -4,6 +4,10 @@ import { AppTheme } from '@src/theme/theme';
 
 type MetaCardStyleProps = {
     hasActionStrip: boolean;
+    hasSummaryContent: boolean;
+    hasCollapsibleContent: boolean;
+    hasTopContent: boolean;
+    hasAnyAction: boolean;
 };
 
 export const useMetaCardStyles = createStyles(
@@ -18,9 +22,6 @@ export const useMetaCardStyles = createStyles(
                 overflow: 'hidden',
                 borderWidth: 1,
                 borderColor: theme.palette.metaCard.container.border,
-                gap: 10,
-            },
-            cardContainerNoTopContent: {
                 gap: 14,
             },
 
@@ -37,10 +38,7 @@ export const useMetaCardStyles = createStyles(
                 borderTopLeftRadius: 14,
                 borderBottomRightRadius: 14,
                 padding: 0,
-                marginRight: 50,
-            },
-            topLeftContainerNoAction: {
-                marginRight: 0,
+                marginRight: props.hasAnyAction ? 50 : 0,
             },
 
             dateTimePill: {
@@ -136,9 +134,12 @@ export const useMetaCardStyles = createStyles(
                 borderBottomLeftRadius: 14,
             },
 
+            summaryContainer: {},
+
             contentContainer: {
                 flexDirection: 'row',
                 paddingRight: 0,
+                paddingTop: props.hasSummaryContent ? 14 : 0,
             },
             contentContainerExpandable: {
                 paddingRight: 28,

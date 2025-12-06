@@ -36,7 +36,7 @@ export interface MetaCardProps {
     /**
      * The main content of the card
      */
-    children: ReactNode;
+    children?: ReactNode;
     /**
      * Optional date to display in the pill format
      */
@@ -61,6 +61,16 @@ export interface MetaCardProps {
      * Optional secondary action button configuration
      */
     secondaryActionButton?: ActionButtonProps;
+    /**
+     * Always-visible content under the header,
+     * outside of MinHeightCollapse.
+     */
+    summaryContent?: ReactNode;
+    /**
+     * Content that lives inside MinHeightCollapse.
+     * If not provided, `children` is used as the collapsible content.
+     */
+    collapsibleContent?: ReactNode;
     /**
      * Optional press handler for the entire card
      */

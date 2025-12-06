@@ -39,6 +39,8 @@ export const MetaCard: FC<MetaCardProps> = ({
     date,
     topLeftContent,
     children,
+    summaryContent,
+    collapsibleContent,
     onPress,
     statusBadge,
     actionStrip,
@@ -55,15 +57,42 @@ export const MetaCard: FC<MetaCardProps> = ({
     const [overflowing, setOverflowing] = useState(false);
     const [measured, setMeasured] = useState(false);
 
-    const st = useMetaCardStyles({ hasActionStrip: !!actionStrip });
+    const noTopContent = !topLeftContent && !statusBadge && !date;
+    const hasAnyAction =
+        !!actionStrip || !!actionButton || !!secondaryActionButton;
+
+    const st = useMetaCardStyles({
+        hasActionStrip: !!actionStrip,
+        hasAnyAction,
+        hasCollapsibleContent: !!collapsibleContent,
+        hasSummaryContent: !!summaryContent,
+        hasTopContent: !noTopContent,
+    });
     const { theme } = useTheme();
 
+    const safeMin =
+        typeof minHeight === 'number' && minHeight >= 0 ? minHeight : 0;
+
+    const hasSplitSlots = !!(summaryContent || collapsibleContent);
+    const collapsibleInner = hasSplitSlots
+        ? (collapsibleContent ?? null)
+        : children;
+    const hasCollapsibleContent = !!collapsibleInner;
+
+    // Measure ONLY the collapsible area (not the header, not the summary)
     const handleContentLayout = (e: LayoutChangeEvent) => {
         const h = e.nativeEvent.layout.height;
         if (h <= 0) return;
 
         setMeasured(true);
-        setOverflowing(typeof minHeight === 'number' && h > minHeight);
+
+        if (safeMin > 0) {
+            // "Overflow" = content taller than minHeight
+            setOverflowing(h > safeMin);
+        } else {
+            // When minHeight === 0, any positive height means "there is content to reveal"
+            setOverflowing(h > 0);
+        }
     };
 
     const handleExpand = () => {
@@ -72,29 +101,18 @@ export const MetaCard: FC<MetaCardProps> = ({
         onExpandedChange?.(next);
     };
 
-    const enableCollapse = expandable && measured && overflowing;
-    const collapseMinHeight = enableCollapse ? minHeight : 0;
-    const collapseExpanded = enableCollapse ? expanded : true;
+    // enableCollapse: controls chevron + fade (UI affordance)
+    const enableCollapse =
+        expandable && hasCollapsibleContent && measured && overflowing;
 
-    const noTopContent = !topLeftContent && !statusBadge && !date;
-    const hasAnyAction = actionStrip || actionButton || secondaryActionButton;
+    // Collapsing behaviour itself is driven only by `expanded` and `expandable`
+    const collapseMinHeight = expandable ? safeMin : 0;
+    const collapseExpanded = expandable ? expanded : true;
 
     return (
-        <Pressable
-            onPress={onPress}
-            style={[
-                st.cardContainer,
-                noTopContent && st.cardContainerNoTopContent,
-                containerStyle,
-            ]}
-        >
+        <Pressable onPress={onPress} style={[st.cardContainer, containerStyle]}>
             <View style={st.cardHeader}>
-                <View
-                    style={[
-                        st.topLeftContainer,
-                        !hasAnyAction && st.topLeftContainerNoAction,
-                    ]}
-                >
+                <View style={[st.topLeftContainer]}>
                     {date ? (
                         <View style={st.dateTimePill}>
                             <Text style={st.dateTimePillText} numberOfLines={1}>
@@ -203,31 +221,43 @@ export const MetaCard: FC<MetaCardProps> = ({
                 )}
             </View>
 
-            <MinHeightCollapse
-                expanded={collapseExpanded}
-                minHeight={collapseMinHeight}
-                timeout={300}
-                withBottomFade={withBottomFade && enableCollapse}
-            >
-                <View
-                    style={[
-                        st.contentContainer,
-                        expandable && st.contentContainerExpandable,
-                    ]}
-                    onLayout={handleContentLayout}
-                >
-                    {imageUrl ? (
-                        <View style={st.imageContainer}>
-                            <Image
-                                source={{ uri: imageUrl }}
-                                style={st.image}
-                            />
-                        </View>
-                    ) : null}
+            <View>
+                {/* SUMMARY: always-visible, non-collapsible part */}
+                {summaryContent ? (
+                    <View style={st.summaryContainer}>{summaryContent}</View>
+                ) : null}
 
-                    <View style={st.contentInner}>{children}</View>
-                </View>
-            </MinHeightCollapse>
+                {/* COLLAPSIBLE AREA: only collapsibleInner participates in MinHeightCollapse */}
+                {hasCollapsibleContent && (
+                    <MinHeightCollapse
+                        expanded={collapseExpanded}
+                        minHeight={collapseMinHeight}
+                        timeout={300}
+                        withBottomFade={withBottomFade && enableCollapse}
+                    >
+                        <View
+                            style={[
+                                st.contentContainer,
+                                expandable && st.contentContainerExpandable,
+                            ]}
+                            onLayout={handleContentLayout}
+                        >
+                            {imageUrl ? (
+                                <View style={st.imageContainer}>
+                                    <Image
+                                        source={{ uri: imageUrl }}
+                                        style={st.image}
+                                    />
+                                </View>
+                            ) : null}
+
+                            <View style={st.contentInner}>
+                                {collapsibleInner}
+                            </View>
+                        </View>
+                    </MinHeightCollapse>
+                )}
+            </View>
 
             {enableCollapse && (
                 <Pressable
