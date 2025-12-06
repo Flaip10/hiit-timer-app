@@ -45,6 +45,7 @@ export const MetaCard: FC<MetaCardProps> = ({
     actionButton,
     secondaryActionButton,
     expandable = false,
+    onExpandedChange,
     minHeight = 100,
     withBottomFade = false,
     hideHours = false,
@@ -54,7 +55,7 @@ export const MetaCard: FC<MetaCardProps> = ({
     const [overflowing, setOverflowing] = useState(false);
     const [measured, setMeasured] = useState(false);
 
-    const st = useMetaCardStyles();
+    const st = useMetaCardStyles({ hasActionStrip: !!actionStrip });
     const { theme } = useTheme();
 
     const handleContentLayout = (e: LayoutChangeEvent) => {
@@ -66,7 +67,9 @@ export const MetaCard: FC<MetaCardProps> = ({
     };
 
     const handleExpand = () => {
-        setExpanded((prev) => !prev);
+        const next = !expanded;
+        setExpanded(next);
+        onExpandedChange?.(next);
     };
 
     const enableCollapse = expandable && measured && overflowing;

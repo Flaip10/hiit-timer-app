@@ -78,6 +78,10 @@ export interface MetaCardProps {
      */
     expandable?: boolean;
     /**
+     * Called whenever the expand/collapse state changes.
+     */
+    onExpandedChange?: (expanded: boolean) => void;
+    /**
      * Optional hide hours flag for the date
      */
     hideHours?: boolean;
