@@ -25,84 +25,55 @@ const MinHeightCollapse: FC<MinHeightCollapseProps> = ({
     withBottomFade = false,
     bottomFadeHeight = 32,
 }) => {
-    // We treat minHeight === 0 as "no collapse behaviour"
-    const safeMin = typeof minHeight === 'number' ? minHeight : 0;
+    // Collapsed height. 0 = fully collapsed.
+    const safeMin =
+        typeof minHeight === 'number' && minHeight >= 0 ? minHeight : 0;
 
     const [contentHeight, setContentHeight] = useState(0);
-    const [hasMeasured, setHasMeasured] = useState(false);
+    const [contentVisible, setContentVisible] = useState(false);
 
     const heightAnim = useRef(new Animated.Value(0)).current;
-    const hasAnimatedOnceRef = useRef(false);
+    const hasInitialisedRef = useRef(false);
 
-    const hasCollapse = useMemo(() => safeMin > 0, [safeMin]);
-
-    // Measure child height
+    /**
+     * Measure the natural/full height of the children.
+     * We only ever increase `contentHeight` (max seen),
+     * so collapsing doesn't overwrite the real full height.
+     */
     const handleLayout = useCallback(
         (e: LayoutChangeEvent) => {
             const h = e.nativeEvent.layout.height;
             if (h <= 0) return;
 
-            // If we've already measured and the height hasn't changed meaningfully,
-            // avoid re-setting state / restarting logic.
-            if (hasMeasured && Math.abs(h - contentHeight) < 0.5) {
-                return;
-            }
+            setContentHeight((prev) => {
+                const next = prev === 0 ? h : Math.max(prev, h);
 
-            setHasMeasured(true);
-            setContentHeight(h);
+                if (!hasInitialisedRef.current) {
+                    const initial = expanded ? next : safeMin;
+                    heightAnim.setValue(initial);
+                    hasInitialisedRef.current = true;
+                    setContentVisible(true);
+                }
 
-            // On first measurement, set a sensible starting value *without* animation
-            if (!hasCollapse) {
-                // Non-collapsible → always full height
-                heightAnim.setValue(h);
-            } else if (!hasAnimatedOnceRef.current) {
-                const collapsedHeight = safeMin;
-                heightAnim.setValue(expanded ? h : collapsedHeight);
-                // We do not mark hasAnimatedOnce here; we let the effect
-                // do that once it has all info (contentHeight + expanded).
-            }
+                return next;
+            });
         },
-        [expanded, hasCollapse, safeMin, heightAnim, hasMeasured, contentHeight]
+        [expanded, safeMin, heightAnim]
     );
 
-    // Animate on expanded / height changes
+    // Animate when expanded / heights / minHeight change
     useEffect(() => {
-        if (!hasMeasured) return;
+        if (!hasInitialisedRef.current) return;
 
-        if (!hasCollapse) {
-            // No collapse behaviour → always full height, no animation
-            heightAnim.setValue(contentHeight);
-            return;
-        }
+        const toValue = expanded ? contentHeight : safeMin;
 
-        const collapsedHeight = safeMin;
-
-        // First time we have enough info: snap to correct state, don't animate
-        if (!hasAnimatedOnceRef.current) {
-            heightAnim.setValue(expanded ? contentHeight : collapsedHeight);
-            hasAnimatedOnceRef.current = true;
-            return;
-        }
-
-        const toValue = expanded ? contentHeight : collapsedHeight;
-
-        // Important: do **not** reset fromValue here. Animated.timing will
-        // interpolate from the current animated value, which avoids jitter/loops.
         Animated.timing(heightAnim, {
             toValue,
             duration: timeout,
             easing: Easing.out(Easing.cubic),
             useNativeDriver: false, // layout property
         }).start();
-    }, [
-        expanded,
-        contentHeight,
-        hasMeasured,
-        hasCollapse,
-        safeMin,
-        timeout,
-        heightAnim,
-    ]);
+    }, [expanded, contentHeight, safeMin, timeout, heightAnim]);
 
     // Inject our onLayout into children
     const childrenWithOnLayout = useMemo(() => {
@@ -122,21 +93,21 @@ const MinHeightCollapse: FC<MinHeightCollapseProps> = ({
         });
     }, [children, handleLayout]);
 
-    const containerStyle = useMemo(() => {
-        // Before we know the height, let it size naturally (no animation).
-        if (!hasMeasured) return {};
-
-        // Non-collapsible case: height is intrinsic; we just let it be.
-        if (!hasCollapse) return {};
-
-        // Collapsible + measured → drive height with Animated.Value
-        return { height: heightAnim };
-    }, [hasMeasured, hasCollapse, heightAnim]);
-
-    const showFade = withBottomFade && hasCollapse && !expanded;
+    const showFade =
+        withBottomFade &&
+        !expanded &&
+        hasInitialisedRef.current &&
+        contentHeight > safeMin &&
+        bottomFadeHeight > 0;
 
     return (
-        <Animated.View style={[st.container, containerStyle]}>
+        <Animated.View
+            style={[
+                st.container,
+                hasInitialisedRef.current && { height: heightAnim },
+                !contentVisible && { opacity: 0 },
+            ]}
+        >
             {childrenWithOnLayout}
             {showFade && (
                 <View
