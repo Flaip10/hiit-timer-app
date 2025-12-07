@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native';
 
 type StyleProps = {
     gap: number;
+    noPadding: boolean;
 };
 
 export const useMainContainerStyles = createStyles(
@@ -11,8 +12,10 @@ export const useMainContainerStyles = createStyles(
         StyleSheet.create({
             content: {
                 flexGrow: 1,
-                padding: 16,
-                paddingHorizontal: 16,
+                padding: props.noPadding ? 0 : theme.layout.screenPadding,
+                paddingHorizontal: props.noPadding
+                    ? 0
+                    : theme.layout.screenPadding,
                 gap: props.gap,
                 backgroundColor: theme.palette.background.primary,
             },

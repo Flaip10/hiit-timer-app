@@ -10,6 +10,7 @@ type MainContainerProps = {
     children: ReactNode;
     scroll?: boolean;
     gap?: number;
+    noPadding?: boolean;
 };
 
 export const MainContainer = ({
@@ -17,8 +18,9 @@ export const MainContainer = ({
     children,
     scroll = true,
     gap = 8,
+    noPadding = false,
 }: MainContainerProps) => {
-    const st = useMainContainerStyles({ gap });
+    const st = useMainContainerStyles({ gap, noPadding });
 
     const content = scroll ? (
         <ScrollView
