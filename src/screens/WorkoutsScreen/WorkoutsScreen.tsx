@@ -13,7 +13,7 @@ import NewWorkoutModal from './components/NewWorkoutModal';
 
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { Button } from '@src/components/ui/Button/Button';
-import { useWorkoutsScreenStyles } from './WorkoutScreen.styles';
+import { useWorkoutsScreenStyles } from './WorkoutsScreen.styles';
 import { SearchField } from '@src/components/ui/SearchField/SearchField';
 
 const EmptyWorkouts = ({ onPressButton }: { onPressButton: () => void }) => {
@@ -34,7 +34,7 @@ const EmptyWorkouts = ({ onPressButton }: { onPressButton: () => void }) => {
             <Button
                 title="＋ Create workout"
                 variant="primary"
-                onPress={() => onPressButton()}
+                onPress={onPressButton}
                 style={st.emptyButton}
             />
         </View>
@@ -105,33 +105,37 @@ const WorkoutsScreen = () => {
     };
 
     return (
-        <MainContainer title="Workouts" scroll={false}>
-            <View style={st.headerRow}>
-                <SearchField
-                    value={q}
-                    onChangeText={setQ}
-                    fullWidth
-                    placeholder="Search workouts"
-                />
-
-                <Button
-                    title="＋ New"
-                    variant="primary"
-                    onPress={() => setModalVisible(true)}
-                    style={st.newButton}
-                />
-            </View>
-
-            <AppearingView visible={!!importError}>
-                <ErrorBanner
-                    message={importError ?? ''}
-                    onClose={() => setImportError(null)}
-                />
-            </AppearingView>
-
+        <MainContainer title="Workouts" scroll={false} noPadding>
             <FlatList
                 data={data}
                 keyExtractor={(w) => w.id}
+                style={st.list}
+                contentContainerStyle={st.listContent}
+                ListHeaderComponent={
+                    <View style={st.headerRow}>
+                        <SearchField
+                            value={q}
+                            onChangeText={setQ}
+                            fullWidth
+                            placeholder="Search workouts"
+                        />
+
+                        <Button
+                            title="＋ New"
+                            variant="primary"
+                            onPress={() => setModalVisible(true)}
+                            style={st.newButton}
+                        />
+
+                        <AppearingView visible={!!importError}>
+                            <ErrorBanner
+                                message={importError ?? ''}
+                                onClose={() => setImportError(null)}
+                            />
+                        </AppearingView>
+                    </View>
+                }
+                stickyHeaderIndices={[0]} // make headerRow stick to the top
                 renderItem={({ item }) =>
                     item ? (
                         <WorkoutItem
@@ -141,13 +145,12 @@ const WorkoutsScreen = () => {
                         />
                     ) : null
                 }
-                contentContainerStyle={st.listContent}
-                style={st.flatList}
                 ListEmptyComponent={
                     <EmptyWorkouts
                         onPressButton={() => setModalVisible(true)}
                     />
                 }
+                keyboardShouldPersistTaps="handled"
             />
 
             <NewWorkoutModal

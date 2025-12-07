@@ -8,50 +8,35 @@ export const useWorkoutsScreenStyles = createStyles((theme: AppTheme) =>
             flexDirection: 'row',
             alignItems: 'center',
             gap: 8,
-            marginBottom: 12,
+            marginBottom: 6,
         },
 
-        search: {
+        list: {
             flex: 1,
-            borderRadius: 999,
-            paddingHorizontal: 18,
-            paddingVertical: 8,
-            backgroundColor: theme.palette.background.card,
-            borderWidth: 1,
-            borderColor: theme.palette.border.subtle,
-            color: theme.palette.text.primary,
-            height: '100%',
+            width: '100%',
+            padding: theme.layout.screen.padding,
         },
-
-        newButton: {
-            paddingHorizontal: 14,
-        },
-
-        flatList: { flex: 1 },
 
         listContent: {
-            paddingBottom: 24,
-            gap: 14,
-        },
-
-        separator: {
-            height: 8,
+            gap: theme.layout.listItem.gap,
+            paddingBottom: theme.insets.bottom,
         },
 
         emptyContainer: {
-            flex: 1,
             alignItems: 'center',
             justifyContent: 'center',
-            paddingVertical: 32,
-            gap: 12,
+            paddingVertical: 40,
+            gap: 8,
         },
-
         emptyDescription: {
             textAlign: 'center',
+            maxWidth: 260,
         },
-
         emptyButton: {
             marginTop: 8,
+        },
+        newButton: {
+            alignSelf: 'flex-start',
         },
     })
 );
