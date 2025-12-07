@@ -100,6 +100,8 @@ const EditWorkoutScreen = () => {
         return errs.length === 0;
     };
 
+    const isEditingExisting = !!id;
+
     const onSave = () => {
         if (saving) return;
         if (!draft) return;
@@ -108,10 +110,16 @@ const EditWorkoutScreen = () => {
         setSaving(true);
         try {
             const idFromCommit = commitDraft();
-            if (idFromCommit) {
-                router.replace(`/workouts/${idFromCommit}`);
-            } else {
+
+            if (isEditingExisting) {
                 router.back();
+            } else {
+                if (idFromCommit) {
+                    router.replace(`/workouts/${idFromCommit}`);
+                } else {
+                    // Fallback – something went wrong, just go back.
+                    router.back();
+                }
             }
         } finally {
             setSaving(false);
@@ -131,8 +139,6 @@ const EditWorkoutScreen = () => {
             ) : null,
         [errors, st.errorBox, st.errorText]
     );
-
-    const isEditingExisting = !!id;
 
     return (
         <>
