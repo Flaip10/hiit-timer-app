@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 
 import type { ScreenSectionProps } from './ScreenSection.interfaces';
 import { useScreenSectionStyles } from './ScreenSection.styles';
+import { AppText } from '@src/components/ui/Typography/AppText';
 
 export const ScreenSection: React.FC<ScreenSectionProps> = ({
     title,
@@ -17,7 +18,9 @@ export const ScreenSection: React.FC<ScreenSectionProps> = ({
         <View style={[st.container, containerStyle]}>
             {title ? (
                 <View style={st.headerRow}>
-                    <Text style={st.title}>{title}</Text>
+                    <AppText variant="subtitle" style={st.title}>
+                        {title}
+                    </AppText>
                     {rightAccessory ?? null}
                 </View>
             ) : null}

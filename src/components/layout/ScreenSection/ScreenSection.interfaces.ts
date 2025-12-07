@@ -1,10 +1,12 @@
-import type { ReactNode } from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
+import type React from 'react';
+import type { ViewStyle } from 'react-native';
+
+export type ScreenSectionTopSpacing = 'none' | 'small' | 'medium' | 'large';
 
 export interface ScreenSectionProps {
     title?: string;
-    rightAccessory?: ReactNode;
-    children: ReactNode;
-    containerStyle?: StyleProp<ViewStyle>;
-    topSpacing?: number; // optional override for marginTop
+    rightAccessory?: React.ReactNode;
+    children: React.ReactNode;
+    containerStyle?: ViewStyle;
+    topSpacing?: ScreenSectionTopSpacing;
 }

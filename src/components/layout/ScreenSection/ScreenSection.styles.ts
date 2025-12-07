@@ -1,17 +1,33 @@
 import { StyleSheet } from 'react-native';
 import { createStyles } from '@src/theme/createStyles';
 import type { AppTheme } from '@src/theme/theme';
+import type { ScreenSectionTopSpacing } from './ScreenSection.interfaces';
 
-interface ScreenSectionStyleProps {
-    topSpacing?: number;
-}
+type ScreenSectionStyleProps = {
+    topSpacing?: ScreenSectionTopSpacing;
+};
+
+const getTopMargin = (spacing?: ScreenSectionTopSpacing): number => {
+    switch (spacing) {
+        case 'small':
+            return 8;
+        case 'medium':
+            return 16;
+        case 'large':
+            return 24;
+        case 'none':
+        default:
+            return 0;
+    }
+};
 
 export const useScreenSectionStyles = createStyles(
     (theme: AppTheme, props: ScreenSectionStyleProps) =>
         StyleSheet.create({
             container: {
-                marginTop: props.topSpacing ?? 16,
+                marginTop: getTopMargin(props.topSpacing),
                 width: '100%',
+
                 gap: 12,
             },
             headerRow: {
@@ -21,8 +37,6 @@ export const useScreenSectionStyles = createStyles(
             },
             title: {
                 color: theme.palette.text.header,
-                fontSize: 16,
-                fontWeight: '700',
             },
         })
 );
