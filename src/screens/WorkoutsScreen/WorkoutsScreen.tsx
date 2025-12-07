@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { FlatList, TextInput, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
@@ -13,8 +13,8 @@ import NewWorkoutModal from './components/NewWorkoutModal';
 
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { Button } from '@src/components/ui/Button/Button';
-import { useTheme } from '@src/theme/ThemeProvider';
 import { useWorkoutsScreenStyles } from './WorkoutScreen.styles';
+import { SearchField } from '@src/components/ui/SearchField/SearchField';
 
 const EmptyWorkouts = ({ onPressButton }: { onPressButton: () => void }) => {
     const st = useWorkoutsScreenStyles();
@@ -53,7 +53,6 @@ const WorkoutsScreen = () => {
     const [importError, setImportError] = useState<string | null>(null);
     const [importing, setImporting] = useState(false);
 
-    const { theme } = useTheme();
     const st = useWorkoutsScreenStyles();
 
     const data = useMemo(() => {
@@ -108,12 +107,11 @@ const WorkoutsScreen = () => {
     return (
         <MainContainer title="Workouts" scroll={false}>
             <View style={st.headerRow}>
-                <TextInput
+                <SearchField
                     value={q}
                     onChangeText={setQ}
+                    fullWidth
                     placeholder="Search workouts"
-                    placeholderTextColor={theme.palette.text.muted}
-                    style={st.search}
                 />
 
                 <Button
