@@ -30,7 +30,7 @@ export const useEditWorkoutScreenStyles = createStyles((theme: AppTheme) =>
             borderColor: theme.palette.feedback.errorBorder,
             borderWidth: 1,
             padding: 10,
-            borderRadius: 10,
+            borderRadius: 14,
             marginTop: 8,
             gap: 4,
         },
