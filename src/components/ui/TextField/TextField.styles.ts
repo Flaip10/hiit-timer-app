@@ -20,11 +20,7 @@ export const useTextFieldStyles = createStyles(
                 alignItems: 'center',
                 justifyContent: 'space-between',
             },
-            label: {
-                color: theme.palette.text.secondary,
-                fontSize: 14,
-                fontWeight: '500',
-            },
+
             input: {
                 flexDirection: 'row',
                 alignItems: props.multiline ? 'flex-start' : 'center',

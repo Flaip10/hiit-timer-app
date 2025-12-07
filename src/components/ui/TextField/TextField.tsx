@@ -4,6 +4,7 @@ import { TextInput, View, Text } from 'react-native';
 import type { TextFieldProps } from './TextField.interfaces';
 import { useTextFieldStyles } from './TextField.styles';
 import { useTheme } from '@src/theme/ThemeProvider';
+import { FieldLabel } from '../FieldLabel/FieldLabel';
 
 export const TextField: React.FC<TextFieldProps> = ({
     label,
@@ -34,7 +35,7 @@ export const TextField: React.FC<TextFieldProps> = ({
         <View style={[st.container, containerStyle]}>
             {label ? (
                 <View style={st.labelRow}>
-                    <Text style={st.label}>{label}</Text>
+                    <FieldLabel label={label} />
                 </View>
             ) : null}
 
