@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -14,6 +14,7 @@ import { useWorkouts } from '@state/useWorkouts';
 import { useBlockEditor } from './useBlockEditor';
 import { useBlockEditStyles } from './BlockEditScreen.styles';
 import { AppText } from '@src/components/ui/Typography/AppText';
+import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 
 const BlockEditScreen = () => {
     const { blockId } = useLocalSearchParams<{ blockId?: string }>();
@@ -42,6 +43,9 @@ const BlockEditScreen = () => {
     } = useBlockEditor({ draft, blockId });
 
     const st = useBlockEditStyles();
+    const [exerciseToRemove, setExerciseToRemove] = useState<number | null>(
+        null
+    );
 
     const errorBox = useMemo(
         () =>
@@ -90,20 +94,20 @@ const BlockEditScreen = () => {
                 <ScreenSection title="Block setup" topSpacing="none">
                     <View style={st.sectionContentGap}>
                         <TextField
-                            label="Block Title (optional)"
+                            label="Block title"
                             value={block.title ?? ''}
                             onChangeText={onTitle}
                         />
 
                         <Stepper
-                            label="Sets"
+                            label="Sets in block"
                             value={block.sets}
                             onChange={onSets}
                             min={1}
                         />
 
                         <Stepper
-                            label="# Exercises"
+                            label="Exercises in block"
                             value={block.exercises.length}
                             onChange={onNumExercises}
                             min={1}
@@ -111,7 +115,7 @@ const BlockEditScreen = () => {
 
                         {/* Global Exercise Duration setter */}
                         <Stepper
-                            label="Exercise duration (sec)"
+                            label="Exercise duration (s)"
                             value={block.exercises[0]?.value ?? 20}
                             onChange={onExerciseLength}
                             min={5}
@@ -119,7 +123,7 @@ const BlockEditScreen = () => {
                         />
 
                         <Stepper
-                            label="Rest between sets (sec)"
+                            label="Rest between sets (s)"
                             value={block.restBetweenSetsSec}
                             onChange={onRestBetweenSets}
                             min={0}
@@ -127,7 +131,7 @@ const BlockEditScreen = () => {
                         />
 
                         <Stepper
-                            label="Rest between exercises (sec)"
+                            label="Rest between exercises (s)"
                             value={block.restBetweenExercisesSec}
                             onChange={onRestBetweenExercises}
                             min={0}
@@ -161,7 +165,7 @@ const BlockEditScreen = () => {
                                 index={ei}
                                 exercise={ex}
                                 onChange={(next) => onExChange(ei, next)}
-                                onRemove={() => onRemoveExercise(ei)}
+                                onRemove={() => setExerciseToRemove(ei)}
                             />
                         ))}
                     </View>
@@ -185,6 +189,22 @@ const BlockEditScreen = () => {
                     flex={1}
                 />
             </FooterBar>
+
+            <ConfirmDialog
+                visible={exerciseToRemove !== null}
+                title="Remove exercise"
+                message="This will remove the exercise from this block."
+                confirmLabel="Remove"
+                cancelLabel="Cancel"
+                destructive
+                onConfirm={() => {
+                    if (exerciseToRemove !== null) {
+                        onRemoveExercise(exerciseToRemove);
+                    }
+                    setExerciseToRemove(null);
+                }}
+                onCancel={() => setExerciseToRemove(null)}
+            />
         </>
     );
 };

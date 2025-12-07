@@ -12,6 +12,7 @@ import { FooterBar } from '@src/components/layout/FooterBar';
 import { TextField } from '@src/components/ui/TextField/TextField';
 import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
 import { AppText } from '@src/components/ui/Typography/AppText';
+import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 import { useEditWorkoutScreenStyles } from './EditWorkoutScreen.styles';
 import { useTheme } from '@src/theme/ThemeProvider';
 
@@ -50,6 +51,7 @@ const EditWorkoutScreen = () => {
 
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
+    const [blockToRemove, setBlockToRemove] = useState<string | null>(null);
 
     const st = useEditWorkoutScreenStyles();
     const { theme } = useTheme();
@@ -170,7 +172,7 @@ const EditWorkoutScreen = () => {
                             block={block}
                             index={index}
                             onPress={onEditBlock}
-                            onRemove={onRemoveBlock}
+                            onRemove={setBlockToRemove}
                         />
                     ))}
 
@@ -199,6 +201,22 @@ const EditWorkoutScreen = () => {
                     flex={1}
                 />
             </FooterBar>
+
+            <ConfirmDialog
+                visible={blockToRemove != null}
+                title="Remove block"
+                message="This will permanently delete the block from this workout."
+                confirmLabel="Remove"
+                cancelLabel="Cancel"
+                destructive
+                onConfirm={() => {
+                    if (blockToRemove) {
+                        onRemoveBlock(blockToRemove);
+                    }
+                    setBlockToRemove(null);
+                }}
+                onCancel={() => setBlockToRemove(null)}
+            />
         </>
     );
 };
