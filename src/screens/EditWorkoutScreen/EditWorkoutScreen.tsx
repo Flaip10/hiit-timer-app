@@ -137,6 +137,7 @@ const EditWorkoutScreen = () => {
         <>
             <MainContainer
                 title={isEditingExisting ? 'Edit Workout' : 'New Workout'}
+                gap={20}
             >
                 <TextField
                     label="Name"
