@@ -1,4 +1,3 @@
-// MainContainer.tsx
 import React, { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 
@@ -10,14 +9,16 @@ type MainContainerProps = {
     title?: string;
     children: ReactNode;
     scroll?: boolean;
+    gap?: number;
 };
 
 export const MainContainer = ({
     title,
     children,
     scroll = true,
+    gap = 8,
 }: MainContainerProps) => {
-    const st = useMainContainerStyles();
+    const st = useMainContainerStyles({ gap });
 
     const content = scroll ? (
         <ScrollView
