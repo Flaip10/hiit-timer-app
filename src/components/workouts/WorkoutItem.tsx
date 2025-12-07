@@ -69,21 +69,17 @@ export const WorkoutItem = ({
                 ),
                 onPress: onRemove,
             }}
-            expandable
-            withBottomFade={false}
-            minHeight={50}
-        >
-            <View style={st.contentContainer}>
-                <AppText
-                    variant="subtitle"
-                    tone="primary"
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                >
-                    {item.name}
-                </AppText>
+            summaryContent={
+                <View style={st.contentContainer}>
+                    <AppText
+                        variant="subtitle"
+                        tone="primary"
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                    >
+                        {item.name}
+                    </AppText>
 
-                <View style={st.extraRow}>
                     <AppText
                         variant="bodySmall"
                         tone="muted"
@@ -93,14 +89,14 @@ export const WorkoutItem = ({
                         {extraInfoText}
                     </AppText>
                 </View>
-            </View>
-        </MetaCard>
+            }
+            minHeight={50}
+            expandable
+            withBottomFade={false}
+        />
     );
 };
 
 const st = StyleSheet.create({
-    contentContainer: { gap: 4, padding: 4 },
-    extraRow: {
-        marginTop: 4,
-    },
+    contentContainer: { gap: 6 },
 });
