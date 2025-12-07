@@ -11,8 +11,9 @@ export const ScreenSection: React.FC<ScreenSectionProps> = ({
     children,
     containerStyle,
     topSpacing,
+    gap = 12,
 }) => {
-    const st = useScreenSectionStyles({ topSpacing });
+    const st = useScreenSectionStyles({ topSpacing, gap });
 
     return (
         <View style={[st.container, containerStyle]}>
@@ -25,7 +26,7 @@ export const ScreenSection: React.FC<ScreenSectionProps> = ({
                 </View>
             ) : null}
 
-            {children}
+            <View style={st.content}>{children}</View>
         </View>
     );
 };

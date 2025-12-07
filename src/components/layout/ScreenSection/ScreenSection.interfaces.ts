@@ -9,4 +9,5 @@ export interface ScreenSectionProps {
     children: React.ReactNode;
     containerStyle?: ViewStyle;
     topSpacing?: ScreenSectionTopSpacing;
+    gap?: number;
 }

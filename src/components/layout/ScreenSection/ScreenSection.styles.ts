@@ -5,6 +5,7 @@ import type { ScreenSectionTopSpacing } from './ScreenSection.interfaces';
 
 type ScreenSectionStyleProps = {
     topSpacing?: ScreenSectionTopSpacing;
+    gap: number;
 };
 
 const getTopMargin = (spacing?: ScreenSectionTopSpacing): number => {
@@ -36,6 +37,10 @@ export const useScreenSectionStyles = createStyles(
             },
             title: {
                 color: theme.palette.text.header,
+            },
+            content: {
+                gap: props.gap,
+                width: '100%',
             },
         })
 );
