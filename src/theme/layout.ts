@@ -1,27 +1,62 @@
 export interface ThemeLayout {
-    screenPadding: number;
-
-    sectionGap: number;
-
-    cardPadding: number;
-
-    listItemGap: number;
-
-    footerPadding: number;
+    screen: {
+        padding: number;
+    };
+    mainContainer: {
+        gap: number;
+    };
+    section: {
+        gap: number;
+    };
+    card: {
+        padding: number;
+    };
+    listItem: {
+        gap: number;
+    };
+    footer: {
+        padding: number;
+    };
 }
 
 const BASE_LAYOUT: ThemeLayout = {
-    screenPadding: 16,
-    sectionGap: 16,
-    cardPadding: 14,
-    listItemGap: 10,
-    footerPadding: 12,
+    screen: {
+        padding: 16,
+    },
+    mainContainer: {
+        gap: 20,
+    },
+    section: {
+        gap: 16,
+    },
+    card: {
+        padding: 14,
+    },
+    listItem: {
+        gap: 10,
+    },
+    footer: {
+        padding: 12,
+    },
 };
 
 export const createLayout = (scale: number): ThemeLayout => ({
-    screenPadding: Math.round(BASE_LAYOUT.screenPadding * scale),
-    sectionGap: Math.round(BASE_LAYOUT.sectionGap * scale),
-    cardPadding: Math.round(BASE_LAYOUT.cardPadding * scale),
-    listItemGap: Math.round(BASE_LAYOUT.listItemGap * scale),
-    footerPadding: Math.round(BASE_LAYOUT.footerPadding * scale),
+    screen: {
+        padding: Math.round(BASE_LAYOUT.screen.padding * scale),
+    },
+    mainContainer: {
+        gap: Math.round(BASE_LAYOUT.mainContainer.gap * scale),
+    },
+    section: {
+        gap: Math.round(BASE_LAYOUT.section.gap * scale),
+    },
+    card: {
+        padding: Math.round(BASE_LAYOUT.card.padding * scale),
+    },
+    listItem: {
+        gap: Math.round(BASE_LAYOUT.listItem.gap * scale),
+    },
+    footer: {
+        padding: Math.round(BASE_LAYOUT.footer.padding * scale),
+    },
 });
