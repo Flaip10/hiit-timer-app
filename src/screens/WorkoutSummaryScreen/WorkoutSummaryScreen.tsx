@@ -84,7 +84,7 @@ const WorkoutSummaryScreen = () => {
     return (
         <>
             <MainContainer title={workout.name} gap={0}>
-                {/* OVERVIEW SECTION */}
+                {/* Overview Section */}
                 <ScreenSection title="Overview" topSpacing="small" gap={12}>
                     <MetaCard
                         expandable={false}
@@ -169,8 +169,12 @@ const WorkoutSummaryScreen = () => {
                     </AppearingView>
                 </ScreenSection>
 
-                {/* BLOCKS SECTION */}
-                <ScreenSection title="Blocks" topSpacing="large" gap={10}>
+                {/* Blocks Section*/}
+                <ScreenSection
+                    title="Blocks"
+                    topSpacing="large"
+                    gap={theme.layout.listItem.gap}
+                >
                     {workout.blocks.map((block, index) => (
                         <WorkoutBlockItem
                             key={block.id}
@@ -180,7 +184,7 @@ const WorkoutSummaryScreen = () => {
                     ))}
                 </ScreenSection>
 
-                {/* HINT + SHARE SECTION*/}
+                {/* Hint + Share Section*/}
                 <ScreenSection topSpacing="medium" gap={8}>
                     <AppText
                         variant="caption"

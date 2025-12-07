@@ -12,10 +12,10 @@ export const useMainContainerStyles = createStyles(
         StyleSheet.create({
             content: {
                 flexGrow: 1,
-                padding: props.noPadding ? 0 : theme.layout.screenPadding,
+                padding: props.noPadding ? 0 : theme.layout.screen.padding,
                 paddingHorizontal: props.noPadding
                     ? 0
-                    : theme.layout.screenPadding,
+                    : theme.layout.screen.padding,
                 gap: props.gap,
                 backgroundColor: theme.palette.background.primary,
             },

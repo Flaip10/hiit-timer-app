@@ -13,6 +13,7 @@ import { TextField } from '@src/components/ui/TextField/TextField';
 import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useEditWorkoutScreenStyles } from './EditWorkoutScreen.styles';
+import { useTheme } from '@src/theme/ThemeProvider';
 
 const createEmptyBlock = (): WorkoutBlock => ({
     id: uid(),
@@ -51,6 +52,7 @@ const EditWorkoutScreen = () => {
     const [errors, setErrors] = useState<string[]>([]);
 
     const st = useEditWorkoutScreenStyles();
+    const { theme } = useTheme();
 
     // initialise / cleanup draft
     useEffect(() => {
@@ -144,7 +146,7 @@ const EditWorkoutScreen = () => {
         <>
             <MainContainer
                 title={isEditingExisting ? 'Edit Workout' : 'New Workout'}
-                gap={20}
+                gap={theme.layout.mainContainer.gap}
             >
                 <TextField
                     label="Name"
@@ -157,7 +159,7 @@ const EditWorkoutScreen = () => {
                     returnKeyType="done"
                 />
 
-                <ScreenSection title="Blocks" gap={12}>
+                <ScreenSection title="Blocks" gap={theme.layout.listItem.gap}>
                     <AppText variant="caption" tone="secondary">
                         Tap a block to edit its details.
                     </AppText>
