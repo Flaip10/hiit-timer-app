@@ -1,6 +1,9 @@
-import React, { useCallback, useRef } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { TextInput, View } from 'react-native';
+
 import { useStepperStyles } from './Stepper.styles';
+import { MiniButton } from './MiniButton';
+import { FieldLabel } from '@src/components/ui/FieldLabel/FieldLabel';
 
 type Props = {
     value: number;
@@ -18,7 +21,7 @@ const clamp = (n: number, min?: number, max?: number) =>
         Math.min(max ?? Number.POSITIVE_INFINITY, n)
     );
 
-export const Stepper = ({
+export const Stepper: React.FC<Props> = ({
     value,
     onChange,
     min = 0,
@@ -26,9 +29,9 @@ export const Stepper = ({
     step = 1,
     label,
     testID,
-}: Props) => {
-    const st = useStepperStyles();
-    const ref = useRef<TextInput>(null);
+}) => {
+    const [isFocused, setIsFocused] = useState(false);
+    const st = useStepperStyles({ isFocused });
 
     const inc = useCallback(
         () => onChange(clamp(value + step, min, max)),
@@ -48,37 +51,44 @@ export const Stepper = ({
         [onChange, min, max]
     );
 
+    const disableDec = value <= min;
+    const disableInc = max !== undefined && value >= max;
+
     return (
         <View style={st.wrap}>
-            {label ? <Text style={st.label}>{label}</Text> : null}
+            {label ? <FieldLabel label={label} /> : null}
+
             <View style={st.row}>
-                <Pressable
+                <MiniButton
+                    label="–"
                     onPress={dec}
-                    style={({ pressed }) => [st.btn, pressed && st.pressed]}
-                    accessibilityLabel={`${label ?? 'value'} decrement`}
-                    testID={testID ? `${testID}-dec` : undefined}
-                >
-                    <Text style={st.btnText}>–</Text>
-                </Pressable>
+                    disabled={disableDec}
+                    buttonStyle={st.miniButton}
+                    disabledStyle={st.miniButtonDisabled}
+                    textStyle={st.miniButtonText}
+                    pressedStyle={st.pressed}
+                />
 
                 <TextInput
-                    ref={ref}
                     keyboardType="number-pad"
                     value={String(value)}
                     onChangeText={onText}
                     style={st.input}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
                     returnKeyType="done"
                     testID={testID}
                 />
 
-                <Pressable
+                <MiniButton
+                    label="+"
                     onPress={inc}
-                    style={({ pressed }) => [st.btn, pressed && st.pressed]}
-                    accessibilityLabel={`${label ?? 'value'} increment`}
-                    testID={testID ? `${testID}-inc` : undefined}
-                >
-                    <Text style={st.btnText}>+</Text>
-                </Pressable>
+                    disabled={disableInc}
+                    buttonStyle={st.miniButton}
+                    disabledStyle={st.miniButtonDisabled}
+                    textStyle={st.miniButtonText}
+                    pressedStyle={st.pressed}
+                />
             </View>
         </View>
     );

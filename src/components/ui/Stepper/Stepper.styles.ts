@@ -1,47 +1,60 @@
 import { StyleSheet } from 'react-native';
 import { createStyles } from '@src/theme/createStyles';
+import type { AppTheme } from '@src/theme/theme';
 
-export const useStepperStyles = createStyles((theme) =>
-    StyleSheet.create({
-        wrap: {
-            gap: 6,
-        },
-        label: {
-            color: theme.palette.text.muted,
-            fontSize: 13,
-            fontWeight: '500',
-        },
-        row: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
-        },
-        btn: {
-            backgroundColor: theme.palette.accent.surfaces,
-            borderRadius: 12,
-            paddingHorizontal: 16,
-            paddingVertical: 10,
-            borderWidth: 1,
-            borderColor: theme.palette.border.subtle,
-        },
-        btnText: {
-            color: theme.palette.text.primary,
-            fontWeight: '700',
-            fontSize: 18,
-        },
-        input: {
-            flex: 1,
-            textAlign: 'center',
-            backgroundColor: theme.palette.background.card,
-            color: theme.palette.text.primary,
-            borderRadius: 12,
-            paddingHorizontal: 12,
-            paddingVertical: 10,
-            borderWidth: 1,
-            borderColor: theme.palette.border.subtle,
-        },
-        pressed: {
-            opacity: 0.9,
-        },
-    })
+type StepperStyleProps = {
+    isFocused: boolean;
+};
+
+export const useStepperStyles = createStyles(
+    (theme: AppTheme, props: StepperStyleProps) =>
+        StyleSheet.create({
+            wrap: {
+                gap: 10,
+            },
+            row: {
+                height: 41,
+                flexDirection: 'row',
+                alignItems: 'center',
+                borderRadius: 999,
+                backgroundColor: theme.palette.background.card,
+                borderWidth: 1,
+                borderColor: props.isFocused
+                    ? theme.palette.accent.primary
+                    : theme.palette.border.subtle,
+                gap: 6,
+            },
+            input: {
+                flex: 1,
+                textAlign: 'center',
+                color: theme.palette.text.primary,
+                paddingVertical: 12,
+                paddingHorizontal: 8,
+                backgroundColor: 'transparent',
+            },
+
+            pressed: {
+                opacity: 0.8,
+            },
+
+            // MiniButton styles (used by Stepper's +/- buttons)
+            miniButton: {
+                height: '100%',
+                borderRadius: 999,
+                paddingHorizontal: 25,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: theme.palette.button.secondary,
+                borderWidth: 1,
+                borderColor: theme.palette.button.secondary,
+            },
+            miniButtonDisabled: {
+                opacity: 0.4,
+            },
+            miniButtonText: {
+                color: theme.palette.button.text.secondary,
+                fontWeight: '700',
+                fontSize: 18,
+            },
+        })
 );

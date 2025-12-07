@@ -7,7 +7,8 @@ export type TextVariant =
     | 'subtitle'
     | 'body'
     | 'bodySmall'
-    | 'caption';
+    | 'caption'
+    | 'label';
 
 type TypographyMap = Record<TextVariant, TextStyle>;
 
@@ -51,5 +52,11 @@ export const createTypography = (_theme: AppTheme): TypographyMap => ({
         fontWeight: '400',
         lineHeight: 12,
         letterSpacing: 0,
+    },
+    label: {
+        fontSize: 13,
+        fontWeight: '500',
+        lineHeight: 15,
+        letterSpacing: 0.05,
     },
 });
