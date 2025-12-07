@@ -1,3 +1,4 @@
+import type { EdgeInsets } from 'react-native-safe-area-context';
 import { lightPalette, darkPalette, type ThemePalette } from './palette';
 import { createLayout, type ThemeLayout } from './layout';
 
@@ -8,25 +9,29 @@ export interface AppTheme {
     name: ThemeName;
     palette: ThemePalette;
     layout: ThemeLayout;
-    /**
-     * Global density / size factor.
-     * 1 = default, >1 = more spacious / larger, <1 = more compact.
-     */
     uiScale: number;
+    insets: EdgeInsets;
 }
 
-const DEFAULT_UI_SCALE = 1;
+// Default for provider
+export const DEFAULT_UI_SCALE = 1;
 
-export const lightTheme: AppTheme = {
-    name: 'light',
-    palette: lightPalette,
-    uiScale: DEFAULT_UI_SCALE,
-    layout: createLayout(DEFAULT_UI_SCALE),
-};
+export const buildTheme = ({
+    name,
+    uiScale,
+    insets,
+}: {
+    name: ThemeName;
+    uiScale: number;
+    insets: EdgeInsets;
+}): AppTheme => {
+    const palette = name === 'dark' ? darkPalette : lightPalette;
 
-export const darkTheme: AppTheme = {
-    name: 'dark',
-    palette: darkPalette,
-    uiScale: DEFAULT_UI_SCALE,
-    layout: createLayout(DEFAULT_UI_SCALE),
+    return {
+        name,
+        palette,
+        uiScale,
+        layout: createLayout(uiScale),
+        insets,
+    };
 };

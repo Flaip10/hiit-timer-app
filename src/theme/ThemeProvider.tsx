@@ -5,102 +5,93 @@ import React, {
     useMemo,
     useState,
 } from 'react';
-import { Appearance, ColorSchemeName } from 'react-native';
+import { Appearance, type ColorSchemeName } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import {
     AppTheme,
     ThemeName,
     ThemePreference,
-    lightTheme,
-    darkTheme,
+    buildTheme,
+    DEFAULT_UI_SCALE,
 } from './theme';
+
+const THEME_KEY = 'app-theme-v1';
 
 type ThemeContextValue = {
     theme: AppTheme;
     themeName: ThemeName;
     preference: ThemePreference;
-    setPreference: (pref: ThemePreference) => void;
+    setPreference: (p: ThemePreference) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-const THEME_KEY = 'app-theme-v1';
-
-const getThemeObject = (name: ThemeName): AppTheme =>
-    name === 'dark' ? darkTheme : lightTheme;
-
-const normalizeScheme = (scheme: ColorSchemeName): ThemeName =>
+const normalize = (scheme: ColorSchemeName): ThemeName =>
     scheme === 'dark' ? 'dark' : 'light';
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
-    children,
-}) => {
-    const [systemScheme, setSystemScheme] = useState<ThemeName>('light');
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+    const insets = useSafeAreaInsets();
+
+    const [systemTheme, setSystemTheme] = useState<ThemeName>('light');
     const [preference, setPreferenceState] =
         useState<ThemePreference>('system');
 
-    // Track OS theme (for 'system' mode)
+    // Track OS theme
     useEffect(() => {
-        const current = Appearance.getColorScheme();
-        setSystemScheme(normalizeScheme(current));
+        setSystemTheme(normalize(Appearance.getColorScheme()));
 
-        const sub = Appearance.addChangeListener(({ colorScheme }) => {
-            setSystemScheme(normalizeScheme(colorScheme));
-        });
+        const sub = Appearance.addChangeListener(({ colorScheme }) =>
+            setSystemTheme(normalize(colorScheme))
+        );
 
         return () => sub.remove();
     }, []);
 
-    // Load persisted preference
+    // Load user preference
     useEffect(() => {
-        const load = async () => {
-            try {
-                const stored = await AsyncStorage.getItem(THEME_KEY);
-                if (
-                    stored === 'light' ||
-                    stored === 'dark' ||
-                    stored === 'system'
-                ) {
-                    setPreferenceState(stored);
-                }
-            } catch {
-                // ignore, default is 'system'
+        AsyncStorage.getItem(THEME_KEY).then((stored) => {
+            if (!stored) return;
+            if (
+                stored === 'light' ||
+                stored === 'dark' ||
+                stored === 'system'
+            ) {
+                setPreferenceState(stored);
             }
-        };
-
-        load();
+        });
     }, []);
 
-    const setPreference = (pref: ThemePreference) => {
-        setPreferenceState(pref);
-        AsyncStorage.setItem(THEME_KEY, pref).catch(() => {});
+    const setPreference = (p: ThemePreference) => {
+        setPreferenceState(p);
+        AsyncStorage.setItem(THEME_KEY, p).catch(() => {});
     };
 
-    // Resolve actual theme name from preference + system
     const themeName: ThemeName =
-        preference === 'system' ? systemScheme : (preference as ThemeName);
+        preference === 'system' ? systemTheme : preference;
 
-    const theme = useMemo(() => getThemeObject(themeName), [themeName]);
-
-    const value = useMemo(
-        () => ({
-            theme,
-            themeName,
-            preference,
-            setPreference,
-        }),
-        [theme, themeName, preference]
+    const theme = useMemo<AppTheme>(
+        () =>
+            buildTheme({
+                name: themeName,
+                uiScale: DEFAULT_UI_SCALE,
+                insets,
+            }),
+        [themeName, insets]
     );
 
     return (
-        <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+        <ThemeContext.Provider
+            value={{ theme, themeName, preference, setPreference }}
+        >
+            {children}
+        </ThemeContext.Provider>
     );
 };
 
-export const useTheme = (): ThemeContextValue => {
+export const useTheme = () => {
     const ctx = useContext(ThemeContext);
-    if (!ctx) {
-        throw new Error('useTheme must be used inside ThemeProvider');
-    }
+    if (!ctx) throw new Error('useTheme must be inside ThemeProvider');
     return ctx;
 };
