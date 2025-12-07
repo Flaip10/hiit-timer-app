@@ -1,6 +1,6 @@
 import { colors } from './colors';
 
-export interface Palette {
+export interface ThemePalette {
     background: {
         primary: string; // whole-screen background
         card: string; // cards / panels
@@ -69,7 +69,7 @@ export interface Palette {
     };
 }
 
-export const lightPalette: Palette = {
+export const lightPalette: ThemePalette = {
     background: {
         primary: colors.gray[50],
         card: colors.violet[200],
@@ -138,7 +138,7 @@ export const lightPalette: Palette = {
     },
 };
 
-export const darkPalette: Palette = {
+export const darkPalette: ThemePalette = {
     background: {
         primary: colors.black.main, // OLED black
         card: colors.gray.background,
