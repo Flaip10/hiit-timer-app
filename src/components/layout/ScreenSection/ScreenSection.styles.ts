@@ -27,13 +27,12 @@ export const useScreenSectionStyles = createStyles(
             container: {
                 marginTop: getTopMargin(props.topSpacing),
                 width: '100%',
-
-                gap: 12,
             },
             headerRow: {
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                marginBottom: 14,
             },
             title: {
                 color: theme.palette.text.header,

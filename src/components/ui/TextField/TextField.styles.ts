@@ -13,7 +13,7 @@ export const useTextFieldStyles = createStyles(
         StyleSheet.create({
             container: {
                 width: '100%',
-                gap: 10,
+                gap: 6,
             },
             labelRow: {
                 flexDirection: 'row',

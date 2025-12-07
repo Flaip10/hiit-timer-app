@@ -10,7 +10,7 @@ export const useStepperStyles = createStyles(
     (theme: AppTheme, props: StepperStyleProps) =>
         StyleSheet.create({
             wrap: {
-                gap: 10,
+                gap: 6,
             },
             row: {
                 height: 41,

@@ -7,7 +7,7 @@ export const useFieldLabelStyles = createStyles((theme: AppTheme) =>
         container: {
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 6,
+            gap: 4,
         },
         iconWrapper: {
             width: 18,
