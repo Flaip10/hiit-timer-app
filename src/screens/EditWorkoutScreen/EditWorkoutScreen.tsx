@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { WorkoutBlock } from '@src/core/entities';
 import { uid } from '@src/core/id';
 import { useWorkouts } from '@src/state/useWorkouts';
-import { WorkoutBlockItem } from './WorkoutBlockItem';
+import { WorkoutBlockItem } from './components/WorkoutBlockItem/WorkoutBlockItem';
 import { Button } from '@src/components/ui/Button/Button';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';

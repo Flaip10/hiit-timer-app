@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Stepper } from '@src/components/ui/Stepper/Stepper';
@@ -7,10 +7,13 @@ import { ExerciseCard } from '@components/blocks/ExerciseCard';
 import { FooterBar } from '@src/components/layout/FooterBar';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { Button } from '@src/components/ui/Button/Button';
+import { TextField } from '@src/components/ui/TextField/TextField';
+import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
 
 import { useWorkouts } from '@state/useWorkouts';
 import { useBlockEditor } from './useBlockEditor';
-import st from './styles';
+import { useBlockEditStyles } from './BlockEditScreen.styles';
+import { AppText } from '@src/components/ui/Typography/AppText';
 
 const BlockEditScreen = () => {
     const { blockId } = useLocalSearchParams<{ blockId?: string }>();
@@ -38,24 +41,28 @@ const BlockEditScreen = () => {
         validate,
     } = useBlockEditor({ draft, blockId });
 
+    const st = useBlockEditStyles();
+
     const errorBox = useMemo(
         () =>
             errors.length ? (
                 <View style={st.errorBox}>
                     {errors.map((e, i) => (
-                        <Text key={i} style={st.errorText}>
+                        <AppText key={i} variant="bodySmall" tone="danger">
                             • {e}
-                        </Text>
+                        </AppText>
                     ))}
                 </View>
             ) : null,
-        [errors]
+        [errors, st.errorBox]
     );
 
     if (notFound || !block) {
         return (
             <MainContainer title="Edit Block" scroll={false}>
-                <Text style={st.err}>Block not found.</Text>
+                <AppText variant="body" tone="danger" style={st.err}>
+                    Block not found.
+                </AppText>
                 <Button title="Back" onPress={() => router.back()} />
             </MainContainer>
         );
@@ -79,76 +86,88 @@ const BlockEditScreen = () => {
     return (
         <>
             <MainContainer title={`Block ${labelIndex}${titleSuffix}`}>
-                {/* Title */}
-                <Text style={st.label}>Block Title (optional)</Text>
-                <TextInput
-                    value={block.title ?? ''}
-                    onChangeText={onTitle}
-                    style={st.input}
-                />
+                {/* Block setup section */}
+                <ScreenSection title="Block setup" topSpacing="none">
+                    <View style={st.sectionContentGap}>
+                        <TextField
+                            label="Block Title (optional)"
+                            value={block.title ?? ''}
+                            onChangeText={onTitle}
+                        />
 
-                {/* Core scheme */}
-                <Stepper
-                    label="Sets"
-                    value={block.sets}
-                    onChange={onSets}
-                    min={1}
-                />
+                        <Stepper
+                            label="Sets"
+                            value={block.sets}
+                            onChange={onSets}
+                            min={1}
+                        />
 
-                <Stepper
-                    label="# Exercises"
-                    value={block.exercises.length}
-                    onChange={onNumExercises}
-                    min={1}
-                />
+                        <Stepper
+                            label="# Exercises"
+                            value={block.exercises.length}
+                            onChange={onNumExercises}
+                            min={1}
+                        />
 
-                {/* NEW: Global Exercise Duration setter */}
-                <Stepper
-                    label="Exercise duration (sec)"
-                    value={block.exercises[0]?.value ?? 20}
-                    onChange={onExerciseLength}
-                    min={5}
-                    step={5}
-                />
+                        {/* Global Exercise Duration setter */}
+                        <Stepper
+                            label="Exercise duration (sec)"
+                            value={block.exercises[0]?.value ?? 20}
+                            onChange={onExerciseLength}
+                            min={5}
+                            step={5}
+                        />
 
-                <Stepper
-                    label="Rest between sets (sec)"
-                    value={block.restBetweenSetsSec}
-                    onChange={onRestBetweenSets}
-                    min={0}
-                    step={5}
-                />
+                        <Stepper
+                            label="Rest between sets (sec)"
+                            value={block.restBetweenSetsSec}
+                            onChange={onRestBetweenSets}
+                            min={0}
+                            step={5}
+                        />
 
-                <Stepper
-                    label="Rest between exercises (sec)"
-                    value={block.restBetweenExercisesSec}
-                    onChange={onRestBetweenExercises}
-                    min={0}
-                    step={5}
-                />
+                        <Stepper
+                            label="Rest between exercises (sec)"
+                            value={block.restBetweenExercisesSec}
+                            onChange={onRestBetweenExercises}
+                            min={0}
+                            step={5}
+                        />
+                    </View>
+                </ScreenSection>
 
-                <Text style={st.sectionTitle}>Exercises</Text>
-                {block.exercises.map((ex, ei) => (
-                    <ExerciseCard
-                        key={ex.id}
-                        index={ei}
-                        exercise={ex}
-                        onChange={(next) => onExChange(ei, next)}
-                        onRemove={() => onRemoveExercise(ei)}
-                    />
-                ))}
-
-                <Pressable
-                    onPress={onAddExercise}
-                    style={({ pressed }) => [
-                        st.addMinor,
-                        pressed && st.pressed,
-                    ]}
+                {/* Exercises section */}
+                <ScreenSection
+                    title="Exercises"
+                    topSpacing="large"
+                    rightAccessory={
+                        <Pressable
+                            onPress={onAddExercise}
+                            style={({ pressed }) => [
+                                st.addMinor,
+                                pressed && st.pressed,
+                            ]}
+                        >
+                            <AppText variant="bodySmall" tone="primary">
+                                ＋ Add Exercise
+                            </AppText>
+                        </Pressable>
+                    }
                 >
-                    <Text style={st.addMinorText}>＋ Add Exercise</Text>
-                </Pressable>
+                    <View style={st.exercisesGap}>
+                        {block.exercises.map((ex, ei) => (
+                            <ExerciseCard
+                                key={ex.id}
+                                index={ei}
+                                exercise={ex}
+                                onChange={(next) => onExChange(ei, next)}
+                                onRemove={() => onRemoveExercise(ei)}
+                            />
+                        ))}
+                    </View>
 
-                {errorBox}
+                    {errorBox}
+                </ScreenSection>
             </MainContainer>
 
             <FooterBar>
