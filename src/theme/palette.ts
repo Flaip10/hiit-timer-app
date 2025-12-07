@@ -189,8 +189,8 @@ export const darkPalette: Palette = {
             text: colors.black.main,
         },
         statusBadge: {
-            background: colors.violet[500],
-            text: colors.gray[50],
+            background: colors.gray[300],
+            text: colors.black.main,
         },
         actionButton: {
             background: colors.gray.secondaryButton,

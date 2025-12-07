@@ -123,7 +123,7 @@ export const WorkoutBlockItem = ({
                         <Ionicons
                             name="timer-outline"
                             size={14}
-                            color={theme.palette.metaCard.statusBadge.text}
+                            color={theme.palette.text.secondary}
                         />
                         <AppText variant="bodySmall" tone="secondary">
                             {metaParts.join(' • ')}
