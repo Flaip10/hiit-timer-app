@@ -137,12 +137,6 @@ const WorkoutsScreen = () => {
                         <WorkoutItem
                             item={item}
                             onPress={() => router.push(`/workouts/${item.id}`)}
-                            onEdit={() =>
-                                router.push({
-                                    pathname: '/workouts/edit',
-                                    params: { id: item.id },
-                                })
-                            }
                             onRemove={() => setToRemove(item.id)}
                         />
                     ) : null

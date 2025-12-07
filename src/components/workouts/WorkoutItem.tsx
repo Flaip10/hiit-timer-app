@@ -1,30 +1,31 @@
-import { useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useMemo } from 'react';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import type { Workout } from '@src/core/entities';
+import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
+import { AppText } from '@src/components/ui/Typography/AppText';
+import { useTheme } from '@src/theme/ThemeProvider';
 import {
     summarizeWorkout,
     formatWorkoutDuration,
 } from '@src/core/workouts/summarizeWorkout';
-import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
-import { AppText } from '@src/components/ui/Typography/AppText';
-import { useTheme } from '@src/theme/ThemeProvider';
+import { useWorkoutItemStyles } from './WorkoutItem.styles';
 
 type WorkoutItemProps = {
     item: Workout;
-    onPress: () => void;
-    onEdit: () => void;
-    onRemove: () => void;
+    onPress?: () => void;
+    onRemove?: () => void;
 };
 
-export const WorkoutItem = ({
+export const WorkoutItem: React.FC<WorkoutItemProps> = ({
     item,
     onPress,
-    onEdit,
     onRemove,
-}: WorkoutItemProps) => {
+}) => {
     const { theme } = useTheme();
+    const st = useWorkoutItemStyles();
+
     const summary = useMemo(() => summarizeWorkout(item), [item]);
 
     const timeLabel =
@@ -34,69 +35,93 @@ export const WorkoutItem = ({
               ? 'Mixed (time + reps)'
               : 'No time estimate';
 
-    const extraInfoText = `${summary.blocks} block${summary.blocks === 1 ? '' : 's'} • ${summary.exercises} exercise${summary.exercises === 1 ? '' : 's'}`;
+    const name = item.name || 'Untitled workout';
 
     return (
         <MetaCard
-            onPress={onPress}
             topLeftContent={{
                 text: timeLabel,
                 icon: (
                     <Ionicons
-                        name="time-outline"
+                        name="timer-outline"
                         size={14}
                         color={theme.palette.metaCard.topLeftContent.text}
                     />
                 ),
+                backgroundColor:
+                    theme.palette.metaCard.topLeftContent.background,
+                color: theme.palette.metaCard.topLeftContent.text,
+                borderColor: theme.palette.metaCard.topLeftContent.border,
             }}
-            actionButton={{
-                icon: (
-                    <Ionicons
-                        name="create-outline"
-                        size={18}
-                        color={theme.palette.metaCard.actionButton.icon}
-                    />
-                ),
-                onPress: onEdit,
-            }}
-            secondaryActionButton={{
-                icon: (
-                    <Ionicons
-                        name="trash-outline"
-                        size={18}
-                        color={theme.palette.feedback.errorIcon}
-                    />
-                ),
-                onPress: onRemove,
-            }}
+            actionStrip={
+                onRemove
+                    ? {
+                          icon: (
+                              <Ionicons
+                                  name="trash-outline"
+                                  size={18}
+                                  color={
+                                      theme.palette.metaCard.actionStrip.icon
+                                  }
+                              />
+                          ),
+                          backgroundColor:
+                              theme.palette.metaCard.actionStrip.background,
+                          onPress: onRemove,
+                      }
+                    : undefined
+            }
+            expandable={true}
+            withBottomFade={false}
+            minHeight={50}
+            onPress={onPress}
             summaryContent={
-                <View style={st.contentContainer}>
+                <View style={st.summaryContainer}>
                     <AppText
                         variant="subtitle"
-                        tone="primary"
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
+                        style={st.title}
+                        numberOfLines={2}
                     >
-                        {item.name}
+                        {name}
                     </AppText>
 
-                    <AppText
-                        variant="bodySmall"
-                        tone="muted"
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                    >
-                        {extraInfoText}
-                    </AppText>
+                    <View style={st.metaRow}>
+                        <View style={st.metaItem}>
+                            <Ionicons
+                                name="layers-outline"
+                                size={14}
+                                color={theme.palette.text.secondary}
+                            />
+                            <AppText
+                                variant="caption"
+                                tone="secondary"
+                                numberOfLines={1}
+                            >
+                                {summary.blocks}{' '}
+                                {summary.blocks === 1 ? 'block' : 'blocks'}
+                            </AppText>
+                        </View>
+
+                        <View style={st.metaItem}>
+                            <Ionicons
+                                name="barbell-outline"
+                                size={14}
+                                color={theme.palette.text.secondary}
+                            />
+                            <AppText
+                                variant="caption"
+                                tone="secondary"
+                                numberOfLines={1}
+                            >
+                                {summary.exercises}{' '}
+                                {summary.exercises === 1
+                                    ? 'exercise'
+                                    : 'exercises'}
+                            </AppText>
+                        </View>
+                    </View>
                 </View>
             }
-            minHeight={50}
-            expandable
-            withBottomFade={false}
         />
     );
 };
-
-const st = StyleSheet.create({
-    contentContainer: { gap: 6 },
-});
