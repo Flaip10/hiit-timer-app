@@ -142,6 +142,7 @@ const WorkoutsScreen = () => {
                     ) : null
                 }
                 contentContainerStyle={st.listContent}
+                style={st.flatList}
                 ListEmptyComponent={
                     <EmptyWorkouts
                         onPressButton={() => setModalVisible(true)}

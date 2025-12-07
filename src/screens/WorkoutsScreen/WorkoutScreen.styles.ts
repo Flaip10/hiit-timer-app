@@ -27,6 +27,8 @@ export const useWorkoutsScreenStyles = createStyles((theme: AppTheme) =>
             paddingHorizontal: 14,
         },
 
+        flatList: { flex: 1 },
+
         listContent: {
             paddingBottom: 24,
             gap: 14,
