@@ -11,6 +11,7 @@ import { MainContainer } from '@src/components/layout/MainContainer/MainContaine
 import { FooterBar } from '@src/components/layout/FooterBar';
 import { TextField } from '@src/components/ui/TextField/TextField';
 import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
+import { AppText } from '@src/components/ui/Typography/AppText';
 import { useEditWorkoutScreenStyles } from './EditWorkoutScreen.styles';
 
 const createEmptyBlock = (): WorkoutBlock => ({
@@ -150,7 +151,11 @@ const EditWorkoutScreen = () => {
                     returnKeyType="done"
                 />
 
-                <ScreenSection title="Blocks">
+                <ScreenSection title="Blocks" gap={12}>
+                    <AppText variant="caption" tone="secondary">
+                        Tap a block to edit its details.
+                    </AppText>
+
                     {blocks.map((block, index) => (
                         <WorkoutBlockItem
                             key={block.id}
