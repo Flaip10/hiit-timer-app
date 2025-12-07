@@ -11,14 +11,22 @@ import { useWorkoutBlockItemStyles } from './WorkoutBlockItem.styles';
 type WorkoutBlockItemProps = {
     index: number; // label only
     block: WorkoutBlock;
-    onEdit: (id: string) => void;
-    onRemove: (id: string) => void;
+    /**
+     * Main card press – e.g. navigate to edit / details.
+     * If not provided, the card is not pressable (except for expand).
+     */
+    onPress?: (id: string) => void;
+    /**
+     * Remove action – shown as the curved action strip with a trash icon.
+     * If not provided, no remove affordance is rendered.
+     */
+    onRemove?: (id: string) => void;
 };
 
 export const WorkoutBlockItem = ({
     index,
     block,
-    onEdit,
+    onPress,
     onRemove,
 }: WorkoutBlockItemProps) => {
     const { theme } = useTheme();
@@ -40,7 +48,6 @@ export const WorkoutBlockItem = ({
         }
 
         // reps mode kept for future extension
-
         return `${first.value} reps each`;
     }, [exercises]);
 
@@ -74,6 +81,21 @@ export const WorkoutBlockItem = ({
         return main;
     };
 
+    const handlePress = onPress ? () => onPress(block.id) : undefined;
+    const actionStrip = onRemove
+        ? {
+              icon: (
+                  <Ionicons
+                      name="trash-outline"
+                      size={18}
+                      color={theme.palette.metaCard.actionStrip.icon}
+                  />
+              ),
+              backgroundColor: theme.palette.metaCard.actionStrip.background,
+              onPress: () => onRemove(block.id),
+          }
+        : undefined;
+
     return (
         <MetaCard
             topLeftContent={{
@@ -90,21 +112,11 @@ export const WorkoutBlockItem = ({
                 color: theme.palette.metaCard.topLeftContent.text,
                 borderColor: theme.palette.metaCard.topLeftContent.border,
             }}
-            actionStrip={{
-                icon: (
-                    <Ionicons
-                        name="trash-outline"
-                        size={18}
-                        color={theme.palette.metaCard.actionStrip.icon}
-                    />
-                ),
-                backgroundColor: theme.palette.metaCard.actionStrip.background,
-                onPress: () => onRemove(block.id),
-            }}
+            actionStrip={actionStrip}
             expandable
             withBottomFade={false}
             minHeight={0}
-            onPress={() => onEdit(block.id)}
+            onPress={handlePress}
             summaryContent={
                 <View style={st.body}>
                     <View style={st.blockInfoRow}>

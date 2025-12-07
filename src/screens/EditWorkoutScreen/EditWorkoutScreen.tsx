@@ -156,7 +156,7 @@ const EditWorkoutScreen = () => {
                             key={block.id}
                             block={block}
                             index={index}
-                            onEdit={onEditBlock}
+                            onPress={onEditBlock}
                             onRemove={onRemoveBlock}
                         />
                     ))}

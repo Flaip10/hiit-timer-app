@@ -1,27 +1,35 @@
-import { useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 import { useWorkout } from '@state/useWorkouts';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
 import { Button } from '@src/components/ui/Button/Button';
+import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
+import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
+import { AppText } from '@src/components/ui/Typography/AppText';
+import { ErrorBanner } from '@src/components/ui/ErrorBanner/ErrorBanner';
+import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
+import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
 
 import {
     summarizeWorkout,
     formatWorkoutDuration,
 } from '@core/workouts/summarizeWorkout';
-import st from './styles';
-import { Ionicons } from '@expo/vector-icons';
 import { exportWorkoutToFile } from '@src/core/exportWorkout/exportWorkout';
-import { ErrorBanner } from '@src/components/ui/ErrorBanner/ErrorBanner';
-import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
-import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
+
+import { useTheme } from '@src/theme/ThemeProvider';
+import { useWorkoutSummaryStyles } from './WorkoutSummaryScreen.styles';
+import { WorkoutBlockItem } from '../EditWorkoutScreen/components/WorkoutBlockItem/WorkoutBlockItem';
 
 const WorkoutSummaryScreen = () => {
     const { id } = useLocalSearchParams<{ id?: string }>();
     const router = useRouter();
     const workout = useWorkout(id);
+    const { theme } = useTheme();
+    const st = useWorkoutSummaryStyles();
 
     const summary = useMemo(() => summarizeWorkout(workout), [workout]);
 
@@ -32,7 +40,9 @@ const WorkoutSummaryScreen = () => {
         return (
             <MainContainer title="Workout" scroll={false}>
                 <View style={st.center}>
-                    <Text style={st.errorText}>Workout not found.</Text>
+                    <AppText variant="body" tone="danger" style={st.errorText}>
+                        Workout not found.
+                    </AppText>
                     <Button
                         title="Back"
                         variant="secondary"
@@ -73,72 +83,136 @@ const WorkoutSummaryScreen = () => {
 
     return (
         <>
-            <MainContainer title={workout.name}>
-                <View style={st.card}>
-                    <Text style={st.cardTitle}>Overview</Text>
-                    <View style={st.metricRow}>
-                        <View style={st.metric}>
-                            <Text style={st.metricLabel}>Blocks</Text>
-                            <Text style={st.metricValue}>{summary.blocks}</Text>
-                        </View>
+            <MainContainer title={workout.name} gap={0}>
+                {/* OVERVIEW SECTION */}
+                <ScreenSection title="Overview" topSpacing="small" gap={12}>
+                    <MetaCard
+                        expandable={false}
+                        topLeftContent={{
+                            text: 'Workout summary',
+                            icon: (
+                                <Ionicons
+                                    name="barbell-outline"
+                                    size={14}
+                                    color={
+                                        theme.palette.metaCard.topLeftContent
+                                            .text
+                                    }
+                                />
+                            ),
+                            backgroundColor:
+                                theme.palette.metaCard.topLeftContent
+                                    .background,
+                            color: theme.palette.metaCard.topLeftContent.text,
+                            borderColor:
+                                theme.palette.metaCard.topLeftContent.border,
+                        }}
+                        summaryContent={
+                            <View style={st.overviewRow}>
+                                <View style={st.metricCard}>
+                                    <AppText
+                                        variant="caption"
+                                        tone="muted"
+                                        style={st.metricLabel}
+                                    >
+                                        Blocks
+                                    </AppText>
+                                    <AppText
+                                        variant="body"
+                                        style={st.metricValue}
+                                    >
+                                        {summary.blocks}
+                                    </AppText>
+                                </View>
 
-                        <View style={st.metric}>
-                            <Text style={st.metricLabel}>Exercises</Text>
-                            <Text style={st.metricValue}>
-                                {summary.exercises}
-                            </Text>
-                        </View>
+                                <View style={st.metricCard}>
+                                    <AppText
+                                        variant="caption"
+                                        tone="muted"
+                                        style={st.metricLabel}
+                                    >
+                                        Exercises
+                                    </AppText>
+                                    <AppText
+                                        variant="body"
+                                        style={st.metricValue}
+                                    >
+                                        {summary.exercises}
+                                    </AppText>
+                                </View>
 
-                        <View style={st.metric}>
-                            <Text style={st.metricLabel}>Estimated time</Text>
-                            <Text style={st.metricValue}>{timeLabel}</Text>
-                        </View>
-                    </View>
-                </View>
-
-                <AppearingView visible={!!exportError}>
-                    <ErrorBanner
-                        message={exportError ?? ''}
-                        onClose={() => setExportError(null)}
+                                <View style={st.metricCardWide}>
+                                    <AppText
+                                        variant="caption"
+                                        tone="muted"
+                                        style={st.metricLabel}
+                                    >
+                                        Estimated time
+                                    </AppText>
+                                    <AppText
+                                        variant="bodySmall"
+                                        style={st.metricValue}
+                                        numberOfLines={2}
+                                    >
+                                        {timeLabel}
+                                    </AppText>
+                                </View>
+                            </View>
+                        }
                     />
-                </AppearingView>
 
-                <Text style={st.sectionTitle}>Blocks</Text>
-
-                {workout.blocks.map((block, index) => {
-                    return (
-                        <View key={block.id} style={st.blockItem}>
-                            <Text style={st.blockTitle}>
-                                Block {index + 1}
-                                {block.title ? ` — ${block.title}` : ''}
-                            </Text>
-
-                            <Text style={st.blockMeta}>
-                                {block.sets} sets • {block.exercises.length}{' '}
-                                exercises
-                            </Text>
-                        </View>
-                    );
-                })}
-
-                <Text style={st.hint}>
-                    You can edit this workout or start it now.
-                </Text>
-
-                <View style={st.exportContainer}>
-                    <CircleIconButton
-                        onPress={handleExport}
-                        variant="secondary"
-                        size={50}
-                    >
-                        <Ionicons
-                            name="share-outline"
-                            size={24}
-                            color="#E5E7EB"
+                    <AppearingView visible={!!exportError}>
+                        <ErrorBanner
+                            message={exportError ?? ''}
+                            onClose={() => setExportError(null)}
                         />
-                    </CircleIconButton>
-                    <Text style={st.exportText}>Share workout</Text>
-                </View>
+                    </AppearingView>
+                </ScreenSection>
+
+                {/* BLOCKS SECTION */}
+                <ScreenSection title="Blocks" topSpacing="large" gap={10}>
+                    {workout.blocks.map((block, index) => (
+                        <WorkoutBlockItem
+                            key={block.id}
+                            index={index}
+                            block={block}
+                        />
+                    ))}
+                </ScreenSection>
+
+                {/* HINT + SHARE SECTION*/}
+                <ScreenSection topSpacing="medium" gap={8}>
+                    <AppText
+                        variant="caption"
+                        tone="muted"
+                        style={st.hint}
+                        numberOfLines={2}
+                    >
+                        You can edit this workout or start it now.
+                    </AppText>
+
+                    <View style={st.exportContainer}>
+                        <CircleIconButton
+                            onPress={handleExport}
+                            variant="secondary"
+                            size={50}
+                            disabled={exporting}
+                        >
+                            <Ionicons
+                                name="share-outline"
+                                size={24}
+                                color={theme.palette.text.primary}
+                            />
+                        </CircleIconButton>
+                        <AppText
+                            variant="bodySmall"
+                            tone="muted"
+                            style={st.exportText}
+                        >
+                            Share workout
+                        </AppText>
+                    </View>
+                </ScreenSection>
             </MainContainer>
 
             <FooterBar>
