@@ -1,6 +1,14 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import type { Exercise } from '../../core/entities';
-import { Stepper } from '../ui/Stepper/Stepper';
+import React from 'react';
+import { View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+import type { Exercise } from '@src/core/entities';
+import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
+import { TextField } from '@src/components/ui/TextField/TextField';
+import { Stepper } from '@src/components/ui/Stepper/Stepper';
+import { useTheme } from '@src/theme/ThemeProvider';
+
+import { useExerciseCardStyles } from './ExerciseCard.styles';
 
 type Props = {
     index: number;
@@ -9,12 +17,15 @@ type Props = {
     onRemove: () => void;
 };
 
-export const ExerciseCard = ({
+export const ExerciseCard: React.FC<Props> = ({
     index,
     exercise,
     onChange,
     onRemove,
-}: Props) => {
+}) => {
+    const { theme } = useTheme();
+    const st = useExerciseCardStyles();
+
     const setName = (v: string) => {
         onChange({ ...exercise, name: v });
     };
@@ -29,78 +40,52 @@ export const ExerciseCard = ({
         });
     };
 
+    const label = `Exercise ${index + 1}`;
+
     return (
-        <View style={st.exercise}>
-            <View style={st.rowSpread}>
-                <Text style={st.exTitle}>Exercise {index + 1}</Text>
+        <MetaCard
+            containerStyle={st.card}
+            topLeftContent={{
+                text: label,
+                icon: (
+                    <Ionicons
+                        name="barbell-outline"
+                        size={14}
+                        color={theme.palette.metaCard.topLeftContent.text}
+                    />
+                ),
+            }}
+            actionStrip={{
+                icon: (
+                    <Ionicons
+                        name="trash-outline"
+                        size={16}
+                        color={theme.palette.metaCard.actionStrip.icon}
+                    />
+                ),
+                backgroundColor: theme.palette.metaCard.actionStrip.background,
+                onPress: onRemove,
+            }}
+            expandable={false}
+        >
+            <View style={st.body}>
+                <TextField
+                    label="Name"
+                    value={exercise.name}
+                    placeholder={label}
+                    onChangeText={setName}
+                />
 
-                <Pressable
-                    onPress={onRemove}
-                    style={({ pressed }) => [
-                        st.removeTag,
-                        pressed && st.pressed,
-                    ]}
-                >
-                    <Text style={st.removeTagText}>Remove</Text>
-                </Pressable>
+                <View style={st.durationRow}>
+                    <Stepper
+                        label="Duration (sec)"
+                        value={exercise.value}
+                        onChange={setDurationSec}
+                        min={1}
+                        step={5}
+                    />
+                </View>
             </View>
-
-            <Text style={st.subLabel}>Name</Text>
-            <TextInput
-                value={exercise.name}
-                onChangeText={setName}
-                placeholder={`Exercise ${index + 1}`}
-                style={st.input}
-            />
-
-            <Text style={st.subLabel}>Duration (sec)</Text>
-            <Stepper
-                label="Duration"
-                value={exercise.value}
-                onChange={setDurationSec}
-                min={1}
-                step={5}
-            />
-        </View>
+        </MetaCard>
     );
 };
-
-const st = StyleSheet.create({
-    exercise: {
-        backgroundColor: '#131316',
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#1F1F23',
-        padding: 10,
-        gap: 6,
-        marginTop: 8,
-    },
-    exTitle: { color: '#E5E7EB', fontWeight: '700' },
-    rowSpread: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-
-    subLabel: { color: '#A1A1AA', marginTop: 10, marginBottom: 6 },
-    input: {
-        backgroundColor: '#131316',
-        color: '#E5E7EB',
-        borderRadius: 12,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        borderWidth: 1,
-        borderColor: '#1F1F23',
-    },
-
-    removeTag: {
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-        borderRadius: 8,
-        backgroundColor: '#2A0E0E',
-        borderWidth: 1,
-        borderColor: '#7F1D1D',
-    },
-    removeTagText: { color: '#FCA5A5', fontWeight: '700' },
-    pressed: { opacity: 0.9 },
-});
