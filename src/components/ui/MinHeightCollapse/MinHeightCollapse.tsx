@@ -49,7 +49,11 @@ const MinHeightCollapse: FC<MinHeightCollapseProps> = ({
                 const next = prev === 0 ? h : Math.max(prev, h);
 
                 if (!hasInitialisedRef.current) {
-                    const initial = expanded ? next : safeMin;
+                    // If content is smaller than minHeight, collapsed height
+                    // must never be larger than the content itself.
+                    const collapsedHeight = Math.min(safeMin, next);
+                    const initial = expanded ? next : collapsedHeight;
+
                     heightAnim.setValue(initial);
                     hasInitialisedRef.current = true;
                     setContentVisible(true);
@@ -65,7 +69,8 @@ const MinHeightCollapse: FC<MinHeightCollapseProps> = ({
     useEffect(() => {
         if (!hasInitialisedRef.current) return;
 
-        const toValue = expanded ? contentHeight : safeMin;
+        const collapsedHeight = Math.min(safeMin, contentHeight);
+        const toValue = expanded ? contentHeight : collapsedHeight;
 
         Animated.timing(heightAnim, {
             toValue,

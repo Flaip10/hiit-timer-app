@@ -84,6 +84,10 @@ export interface MetaCardProps {
      */
     withBottomFade?: boolean;
     /**
+     * Optional flag to initialize the content expanded
+     */
+    initiallyExpanded?: boolean;
+    /**
      * Optional expandable flag for the card
      */
     expandable?: boolean;

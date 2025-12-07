@@ -48,12 +48,13 @@ export const MetaCard: FC<MetaCardProps> = ({
     secondaryActionButton,
     expandable = false,
     onExpandedChange,
-    minHeight = 100,
+    minHeight = 50,
     withBottomFade = false,
     hideHours = false,
     imageUrl,
+    initiallyExpanded = false,
 }) => {
-    const [expanded, setExpanded] = useState(false);
+    const [expanded, setExpanded] = useState(initiallyExpanded);
     const [overflowing, setOverflowing] = useState(false);
     const [measured, setMeasured] = useState(false);
 
@@ -73,24 +74,37 @@ export const MetaCard: FC<MetaCardProps> = ({
     const safeMin =
         typeof minHeight === 'number' && minHeight >= 0 ? minHeight : 0;
 
+    // Slot resolution
+    const hasSummary = !!summaryContent;
     const hasSplitSlots = !!(summaryContent || collapsibleContent);
     const collapsibleInner = hasSplitSlots
         ? (collapsibleContent ?? null)
         : children;
     const hasCollapsibleContent = !!collapsibleInner;
 
-    // Measure ONLY the collapsible area (not the header, not the summary)
-    const handleContentLayout = (e: LayoutChangeEvent) => {
+    /**
+     * - If we have collapsible content → collapse that
+     * - Else, if we have only a summary → collapse the summary area
+     * - Else → nothing collapsible
+     */
+    const collapseTarget: 'content' | 'summary' | null = hasCollapsibleContent
+        ? 'content'
+        : hasSummary
+          ? 'summary'
+          : null;
+
+    const hasCollapsibleArea = collapseTarget !== null;
+
+    // Measure the area we are collapsing (either summary or content)
+    const handleCollapseAreaLayout = (e: LayoutChangeEvent) => {
         const h = e.nativeEvent.layout.height;
         if (h <= 0) return;
 
         setMeasured(true);
 
         if (safeMin > 0) {
-            // "Overflow" = content taller than minHeight
             setOverflowing(h > safeMin);
         } else {
-            // When minHeight === 0, any positive height means "there is content to reveal"
             setOverflowing(h > 0);
         }
     };
@@ -103,7 +117,7 @@ export const MetaCard: FC<MetaCardProps> = ({
 
     // enableCollapse: controls chevron + fade (UI affordance)
     const enableCollapse =
-        expandable && hasCollapsibleContent && measured && overflowing;
+        expandable && hasCollapsibleArea && measured && overflowing;
 
     // Collapsing behaviour itself is driven only by `expanded` and `expandable`
     const collapseMinHeight = expandable ? safeMin : 0;
@@ -111,6 +125,7 @@ export const MetaCard: FC<MetaCardProps> = ({
 
     return (
         <Pressable onPress={onPress} style={[st.cardContainer, containerStyle]}>
+            {/* Top header */}
             <View style={st.cardHeader}>
                 <View style={[st.topLeftContainer]}>
                     {date ? (
@@ -221,26 +236,59 @@ export const MetaCard: FC<MetaCardProps> = ({
                 )}
             </View>
 
+            {/* Body (summary + collapsible area) */}
             <View>
-                {/* SUMMARY: always-visible, non-collapsible part */}
+                {/* Summary Content */}
                 {summaryContent ? (
-                    <View style={st.summaryContainer}>{summaryContent}</View>
+                    collapseTarget === 'summary' ? (
+                        <MinHeightCollapse
+                            expanded={collapseExpanded}
+                            minHeight={collapseMinHeight}
+                            timeout={300}
+                            withBottomFade={withBottomFade && enableCollapse}
+                        >
+                            <View
+                                style={st.summaryContainer}
+                                onLayout={handleCollapseAreaLayout}
+                            >
+                                {summaryContent}
+                            </View>
+                        </MinHeightCollapse>
+                    ) : (
+                        <View style={st.summaryContainer}>
+                            {summaryContent}
+                        </View>
+                    )
                 ) : null}
 
-                {/* COLLAPSIBLE AREA: only collapsibleInner participates in MinHeightCollapse */}
+                {/* Collapsible Content */}
                 {hasCollapsibleContent && (
                     <MinHeightCollapse
-                        expanded={collapseExpanded}
-                        minHeight={collapseMinHeight}
+                        expanded={
+                            collapseTarget === 'content'
+                                ? collapseExpanded
+                                : true
+                        }
+                        minHeight={
+                            collapseTarget === 'content' ? collapseMinHeight : 0
+                        }
                         timeout={300}
-                        withBottomFade={withBottomFade && enableCollapse}
+                        withBottomFade={
+                            withBottomFade &&
+                            enableCollapse &&
+                            collapseTarget === 'content'
+                        }
                     >
                         <View
                             style={[
                                 st.contentContainer,
                                 expandable && st.contentContainerExpandable,
                             ]}
-                            onLayout={handleContentLayout}
+                            onLayout={
+                                collapseTarget === 'content'
+                                    ? handleCollapseAreaLayout
+                                    : undefined
+                            }
                         >
                             {imageUrl ? (
                                 <View style={st.imageContainer}>
