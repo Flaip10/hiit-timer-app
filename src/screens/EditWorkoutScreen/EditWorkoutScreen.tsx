@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import type { WorkoutBlock } from '@src/core/entities';
 import { uid } from '@src/core/id';
 import { useWorkouts } from '@src/state/useWorkouts';
+
 import { WorkoutBlockItem } from './components/WorkoutBlockItem/WorkoutBlockItem';
 import { Button } from '@src/components/ui/Button/Button';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
@@ -13,8 +13,13 @@ import { TextField } from '@src/components/ui/TextField/TextField';
 import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
-import { useEditWorkoutScreenStyles } from './EditWorkoutScreen.styles';
 import { useTheme } from '@src/theme/ThemeProvider';
+import { ErrorBanner } from '@src/components/ui/ErrorBanner/ErrorBanner';
+import {
+    getFieldError,
+    formatErrorList,
+} from '@src/core/validation/formErrors';
+import type { WorkoutEditError } from './EditWorkoutScreen.interfaces';
 
 const createEmptyBlock = (): WorkoutBlock => ({
     id: uid(),
@@ -50,10 +55,9 @@ const EditWorkoutScreen = () => {
     const clearDraft = useWorkouts((state) => state.clearDraft);
 
     const [saving, setSaving] = useState(false);
-    const [errors, setErrors] = useState<string[]>([]);
+    const [errors, setErrors] = useState<WorkoutEditError[]>([]);
     const [blockToRemove, setBlockToRemove] = useState<string | null>(null);
 
-    const st = useEditWorkoutScreenStyles();
     const { theme } = useTheme();
 
     // initialise / cleanup draft
@@ -77,7 +81,9 @@ const EditWorkoutScreen = () => {
 
     const onAddBlock = () => {
         if (!draft) return;
+
         setDraftBlocks([...(draft.blocks ?? []), createEmptyBlock()]);
+        setErrors((prev) => prev.filter((e) => e.field !== 'blocks'));
     };
 
     const onEditBlock = (blockId: string) => {
@@ -94,12 +100,21 @@ const EditWorkoutScreen = () => {
     };
 
     const validate = (): boolean => {
-        const errs: string[] = [];
         const trimmedName = name.trim();
 
-        if (!trimmedName) errs.push('Workout name is required.');
-        if (blocks.length === 0) errs.push('Add at least one block.');
-
+        const errs: WorkoutEditError[] = [];
+        if (!trimmedName) {
+            errs.push({
+                field: 'name',
+                message: 'Workout name is required.',
+            });
+        }
+        if (blocks.length === 0) {
+            errs.push({
+                field: 'blocks',
+                message: 'Add at least one block.',
+            });
+        }
         setErrors(errs);
         return errs.length === 0;
     };
@@ -130,19 +145,10 @@ const EditWorkoutScreen = () => {
         }
     };
 
-    const errorBox = useMemo(
-        () =>
-            errors.length > 0 ? (
-                <View style={st.errorBox}>
-                    {errors.map((e, i) => (
-                        <Text key={i} style={st.errorText}>
-                            • {e}
-                        </Text>
-                    ))}
-                </View>
-            ) : null,
-        [errors, st.errorBox, st.errorText]
-    );
+    const nameError = getFieldError(errors, 'name');
+
+    const nonNameErrors = errors.filter((e) => e.field !== 'name');
+    const bannerMessage = formatErrorList(nonNameErrors);
 
     return (
         <>
@@ -153,18 +159,25 @@ const EditWorkoutScreen = () => {
                 <TextField
                     label="Name"
                     value={name}
-                    onChangeText={(value) =>
-                        updateDraftMeta({ name: value ?? '' })
-                    }
+                    onChangeText={(value) => {
+                        updateDraftMeta({ name: value ?? '' });
+                        // Clear only 'name' errors when user edits the name
+                        setErrors((prev) =>
+                            prev.filter((e) => e.field !== 'name')
+                        );
+                    }}
                     placeholder="e.g., Conditioning A"
                     autoCapitalize="sentences"
                     returnKeyType="done"
+                    errorText={nameError?.message}
                 />
 
                 <ScreenSection title="Blocks" gap={theme.layout.listItem.gap}>
                     <AppText variant="caption" tone="secondary">
                         Tap a block to edit its details.
                     </AppText>
+
+                    <ErrorBanner message={bannerMessage} />
 
                     {blocks.map((block, index) => (
                         <WorkoutBlockItem
@@ -182,8 +195,6 @@ const EditWorkoutScreen = () => {
                         variant="secondary"
                     />
                 </ScreenSection>
-
-                {errorBox}
             </MainContainer>
 
             <FooterBar>
