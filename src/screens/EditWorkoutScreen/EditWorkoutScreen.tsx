@@ -30,7 +30,6 @@ const createEmptyBlock = (): WorkoutBlock => ({
     exercises: [
         {
             id: uid(),
-            name: 'Exercise 1',
             mode: 'time',
             value: 20,
         },
