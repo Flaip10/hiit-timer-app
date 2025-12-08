@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleProp, ViewStyle } from 'react-native';
+import { LayoutChangeEvent, StyleProp, ViewStyle } from 'react-native';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -19,6 +19,8 @@ type AppearingViewProps = {
     duration?: number;
     /** delay before *appearing* (no delay on exit) */
     delay?: number;
+    /** forwarded to the root Animated.View – needed for MinHeightCollapse */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 export const AppearingView = ({
@@ -29,6 +31,7 @@ export const AppearingView = ({
     offsetX = 0,
     duration = 260,
     delay = 0,
+    onLayout,
 }: AppearingViewProps) => {
     const [isMounted, setIsMounted] = useState(visible);
 
@@ -114,6 +117,8 @@ export const AppearingView = ({
     }
 
     return (
-        <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
+        <Animated.View style={[style, animatedStyle]} onLayout={onLayout}>
+            {children}
+        </Animated.View>
     );
 };
