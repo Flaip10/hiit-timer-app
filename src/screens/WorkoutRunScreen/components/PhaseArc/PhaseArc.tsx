@@ -10,7 +10,7 @@ import Reanimated, {
     SharedValue,
 } from 'react-native-reanimated';
 
-import { ARC_SIZE } from '../../styles';
+import { ARC_SIZE } from '../../WorkoutRunScreen.styles';
 
 const AnimatedPath = Reanimated.createAnimatedComponent(Path);
 

@@ -1,8 +1,8 @@
-import { StyleSheet } from 'react-native';
+import { createStyles } from '@src/theme/createStyles';
 
 export const ARC_SIZE = 280;
 
-const st = StyleSheet.create({
+const useWorkoutRunStyles = createStyles(() => ({
     arcContainer: {
         marginTop: 25,
         alignItems: 'center',
@@ -60,7 +60,7 @@ const st = StyleSheet.create({
         marginTop: 4,
     },
 
-    //Exercises Info
+    // Exercises Info
     exerciseInfoContainer: {
         width: '100%',
         marginTop: -50,
@@ -160,7 +160,7 @@ const st = StyleSheet.create({
         fontWeight: '600',
     },
 
-    //New additions
+    // New additions
 
     runHeader: {
         paddingHorizontal: 16,
@@ -275,6 +275,6 @@ const st = StyleSheet.create({
     shareModalButtonsSpacer: {
         width: 12,
     },
-});
+}));
 
-export default st;
+export default useWorkoutRunStyles;

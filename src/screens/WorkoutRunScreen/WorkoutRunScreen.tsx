@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { Text, View, Pressable, Modal } from 'react-native';
+import { View, Pressable, Modal } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -15,7 +15,7 @@ import { MainContainer } from '@src/components/layout/MainContainer/MainContaine
 import { FooterBar } from '@components/layout/FooterBar';
 import { Button } from '@components/ui/Button/Button';
 
-import st from './styles';
+import useWorkoutRunStyles from './WorkoutRunScreen.styles';
 import { PhaseArc } from './components/PhaseArc/PhaseArc';
 import { ExerciseInfoCard } from './components/ExerciseInfoCard/ExerciseInfoCard';
 import { NextExerciseCarousel } from './components/NextExerciseCarousel/NextExerciseCarousel';
@@ -33,9 +33,14 @@ import { useWorkoutRun } from './hooks/useWorkoutRun';
 import { ShareWorkoutCard } from './components/ShareWorkoutCard/ShareWorkoutCard';
 import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
 import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
+import { AppText } from '@src/components/ui/Typography/AppText';
+import { useTheme } from '@src/theme/ThemeProvider';
 
 export const WorkoutRunScreen = () => {
     useKeepAwake();
+
+    const st = useWorkoutRunStyles();
+    const { theme } = useTheme();
 
     const [shareVisible, setShareVisible] = useState(false);
     const shareCardRef = useRef<View | null>(null);
@@ -104,10 +109,12 @@ export const WorkoutRunScreen = () => {
             <>
                 <MainContainer title="Run workout" scroll={false}>
                     <View style={st.emptyContainer}>
-                        <Text style={st.emptyTitle}>No steps to run</Text>
-                        <Text style={st.emptyText}>
+                        <AppText variant="title2" style={st.emptyTitle}>
+                            No steps to run
+                        </AppText>
+                        <AppText variant="bodySmall" style={st.emptyText}>
                             This workout has no timed steps configured.
-                        </Text>
+                        </AppText>
                     </View>
                 </MainContainer>
                 <FooterBar>
@@ -168,25 +175,29 @@ export const WorkoutRunScreen = () => {
                     >
                         {/* Running header */}
                         <View style={st.pageHeaderInfoContainer}>
-                            <Text
+                            <AppText
+                                variant="title1"
                                 style={st.runWorkoutTitle}
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
                             >
                                 {workout.name}
-                            </Text>
+                            </AppText>
 
                             <View style={st.workoutTimerContainer}>
                                 <Feather
                                     name="clock"
                                     size={16}
-                                    color="#F9FAFB"
+                                    color={theme.palette.text.primary}
                                     style={st.workoutTimerIcon}
                                 />
                                 <View style={st.workoutTimerTextWrapper}>
-                                    <Text style={st.workoutTimerText}>
+                                    <AppText
+                                        variant="title2"
+                                        style={st.workoutTimerText}
+                                    >
                                         {formatDuration(remainingWorkoutSec)}
-                                    </Text>
+                                    </AppText>
                                 </View>
                             </View>
                         </View>
@@ -207,35 +218,39 @@ export const WorkoutRunScreen = () => {
                         style={st.pageHeader}
                         offsetY={0}
                         offsetX={-12}
-                        delay={260} //Provide enough time for previous view to unmount
+                        delay={260} // Provide enough time for previous view to unmount
                     >
                         <View>
-                            <Text style={st.finishedTitle}>
+                            <AppText variant="title1" style={st.finishedTitle}>
                                 Workout complete
-                            </Text>
+                            </AppText>
 
-                            <Text
+                            <AppText
+                                variant="bodySmall"
                                 style={st.finishedSubtitle}
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
                             >
                                 {workout.name}
-                            </Text>
+                            </AppText>
                         </View>
                         <View style={st.finishedDurationPillContainer}>
                             <View style={st.finishedDurationPill}>
                                 <Feather
                                     name="clock"
                                     size={16}
-                                    color="#F9FAFB"
+                                    color={theme.palette.text.primary}
                                     style={st.workoutTimerIcon}
                                 />
 
-                                <Text style={st.finishedDurationText}>
+                                <AppText
+                                    variant="subtitle"
+                                    style={st.finishedDurationText}
+                                >
                                     {formatDurationVerbose(
                                         totalWorkoutPlannedSec
                                     )}
-                                </Text>
+                                </AppText>
                             </View>
                         </View>
                     </AppearingView>
@@ -257,6 +272,7 @@ export const WorkoutRunScreen = () => {
                             finished={isFinished}
                             breathingPhase={breathingPhase}
                         />
+                        {/* Timer remains Animated.Text for now */}
                         <Animated.Text style={[st.timer, timerAnimatedStyle]}>
                             {isFinished ? 0 : remaining}
                         </Animated.Text>
@@ -297,7 +313,7 @@ export const WorkoutRunScreen = () => {
                         <Ionicons
                             name="share-outline"
                             size={22}
-                            color="#E5E7EB"
+                            color={theme.palette.text.primary}
                         />
                     </CircleIconButton>
                 </AppearingView>
@@ -357,9 +373,12 @@ export const WorkoutRunScreen = () => {
                                 pressed && { opacity: 0.7 },
                             ]}
                         >
-                            <Text style={st.footerFinishedText}>
+                            <AppText
+                                variant="subtitle"
+                                style={st.footerFinishedText}
+                            >
                                 Back to summary
-                            </Text>
+                            </AppText>
                         </Pressable>
                     </View>
                 ) : (
@@ -373,10 +392,15 @@ export const WorkoutRunScreen = () => {
                                 <Ionicons
                                     name="play-skip-forward"
                                     size={22}
-                                    color="#E5E7EB"
+                                    color={theme.palette.button.text.secondary}
                                 />
                             </CircleIconButton>
-                            <Text style={st.footerIconLabel}>Skip</Text>
+                            <AppText
+                                variant="caption"
+                                style={st.footerIconLabel}
+                            >
+                                Skip
+                            </AppText>
                         </View>
 
                         {/* Main play/pause button (center) */}
@@ -385,17 +409,20 @@ export const WorkoutRunScreen = () => {
                                 onPress={handlePrimary}
                                 variant="primary"
                                 backgroundColor={phaseColor}
-                                size={76} // matches previous design
+                                size={76}
                             >
                                 <Ionicons
                                     name={running ? 'pause' : 'play'}
                                     size={30}
-                                    color="#0B0B0C"
+                                    color={theme.palette.text.inverted}
                                 />
                             </CircleIconButton>
-                            <Text style={st.footerIconLabel}>
+                            <AppText
+                                variant="caption"
+                                style={st.footerIconLabel}
+                            >
                                 {primaryLabel}
-                            </Text>
+                            </AppText>
                         </View>
 
                         {/* End (right) */}
@@ -407,10 +434,15 @@ export const WorkoutRunScreen = () => {
                                 <Ionicons
                                     name="stop"
                                     size={22}
-                                    color="#E5E7EB"
+                                    color={theme.palette.button.text.secondary}
                                 />
                             </CircleIconButton>
-                            <Text style={st.footerIconLabel}>End</Text>
+                            <AppText
+                                variant="caption"
+                                style={st.footerIconLabel}
+                            >
+                                End
+                            </AppText>
                         </View>
                     </View>
                 )}
