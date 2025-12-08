@@ -128,9 +128,19 @@ export const useWorkoutRun = ({
 
     const getExerciseNameForStep = (s: Step | undefined): string | null => {
         if (!s || s.label !== 'WORK') return null;
+
         const blk = blocks[s.blockIdx];
         const ex = blk?.exercises?.[s.exIdx];
-        return ex?.name ?? null;
+
+        if (!ex) return null;
+
+        const trimmed = ex.name?.trim();
+
+        // If user provided a non-empty name, use it.
+        // Otherwise fall back to "Exercise N" based on the index in the block.
+        return trimmed && trimmed.length > 0
+            ? trimmed
+            : `Exercise ${s.exIdx + 1}`;
     };
 
     let currentExerciseName: string | null = null;
