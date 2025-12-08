@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TextInput, View, Text } from 'react-native';
 
 import type { TextFieldProps } from './TextField.interfaces';
@@ -14,14 +14,27 @@ export const TextField: React.FC<TextFieldProps> = ({
     inputStyle,
     rightAccessory,
     multiline,
+    autoHideErrorOnChange = true,
     onFocus,
     onBlur,
     ...inputProps
 }) => {
     const { theme } = useTheme();
     const [isFocused, setIsFocused] = useState(false);
+    const [squelched, setSquelched] = useState(false);
 
-    const hasError = !!errorText;
+    // Extract onChangeText so we can wrap it
+    const { onChangeText, ...restInputProps } = inputProps;
+
+    // Reset squelch whenever the external error changes / clears
+    useEffect(() => {
+        if (!errorText) {
+            setSquelched(false);
+        }
+    }, [errorText]);
+
+    const hasError = !!errorText && !(autoHideErrorOnChange && squelched);
+
     const st = useTextFieldStyles({
         hasError,
         isFocused,
@@ -30,6 +43,16 @@ export const TextField: React.FC<TextFieldProps> = ({
 
     const showHelper = !!helperText && !hasError;
     const showError = hasError;
+
+    const handleChangeText = (value: string) => {
+        if (autoHideErrorOnChange && errorText && !squelched) {
+            setSquelched(true);
+        }
+
+        if (onChangeText) {
+            onChangeText(value);
+        }
+    };
 
     return (
         <View style={[st.container, containerStyle]}>
@@ -40,7 +63,7 @@ export const TextField: React.FC<TextFieldProps> = ({
             ) : null}
 
             <TextInput
-                {...inputProps}
+                {...restInputProps}
                 multiline={multiline}
                 style={[st.input, inputStyle]}
                 placeholderTextColor={theme.palette.text.muted}
@@ -52,7 +75,9 @@ export const TextField: React.FC<TextFieldProps> = ({
                     setIsFocused(false);
                     onBlur?.(e);
                 }}
+                onChangeText={handleChangeText}
             />
+
             {rightAccessory ? (
                 <View style={st.rightAccessoryContainer}>{rightAccessory}</View>
             ) : null}
