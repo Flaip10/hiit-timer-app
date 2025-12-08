@@ -61,7 +61,7 @@ const BlockEditScreen = () => {
         [errors, st.errorBox]
     );
 
-    if (notFound || !block) {
+    if (notFound || !block || labelIndex === null) {
         return (
             <MainContainer title="Edit Block" scroll={false}>
                 <AppText variant="body" tone="danger" style={st.err}>
@@ -85,11 +85,11 @@ const BlockEditScreen = () => {
         }
     };
 
-    const titleSuffix = block.title ? ` — ${block.title}` : '';
+    const blockLabel = `Block ${labelIndex}`;
 
     return (
         <>
-            <MainContainer title={`Block ${labelIndex}${titleSuffix}`}>
+            <MainContainer title={'Edit Block'}>
                 {/* Block setup section */}
                 <ScreenSection title="Block setup" topSpacing="none">
                     <View style={st.sectionContentGap}>
@@ -97,6 +97,7 @@ const BlockEditScreen = () => {
                             label="Block title"
                             value={block.title ?? ''}
                             onChangeText={onTitle}
+                            placeholder={blockLabel}
                         />
 
                         <Stepper
