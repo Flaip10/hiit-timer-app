@@ -41,7 +41,7 @@ export const useBlockEditor = ({ draft, blockId }: UseBlockEditorArgs) => {
         setBlock(copy);
     }, [draft, blockId]);
 
-    // index for "Block 1 — ..." label
+    // index for "Block 1" label
     const labelIndex = useMemo(() => {
         if (!draft || !blockId) return null;
         const idx = draft.blocks.findIndex((b) => b.id === blockId);
@@ -140,7 +140,6 @@ export const useBlockEditor = ({ draft, blockId }: UseBlockEditorArgs) => {
                           ...prev.exercises,
                           {
                               id: uid(),
-                              name: `Exercise ${prev.exercises.length + 1}`,
                               mode: 'time',
                               value:
                                   prev.exercises[0]?.value != null

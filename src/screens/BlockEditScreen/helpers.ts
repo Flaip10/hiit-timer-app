@@ -17,7 +17,6 @@ export const ensureExerciseCount = (
     while (next.exercises.length < count) {
         next.exercises.push({
             id: uid(),
-            name: `Exercise ${next.exercises.length + 1}`,
             mode: 'time',
             value: 20,
         });
@@ -52,7 +51,7 @@ export const validateBlock = (block: WorkoutBlock | null): string[] => {
     const errs: string[] = [];
 
     if (block.sets <= 0) {
-        errs.push('Sets must be greater than zero.');
+        errs.push('Block must have at least one set.');
     }
 
     if (block.exercises.length === 0) {
@@ -60,10 +59,6 @@ export const validateBlock = (block: WorkoutBlock | null): string[] => {
     }
 
     block.exercises.forEach((ex, ei) => {
-        if (!ex.name.trim()) {
-            errs.push(`Exercise ${ei + 1}: name is required.`);
-        }
-
         if (ex.mode === 'time' && ex.value <= 0) {
             errs.push(`Exercise ${ei + 1}: duration must be > 0 seconds.`);
         }
