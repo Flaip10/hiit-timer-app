@@ -18,7 +18,7 @@ export type ExerciseMode = 'time' | 'reps';
  */
 export interface Exercise {
     id: UUID;
-    name: string;
+    name?: string;
 
     mode: ExerciseMode;
 

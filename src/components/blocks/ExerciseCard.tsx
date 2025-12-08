@@ -26,8 +26,16 @@ export const ExerciseCard: React.FC<Props> = ({
     const { theme } = useTheme();
     const st = useExerciseCardStyles();
 
+    const label = `Exercise ${index + 1}`;
+
     const setName = (v: string) => {
-        onChange({ ...exercise, name: v });
+        const trimmed = v.trim();
+
+        onChange({
+            ...exercise,
+            // only persist if user actually typed something meaningful
+            name: trimmed.length > 0 ? trimmed : undefined,
+        });
     };
 
     const setDurationSec = (n: number) => {
@@ -39,8 +47,6 @@ export const ExerciseCard: React.FC<Props> = ({
             value: n,
         });
     };
-
-    const label = `Exercise ${index + 1}`;
 
     return (
         <MetaCard
@@ -71,7 +77,7 @@ export const ExerciseCard: React.FC<Props> = ({
             <View style={st.body}>
                 <TextField
                     label="Name"
-                    value={exercise.name}
+                    value={exercise.name ?? ''}
                     placeholder={label}
                     onChangeText={setName}
                 />
