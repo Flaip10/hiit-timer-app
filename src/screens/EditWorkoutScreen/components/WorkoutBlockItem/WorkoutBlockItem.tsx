@@ -31,7 +31,7 @@ export const WorkoutBlockItem = ({
 }: WorkoutBlockItemProps) => {
     const { theme } = useTheme();
     const st = useWorkoutBlockItemStyles();
-    const { sets, exercises, title } = block;
+    const { sets, exercises } = block;
 
     const exerciseSummary = useMemo(() => {
         if (exercises.length === 0) return '';
@@ -62,7 +62,11 @@ export const WorkoutBlockItem = ({
         return parts;
     }, [sets, exercises.length, exerciseSummary]);
 
-    const blockLabel = `Block ${index + 1}` + (title ? ` — ${title}` : '');
+    const trimmedTitle = block.title?.trim();
+    const blockLabel =
+        trimmedTitle && trimmedTitle.length > 0
+            ? trimmedTitle
+            : `Block ${index + 1}`;
 
     const formatExerciseMeta = (
         mode: WorkoutBlock['exercises'][number]['mode'],
