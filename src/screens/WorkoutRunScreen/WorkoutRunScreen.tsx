@@ -109,7 +109,7 @@ export const WorkoutRunScreen = () => {
             <>
                 <MainContainer title="Run workout" scroll={false}>
                     <View style={st.emptyContainer}>
-                        <AppText variant="title2" style={st.emptyTitle}>
+                        <AppText variant="title3" style={st.emptyTitle}>
                             No steps to run
                         </AppText>
                         <AppText variant="bodySmall" style={st.emptyText}>
@@ -193,7 +193,7 @@ export const WorkoutRunScreen = () => {
                                 />
                                 <View style={st.workoutTimerTextWrapper}>
                                     <AppText
-                                        variant="title2"
+                                        variant="title3"
                                         style={st.workoutTimerText}
                                     >
                                         {formatDuration(remainingWorkoutSec)}

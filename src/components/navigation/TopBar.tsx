@@ -108,7 +108,7 @@ export const TopBar = ({
 
                 <View style={st.titleWrapper}>
                     <AppText
-                        variant="title2"
+                        variant="title3"
                         align="center"
                         numberOfLines={1}
                         onPress={onTitlePress}

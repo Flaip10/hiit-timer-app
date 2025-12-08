@@ -21,7 +21,7 @@ const EmptyWorkouts = ({ onPressButton }: { onPressButton: () => void }) => {
 
     return (
         <View style={st.emptyContainer}>
-            <AppText variant="title2">No workouts yet</AppText>
+            <AppText variant="title3">No workouts yet</AppText>
 
             <AppText
                 variant="bodySmall"

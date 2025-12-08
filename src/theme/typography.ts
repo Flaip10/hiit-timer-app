@@ -4,6 +4,7 @@ import type { AppTheme } from './theme';
 export type TextVariant =
     | 'title1'
     | 'title2'
+    | 'title3'
     | 'subtitle'
     | 'body'
     | 'bodySmall'
@@ -24,6 +25,12 @@ export const createTypography = (_theme: AppTheme): TypographyMap => ({
         letterSpacing: 0.2,
     },
     title2: {
+        fontSize: 20,
+        fontWeight: '700',
+        lineHeight: 20,
+        letterSpacing: 0.17,
+    },
+    title3: {
         fontSize: 18,
         fontWeight: '700',
         lineHeight: 18,

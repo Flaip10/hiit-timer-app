@@ -34,7 +34,7 @@ const NewWorkoutModal = ({
         <Modal visible={visible} onRequestClose={closeModal}>
             <View style={st.mainContainer}>
                 <View style={st.textContainer}>
-                    <AppText variant="title2" tone="primary">
+                    <AppText variant="title3" tone="primary">
                         New workout
                     </AppText>
 

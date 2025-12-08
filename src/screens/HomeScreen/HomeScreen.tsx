@@ -5,7 +5,7 @@ import { AppText } from '@src/components/ui/Typography/AppText';
 
 const HomeScreen = () => (
     <MainContainer title="Home">
-        <AppText variant="title2" style={st.heading}>
+        <AppText variant="title3" style={st.heading}>
             Welcome
         </AppText>
 
