@@ -27,7 +27,7 @@ const RootLayout = () => {
                         options={{ headerShown: false }}
                     />
                     <Stack.Screen
-                        name="workouts/block-edit"
+                        name="workouts/edit-block"
                         options={{ headerShown: false }}
                     />
                 </Stack>

@@ -175,7 +175,7 @@ export const useWorkouts = create<WorkoutsState>()(
                     Object.assign(block, patch);
                 }),
 
-            // replace all draft blocks (e.g. when coming back from BlockEditScreen)
+            // replace all draft blocks (e.g. when coming back from EditBlockScreen)
             setDraftBlocks: (blocks) =>
                 set((state) => {
                     if (!state.draft) return;

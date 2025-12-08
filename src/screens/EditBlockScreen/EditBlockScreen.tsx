@@ -12,11 +12,11 @@ import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSectio
 
 import { useWorkouts } from '@state/useWorkouts';
 import { useBlockEditor } from './useBlockEditor';
-import { useBlockEditStyles } from './BlockEditScreen.styles';
+import { useBlockEditStyles } from './EditBlockScreen.styles';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 
-const BlockEditScreen = () => {
+const EditBlockScreen = () => {
     const { blockId } = useLocalSearchParams<{ blockId?: string }>();
     const router = useRouter();
 
@@ -210,4 +210,4 @@ const BlockEditScreen = () => {
     );
 };
 
-export default BlockEditScreen;
+export default EditBlockScreen;

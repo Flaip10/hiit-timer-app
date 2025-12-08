@@ -87,7 +87,7 @@ const EditWorkoutScreen = () => {
 
     const onEditBlock = (blockId: string) => {
         router.push({
-            pathname: '/workouts/block-edit',
+            pathname: '/workouts/edit-block',
             params: { blockId },
         });
     };
