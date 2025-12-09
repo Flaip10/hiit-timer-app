@@ -6,6 +6,7 @@ import Animated, {
     useSharedValue,
     withDelay,
     withTiming,
+    cancelAnimation,
 } from 'react-native-reanimated';
 
 import type { Phase } from '@src/core/timer';
@@ -51,6 +52,10 @@ export const NextExerciseCarousel: React.FC<NextExerciseCarouselProps> = ({
     useEffect(() => {
         if (label === displayed) return;
 
+        // Stop any running text animation before starting a new one
+        cancelAnimation(translateY);
+        cancelAnimation(opacity);
+
         // OUT
         translateY.value = withTiming(-8, {
             duration: OUT_DURATION,
@@ -86,6 +91,9 @@ export const NextExerciseCarousel: React.FC<NextExerciseCarouselProps> = ({
     // ----- phase → dim / highlight card -----
     useEffect(() => {
         const last = lastPhaseRef.current;
+
+        // Stop any pending opacity animation before scheduling a new one
+        cancelAnimation(cardOpacity);
 
         // WORK -> REST → fade card in (highlight "Next" during rest)
         if (last === 'WORK' && phase === 'REST') {

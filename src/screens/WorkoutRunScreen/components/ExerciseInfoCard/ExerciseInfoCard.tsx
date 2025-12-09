@@ -5,6 +5,7 @@ import Animated, {
     useAnimatedStyle,
     useSharedValue,
     withTiming,
+    cancelAnimation,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -65,6 +66,10 @@ export const ExerciseInfoCard = ({
     useEffect(() => {
         if (currentExerciseName === displayedName) return;
 
+        // Kill any pending animations for the name before starting a new cycle
+        cancelAnimation(nameTranslateY);
+        cancelAnimation(nameOpacity);
+
         // OUT
         nameTranslateY.value = withTiming(-8, {
             duration: NAME_OUT_DURATION,
@@ -102,6 +107,11 @@ export const ExerciseInfoCard = ({
 
     // Reset completion visuals whenever we start a *new* exercise
     useEffect(() => {
+        // Stop any previous completion animation for the old exercise
+        cancelAnimation(cardOpacity);
+        cancelAnimation(tickScale);
+        cancelAnimation(tickOpacity);
+
         cardOpacity.value = 1;
         tickScale.value = 0;
         tickOpacity.value = 0;
@@ -113,6 +123,11 @@ export const ExerciseInfoCard = ({
 
         // WORK -> not WORK => mark as completed
         if (last === 'WORK' && phase !== 'WORK' && currentExerciseName) {
+            // Avoid overlapping fades
+            cancelAnimation(cardOpacity);
+            cancelAnimation(tickScale);
+            cancelAnimation(tickOpacity);
+
             cardOpacity.value = withTiming(0.5, { duration: 220 });
 
             tickOpacity.value = withTiming(1, { duration: 180 });
@@ -124,6 +139,10 @@ export const ExerciseInfoCard = ({
 
         // When going back to WORK, ensure the card is "active" again
         if (phase === 'WORK') {
+            cancelAnimation(cardOpacity);
+            cancelAnimation(tickScale);
+            cancelAnimation(tickOpacity);
+
             cardOpacity.value = 1;
             tickScale.value = 0;
             tickOpacity.value = 0;
