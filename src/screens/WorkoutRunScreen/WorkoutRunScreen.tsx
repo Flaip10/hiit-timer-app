@@ -8,12 +8,18 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 
+import { Feather, Ionicons } from '@expo/vector-icons';
+
 import { useWorkout } from '@state/useWorkouts';
 import { buildSteps } from '@core/timer';
 
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
-import { FooterBar } from '@components/layout/FooterBar';
-import { Button } from '@components/ui/Button/Button';
+import { FooterBar } from '@src/components/layout/FooterBar';
+import { Button } from '@src/components/ui/Button/Button';
+import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
+import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
+import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
+import { AppText } from '@src/components/ui/Typography/AppText';
 
 import useWorkoutRunStyles from './WorkoutRunScreen.styles';
 import { PhaseArc } from './components/PhaseArc/PhaseArc';
@@ -22,7 +28,6 @@ import { NextExerciseCarousel } from './components/NextExerciseCarousel/NextExer
 import { FinishedCard } from './components/FinishedCard/FinishedCard';
 import { PhasePill } from './components/PhasePill/PhasePill';
 import { WorkoutMetaStrip } from './components/WorkoutMetaStrip/WorkoutMetaStrip';
-import { Feather, Ionicons } from '@expo/vector-icons';
 import {
     colorFor,
     formatDuration,
@@ -31,10 +36,8 @@ import {
 } from './helpers';
 import { useWorkoutRun } from './hooks/useWorkoutRun';
 import { ShareWorkoutCard } from './components/ShareWorkoutCard/ShareWorkoutCard';
-import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
-import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
-import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
+import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 
 const AnimatedAppText = Animated.createAnimatedComponent(AppText);
 
@@ -45,6 +48,7 @@ export const WorkoutRunScreen = () => {
     const { theme } = useTheme();
 
     const [shareVisible, setShareVisible] = useState(false);
+    const [endConfirmVisible, setEndConfirmVisible] = useState(false);
     const shareCardRef = useRef<View | null>(null);
 
     const { id, autoStart } = useLocalSearchParams<{
@@ -83,11 +87,17 @@ export const WorkoutRunScreen = () => {
         totalSets,
         currentExerciseName,
         nextExerciseName,
+        currentBlockIndex,
+        awaitingBlockContinue,
         breathingPhase,
+        completedSetsByBlock,
+        elapsedCompletedSec,
+        isFullyCompleted,
         handlePrimary,
         handleSkip,
-        handleEnd,
+        // handleEnd,
         handleDone,
+        handleForceFinish,
     } = useWorkoutRun({ steps, workout, shouldAutoStart, router });
 
     const timerAnimatedStyle = useAnimatedStyle(() => ({
@@ -103,6 +113,43 @@ export const WorkoutRunScreen = () => {
             }, 0),
         [steps]
     );
+
+    // Block pause state (between blocks, waiting for user to continue)
+    const isBlockPause = awaitingBlockContinue && !!currentBlock;
+
+    // Info for the "next block" MetaCard shown during block pause
+    const blockPauseInfo = useMemo(() => {
+        if (!currentBlock) return null;
+
+        const blockIdx =
+            typeof currentBlockIndex === 'number' ? currentBlockIndex : 0;
+
+        const title =
+            currentBlock.title && currentBlock.title.trim().length > 0
+                ? currentBlock.title.trim()
+                : `Block ${blockIdx + 1}`;
+
+        const exerciseNames = currentBlock.exercises.map(
+            (exercise, exerciseIndex) => {
+                const trimmedName = exercise.name?.trim();
+                if (trimmedName && trimmedName.length > 0) {
+                    return trimmedName;
+                }
+                return `Exercise ${exerciseIndex + 1}`;
+            }
+        );
+
+        const exercisesLine = exerciseNames.join(' • ');
+        const setsLabel = `${currentBlock.sets} set${
+            currentBlock.sets === 1 ? '' : 's'
+        }`;
+
+        return {
+            title,
+            exercisesLine,
+            setsLabel,
+        };
+    }, [currentBlock, currentBlockIndex]);
 
     // -------- empty / not found state --------
 
@@ -161,8 +208,22 @@ export const WorkoutRunScreen = () => {
 
             setShareVisible(false);
         } catch (err) {
+            // eslint-disable-next-line no-console
             console.warn('Share failed', err);
         }
+    };
+
+    const handleRequestEnd = () => {
+        setEndConfirmVisible(true);
+    };
+
+    const handleConfirmEnd = () => {
+        setEndConfirmVisible(false);
+        handleForceFinish();
+    };
+
+    const handleCancelEnd = () => {
+        setEndConfirmVisible(false);
     };
 
     return (
@@ -203,15 +264,17 @@ export const WorkoutRunScreen = () => {
                             </View>
                         </View>
 
-                        {/* Meta strip only while running */}
-                        <WorkoutMetaStrip
-                            blockIndex={step.blockIdx}
-                            blockTitle={currentBlock?.title}
-                            currentSetIndex={step.setIdx}
-                            totalSets={totalSets}
-                            setProgress={setProgress}
-                            phaseColor={phaseColor}
-                        />
+                        {/* Meta strip only while running and not in block pause */}
+                        {!isBlockPause && (
+                            <WorkoutMetaStrip
+                                blockIndex={step.blockIdx}
+                                blockTitle={currentBlock?.title}
+                                currentSetIndex={step.setIdx}
+                                totalSets={totalSets}
+                                setProgress={setProgress}
+                                phaseColor={phaseColor}
+                            />
+                        )}
                     </AppearingView>
 
                     <AppearingView
@@ -257,32 +320,107 @@ export const WorkoutRunScreen = () => {
                     </AppearingView>
                 </View>
 
-                {/* ARC + PHASE */}
+                {/* ARC + PHASE / BLOCK PAUSE */}
                 <View style={st.arcContainer}>
                     <PhasePill
                         color={phaseColor}
-                        label={isFinished ? 'Done' : phaseLabel}
+                        label={
+                            isFinished
+                                ? 'Done'
+                                : isBlockPause
+                                  ? 'Prepare'
+                                  : phaseLabel
+                        }
                     />
 
-                    <View style={st.arcWrapper}>
-                        <PhaseArc
-                            progress={phaseProgress}
-                            color={phaseColor}
-                            finished={isFinished}
-                            breathingPhase={breathingPhase}
-                        />
-                        <AnimatedAppText
-                            variant="title1"
-                            style={[st.timer, timerAnimatedStyle]}
-                        >
-                            {isFinished ? 0 : remaining}
-                        </AnimatedAppText>
-                    </View>
+                    {isBlockPause && blockPauseInfo ? (
+                        <View style={st.blockPauseContainer}>
+                            <MetaCard
+                                expandable={false}
+                                topLeftContent={{
+                                    text: 'Next block',
+                                    icon: (
+                                        <Ionicons
+                                            name="barbell-outline"
+                                            size={14}
+                                            color={
+                                                theme.palette.metaCard
+                                                    .topLeftContent.text
+                                            }
+                                        />
+                                    ),
+                                    backgroundColor:
+                                        theme.palette.metaCard.topLeftContent
+                                            .background,
+                                    color: theme.palette.metaCard.topLeftContent
+                                        .text,
+                                    borderColor:
+                                        theme.palette.metaCard.topLeftContent
+                                            .border,
+                                }}
+                                summaryContent={
+                                    <View style={st.blockPauseSummary}>
+                                        <AppText
+                                            variant="body"
+                                            style={st.blockPauseTitle}
+                                            numberOfLines={1}
+                                            ellipsizeMode="tail"
+                                        >
+                                            {blockPauseInfo.title}
+                                        </AppText>
+                                        <View style={st.blockPauseRow}>
+                                            <View style={st.blockPauseSetsPill}>
+                                                <AppText
+                                                    variant="caption"
+                                                    style={
+                                                        st.blockPauseSetsText
+                                                    }
+                                                >
+                                                    {blockPauseInfo.setsLabel}
+                                                </AppText>
+                                            </View>
+                                        </View>
+                                        <AppText
+                                            variant="bodySmall"
+                                            tone="muted"
+                                            style={st.blockPauseExercises}
+                                            numberOfLines={0}
+                                        >
+                                            {blockPauseInfo.exercisesLine}
+                                        </AppText>
+                                    </View>
+                                }
+                            />
+
+                            <AppText
+                                variant="captionSmall"
+                                tone="muted"
+                                style={st.blockPauseHint}
+                            >
+                                Tap play to start this block.
+                            </AppText>
+                        </View>
+                    ) : (
+                        <View style={st.arcWrapper}>
+                            <PhaseArc
+                                progress={phaseProgress}
+                                color={phaseColor}
+                                finished={isFinished}
+                                breathingPhase={breathingPhase}
+                            />
+                            <AnimatedAppText
+                                variant="title1"
+                                style={[st.timer, timerAnimatedStyle]}
+                            >
+                                {isFinished ? 0 : remaining}
+                            </AnimatedAppText>
+                        </View>
+                    )}
                 </View>
 
                 {/* CURRENT + NEXT EXERCISE */}
                 <View style={st.exerciseInfoContainer}>
-                    {!isFinished && currentExerciseName && (
+                    {!isFinished && !isBlockPause && currentExerciseName && (
                         <ExerciseInfoCard
                             phase={phase}
                             color={phaseColor}
@@ -290,7 +428,7 @@ export const WorkoutRunScreen = () => {
                         />
                     )}
 
-                    {!isFinished && nextExerciseName && (
+                    {!isFinished && !isBlockPause && nextExerciseName && (
                         <NextExerciseCarousel
                             phase={phase}
                             label={nextExerciseName}
@@ -301,6 +439,7 @@ export const WorkoutRunScreen = () => {
                 {/* FINISHED CARD */}
                 <FinishedCard visible={isFinished} />
 
+                {/* Share button (finished only) */}
                 <AppearingView
                     visible={isFinished}
                     style={st.finishedFooterRow}
@@ -317,6 +456,7 @@ export const WorkoutRunScreen = () => {
                     </CircleIconButton>
                 </AppearingView>
 
+                {/* Share preview modal – only used on finished state */}
                 {isFinished && (
                     <Modal
                         visible={shareVisible}
@@ -331,6 +471,16 @@ export const WorkoutRunScreen = () => {
                                         workout={workout}
                                         phaseColor={phaseColor}
                                         shareRef={shareCardRef}
+                                        completedSetsByBlock={
+                                            completedSetsByBlock
+                                        }
+                                        elapsedCompletedSec={
+                                            elapsedCompletedSec
+                                        }
+                                        totalWorkoutPlannedSec={
+                                            totalWorkoutPlannedSec
+                                        }
+                                        isFullyCompleted={isFullyCompleted}
                                     />
                                 </View>
 
@@ -353,6 +503,18 @@ export const WorkoutRunScreen = () => {
                         </View>
                     </Modal>
                 )}
+
+                {/* End-workout confirmation dialog */}
+                <ConfirmDialog
+                    visible={endConfirmVisible}
+                    title="End workout?"
+                    message="Your progress so far will be saved in the summary."
+                    confirmLabel="End workout"
+                    cancelLabel="Keep going"
+                    destructive
+                    onConfirm={handleConfirmEnd}
+                    onCancel={handleCancelEnd}
+                />
             </MainContainer>
 
             {/* FOOTER BUTTONS */}
@@ -380,10 +542,10 @@ export const WorkoutRunScreen = () => {
                     </View>
                 ) : (
                     <View style={st.footerIconRow}>
-                        {/* End button */}
+                        {/* End button (with confirm) */}
                         <View style={st.footerIconWrapper}>
                             <CircleIconButton
-                                onPress={handleEnd}
+                                onPress={handleRequestEnd}
                                 variant="secondary"
                             >
                                 <Ionicons

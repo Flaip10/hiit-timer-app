@@ -17,6 +17,10 @@ type ShareWorkoutCardProps = {
     workout: Workout;
     phaseColor: string;
     shareRef: RefObject<View | null>;
+    completedSetsByBlock: number[]; // per-block completed sets
+    elapsedCompletedSec: number; // time of completed sets only
+    totalWorkoutPlannedSec: number; // full planned time for the workout
+    isFullyCompleted: boolean; // true only when all planned sets are done
 };
 
 const buildCompletedLabel = (): string => {
@@ -40,15 +44,33 @@ export const ShareWorkoutCard = ({
     workout,
     phaseColor,
     shareRef,
+    completedSetsByBlock,
+    elapsedCompletedSec,
+    totalWorkoutPlannedSec,
+    isFullyCompleted,
 }: ShareWorkoutCardProps) => {
     const { theme } = useTheme();
     const st = useShareWorkoutCardStyles();
 
     const summary = useMemo(() => summarizeWorkout(workout), [workout]);
 
+    // Planned time as fallback (from summary or from screen)
+    const plannedDurationSec =
+        summary.approxSec && summary.approxSec > 0
+            ? summary.approxSec
+            : totalWorkoutPlannedSec;
+
+    // If fully completed, show planned time.
+    // If ended early, show time of completed sets only (if > 0), otherwise planned.
+    const effectiveDurationSec = isFullyCompleted
+        ? plannedDurationSec
+        : elapsedCompletedSec > 0
+          ? elapsedCompletedSec
+          : plannedDurationSec;
+
     const timeLabel =
-        summary.approxSec > 0
-            ? formatWorkoutDuration(summary.approxSec)
+        effectiveDurationSec > 0
+            ? formatWorkoutDuration(effectiveDurationSec)
             : summary.hasReps
               ? 'Mixed (time + reps)'
               : 'No time estimate';
@@ -57,39 +79,57 @@ export const ShareWorkoutCard = ({
 
     const blocksForCard = useMemo(
         () =>
-            workout.blocks.map((block, index) => {
-                const title =
-                    block.title && block.title.trim().length > 0
-                        ? block.title.trim()
-                        : `Block ${index + 1}`;
+            workout.blocks
+                .map((block, index) => {
+                    const completedSets = completedSetsByBlock[index] ?? 0;
 
-                const exerciseNames = block.exercises.map(
-                    (exercise, exerciseIndex) => {
-                        const trimmedName = exercise.name?.trim();
-
-                        if (trimmedName && trimmedName.length > 0) {
-                            return trimmedName;
-                        }
-
-                        // Fallback for unnamed exercises
-                        return `Exercise ${exerciseIndex + 1}`;
+                    // Only show blocks where at least one set was completed
+                    if (completedSets <= 0) {
+                        return null;
                     }
-                );
 
-                const exercisesLine = exerciseNames.join(' • ');
+                    const title =
+                        block.title && block.title.trim().length > 0
+                            ? block.title.trim()
+                            : `Block ${index + 1}`;
 
-                const setsLabel = `${block.sets} set${
-                    block.sets === 1 ? '' : 's'
-                }`;
+                    const exerciseNames = block.exercises.map(
+                        (exercise, exerciseIndex) => {
+                            const trimmedName = exercise.name?.trim();
 
-                return {
-                    id: block.id,
-                    title,
-                    exercisesLine,
-                    setsLabel,
-                };
-            }),
-        [workout.blocks]
+                            if (trimmedName && trimmedName.length > 0) {
+                                return trimmedName;
+                            }
+
+                            // Fallback for unnamed exercises
+                            return `Exercise ${exerciseIndex + 1}`;
+                        }
+                    );
+
+                    const exercisesLine = exerciseNames.join(' • ');
+
+                    const setsLabel = `${completedSets}/${block.sets} set${
+                        block.sets === 1 ? '' : 's'
+                    }`;
+
+                    return {
+                        id: block.id,
+                        title,
+                        exercisesLine,
+                        setsLabel,
+                    };
+                })
+                .filter(
+                    (
+                        block
+                    ): block is {
+                        id: string;
+                        title: string;
+                        exercisesLine: string;
+                        setsLabel: string;
+                    } => block !== null
+                ),
+        [workout.blocks, completedSetsByBlock]
     );
 
     return (
@@ -146,9 +186,9 @@ export const ShareWorkoutCard = ({
                     </AppText>
                 </View>
 
-                {/* Center section: title + circle + Summary MetaCard + blocks list */}
+                {/* Center section: blocks list + circle + overview MetaCard */}
                 <View style={st.centerSection}>
-                    {/* Blocks & exercises – outside MetaCard, with bullet + sets pill + work/rest */}
+                    {/* Blocks & exercises – outside MetaCard, with bullet + sets pill */}
                     {blocksForCard.length > 0 && (
                         <View style={st.blocksList}>
                             {blocksForCard.map((block) => (

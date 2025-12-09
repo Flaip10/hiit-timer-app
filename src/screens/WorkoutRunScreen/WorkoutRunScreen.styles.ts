@@ -29,6 +29,45 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
             fontVariant: ['tabular-nums'],
         },
 
+        // ===== Block pause (between blocks) =====
+        blockPauseContainer: {
+            width: '100%',
+            paddingHorizontal: 24,
+            gap: 12,
+        },
+        blockPauseSummary: {
+            gap: 8,
+        },
+        blockPauseTitle: {
+            color: theme.palette.text.primary,
+            fontWeight: '600',
+        },
+        blockPauseRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            gap: 8,
+        },
+        blockPauseSetsPill: {
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 999,
+            backgroundColor: theme.palette.background.card,
+            borderWidth: 1,
+            borderColor: theme.palette.border.subtle,
+        },
+        blockPauseSetsText: {
+            color: theme.palette.text.secondary,
+            fontWeight: '500',
+        },
+        blockPauseExercises: {
+            color: theme.palette.text.secondary,
+        },
+        blockPauseHint: {
+            textAlign: 'center',
+            color: theme.palette.text.muted,
+        },
+
         // Empty Run State
         emptyContainer: {
             flex: 1,
