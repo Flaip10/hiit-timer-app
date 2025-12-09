@@ -8,9 +8,11 @@ import Reanimated, {
     withDelay,
     Easing,
     SharedValue,
+    cancelAnimation,
 } from 'react-native-reanimated';
 
 import { ARC_SIZE } from '../../WorkoutRunScreen.styles';
+import { useTheme } from '@src/theme/ThemeProvider';
 
 const AnimatedPath = Reanimated.createAnimatedComponent(Path);
 
@@ -67,6 +69,10 @@ export const PhaseArc = ({
     finished,
     breathingPhase,
 }: PhaseArcProps) => {
+    const { theme } = useTheme();
+    const trackColor = theme.palette.background.card;
+    // const trackColor = theme.palette.accent.soft;
+
     const cx = ARC_SIZE / 2;
     const cy = ARC_SIZE / 2;
 
@@ -75,7 +81,9 @@ export const PhaseArc = ({
     const arcPath = describeArc(cx, cy, ARC_RADIUS, startAngle, endAngle);
 
     // Main arc progress – follows the real phase progress
-    const mainProgress = useSharedValue(progress);
+    const mainProgress = useSharedValue(
+        Math.max(0, Math.min(1, progress ?? 0))
+    );
 
     // Glow sweep progress (0..1 along the arc) and opacity
     const glowProgress = useSharedValue(0);
@@ -83,10 +91,13 @@ export const PhaseArc = ({
 
     const prevFinished = useRef(false);
 
-    // Normal phase progress
+    // Normal phase progress (JS thread)
     useEffect(() => {
-        mainProgress.value = withTiming(Math.min(Math.max(progress, 0), 1), {
-            duration: 200, //to follow 5Hz tick
+        cancelAnimation(mainProgress);
+
+        const clamped = Math.max(0, Math.min(1, progress ?? 0));
+        mainProgress.value = withTiming(clamped, {
+            duration: 200, // to follow 5 Hz tick
             easing: Easing.linear,
         });
     }, [progress, mainProgress]);
@@ -96,6 +107,9 @@ export const PhaseArc = ({
         const wasFinished = prevFinished.current;
 
         if (!wasFinished && finished) {
+            cancelAnimation(glowProgress);
+            cancelAnimation(glowOpacity);
+
             glowProgress.value = 0;
             glowOpacity.value = 0;
 
@@ -126,15 +140,26 @@ export const PhaseArc = ({
     }, [finished, glowProgress, glowOpacity]);
 
     const mainProps = useAnimatedProps(() => {
-        const clamped = Math.min(Math.max(mainProgress.value, 0), 1);
-        const strokeDashoffset = ARC_LENGTH * (1 - clamped);
+        // Raw arc progress coming from shared value
+        const rawMainProgress = mainProgress.value;
+
+        // Clamp between 0 and 1 so the strokeDashoffset stays valid
+        const clampedMainProgress =
+            rawMainProgress < 0 ? 0 : rawMainProgress > 1 ? 1 : rawMainProgress;
+
+        // Convert progress → stroke offset
+        const strokeDashoffset = ARC_LENGTH * (1 - clampedMainProgress);
 
         return { strokeDashoffset };
     });
 
     const glowProps = useAnimatedProps(() => {
-        const clamped = Math.min(Math.max(glowProgress.value, 0), 1);
-        const strokeDashoffset = ARC_LENGTH * (1 - clamped);
+        const rawGlowProgress = glowProgress.value;
+
+        const clampedGlowProgress =
+            rawGlowProgress < 0 ? 0 : rawGlowProgress > 1 ? 1 : rawGlowProgress;
+
+        const strokeDashoffset = ARC_LENGTH * (1 - clampedGlowProgress);
 
         return {
             strokeDashoffset,
@@ -143,16 +168,23 @@ export const PhaseArc = ({
     });
 
     const breathingProps = useAnimatedProps(() => {
-        const clampedMain = Math.min(Math.max(mainProgress.value, 0), 1);
-        const strokeDashoffset = ARC_LENGTH * (1 - clampedMain);
+        // Main arc progress for the halo ring
+        const rawMainProgress = mainProgress.value;
 
-        // if prop is missing, treat as 0
-        const breath = breathingPhase ? breathingPhase.value : 0;
+        const clampedMainProgress =
+            rawMainProgress < 0 ? 0 : rawMainProgress > 1 ? 1 : rawMainProgress;
+
+        const strokeDashoffset = ARC_LENGTH * (1 - clampedMainProgress);
+
+        // Breathing animation modifier
+        const rawBreathValue = breathingPhase ? breathingPhase.value : 0;
+
+        const clampedBreathValue =
+            rawBreathValue < 0 ? 0 : rawBreathValue > 1 ? 1 : rawBreathValue;
 
         return {
             strokeDashoffset,
-            // scale halo opacity with breathing phase
-            opacity: breath * 0.6,
+            opacity: clampedBreathValue * 0.6,
         };
     });
 
@@ -160,12 +192,14 @@ export const PhaseArc = ({
         <Svg
             width={ARC_SIZE + SVG_PADDING * 2}
             height={ARC_SIZE + SVG_PADDING * 2}
-            viewBox={`${-SVG_PADDING} ${-SVG_PADDING} ${ARC_SIZE + SVG_PADDING * 2} ${ARC_SIZE + SVG_PADDING * 2}`}
+            viewBox={`${-SVG_PADDING} ${-SVG_PADDING} ${
+                ARC_SIZE + SVG_PADDING * 2
+            } ${ARC_SIZE + SVG_PADDING * 2}`}
         >
             {/* Background track */}
             <Path
                 d={arcPath}
-                stroke="#111827"
+                stroke={trackColor}
                 strokeWidth={ARC_STROKE}
                 fill="transparent"
                 strokeLinecap="round"
@@ -179,7 +213,7 @@ export const PhaseArc = ({
                 fill="transparent"
                 strokeLinecap="round"
                 strokeDasharray={`${ARC_LENGTH} ${ARC_LENGTH}`}
-                animatedProps={breathingProps}
+                animatedProps={breathingPhase ? breathingProps : mainProps}
             />
 
             {/* Glow sweep (thicker, fades out) */}
@@ -192,6 +226,7 @@ export const PhaseArc = ({
                 strokeDasharray={`${ARC_LENGTH} ${ARC_LENGTH}`}
                 animatedProps={glowProps}
             />
+
             {/* Main phase arc – just follows normal progress */}
             <AnimatedPath
                 d={arcPath}
