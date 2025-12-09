@@ -1,6 +1,6 @@
-import { StyleSheet } from 'react-native';
+import { createStyles } from '@src/theme/createStyles';
 
-const st = StyleSheet.create({
+const useExerciseInfoCardStyles = createStyles((theme) => ({
     currentCard: {
         width: '100%',
     },
@@ -13,36 +13,23 @@ const st = StyleSheet.create({
     },
 
     currentTitle: {
-        color: '#9CA3AF',
-        fontSize: 11,
+        color: theme.palette.text.muted,
         textTransform: 'uppercase',
         letterSpacing: 0.5,
     },
 
-    currentPhasePill: {
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 999,
-    },
-
-    currentPhaseText: {
-        color: '#0B0B0C',
-        fontSize: 12,
-        fontWeight: '700',
-    },
-
-    currentName: {
-        color: '#F9FAFB',
-        fontSize: 20,
-        fontWeight: '700',
-    },
     currentBodyRow: {
         marginVertical: 6,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 16,
         justifyContent: 'flex-start',
+        gap: 16,
     },
+
+    currentName: {
+        color: theme.palette.text.primary,
+    },
+
     checkCircle: {
         width: 24,
         height: 24,
@@ -50,11 +37,6 @@ const st = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    checkMark: {
-        color: '#FFFFFF',
-        fontSize: 14,
-        fontWeight: '700',
-    },
-});
+}));
 
-export default st;
+export default useExerciseInfoCardStyles;

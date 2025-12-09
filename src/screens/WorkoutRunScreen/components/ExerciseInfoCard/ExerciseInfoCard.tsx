@@ -1,8 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Text, View } from 'react-native';
+import { View } from 'react-native';
+import Animated, {
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 
 import type { Phase } from '@core/timer';
-import st from './ExerciseInfoCard.styles';
+import useExerciseInfoCardStyles from './ExerciseInfoCard.styles';
+import { AppText } from '@src/components/ui/Typography/AppText';
+import { useTheme } from '@src/theme/ThemeProvider';
 
 type ExerciseInfoCardProps = {
     phase: Phase;
@@ -10,109 +19,114 @@ type ExerciseInfoCardProps = {
     currentExerciseName: string;
 };
 
+const NAME_OUT_DURATION = 150;
+const NAME_IN_DURATION = 180;
+
 export const ExerciseInfoCard = ({
     phase,
     color,
     currentExerciseName,
 }: ExerciseInfoCardProps) => {
-    // 1) Card-level opacity used when we "complete" the exercise
-    const cardOpacity = useRef(new Animated.Value(1)).current;
+    const st = useExerciseInfoCardStyles();
+    const { theme } = useTheme();
 
-    // 2) Tick animation (scale + opacity)
-    const tickScale = useRef(new Animated.Value(0)).current;
-    const tickOpacity = useRef(new Animated.Value(0)).current;
+    // Name being shown
+    const [displayedName, setDisplayedName] = useState(currentExerciseName);
 
-    // 3) Text carousel animation (independent from completion)
-    const [displayedName, setDisplayedName] =
-        useState<string>(currentExerciseName);
-    const nameOpacity = useRef(new Animated.Value(1)).current;
-    const nameTranslateY = useRef(new Animated.Value(0)).current;
+    // Card dimming when completed
+    const cardOpacity = useSharedValue(1);
+
+    // Name animation
+    const nameOpacity = useSharedValue(1);
+    const nameTranslateY = useSharedValue(0);
+
+    const nameAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: nameOpacity.value,
+        transform: [{ translateY: nameTranslateY.value }],
+    }));
+
+    // Tick animation
+    const tickScale = useSharedValue(0);
+    const tickOpacity = useSharedValue(0);
+
+    const tickAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: tickOpacity.value,
+        transform: [{ scale: tickScale.value }],
+    }));
+
+    const cardAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: cardOpacity.value,
+    }));
 
     // Track last phase to detect WORK → REST/PREP
     const lastPhaseRef = useRef<Phase | null>(null);
 
-    // When exercise name changes -> slide/fade text like a carousel
+    // --- Name change animation (slide/fade out → swap → slide/fade in) ---
     useEffect(() => {
         if (currentExerciseName === displayedName) return;
 
-        // slide + fade out
-        Animated.parallel([
-            Animated.timing(nameTranslateY, {
-                toValue: -8,
-                duration: 150,
-                easing: Easing.out(Easing.ease),
-                useNativeDriver: true,
-            }),
-            Animated.timing(nameOpacity, {
-                toValue: 0,
-                duration: 150,
-                easing: Easing.out(Easing.ease),
-                useNativeDriver: true,
-            }),
-        ]).start(() => {
+        // OUT
+        nameTranslateY.value = withTiming(-8, {
+            duration: NAME_OUT_DURATION,
+            easing: Easing.out(Easing.ease),
+        });
+        nameOpacity.value = withTiming(0, {
+            duration: NAME_OUT_DURATION,
+            easing: Easing.out(Easing.ease),
+        });
+
+        const timeoutId = setTimeout(() => {
             // swap text
             setDisplayedName(currentExerciseName);
 
-            // reset position below and 0 opacity
-            nameTranslateY.setValue(8);
-            nameOpacity.setValue(0);
+            // reset under and invisible
+            nameTranslateY.value = 8;
+            nameOpacity.value = 0;
 
-            // slide + fade in
-            Animated.parallel([
-                Animated.timing(nameTranslateY, {
-                    toValue: 0,
-                    duration: 180,
-                    easing: Easing.out(Easing.ease),
-                    useNativeDriver: true,
-                }),
-                Animated.timing(nameOpacity, {
-                    toValue: 1,
-                    duration: 180,
-                    easing: Easing.out(Easing.ease),
-                    useNativeDriver: true,
-                }),
-            ]).start();
-        });
-    }, [currentExerciseName, displayedName, nameOpacity, nameTranslateY]);
+            // IN
+            nameTranslateY.value = withTiming(0, {
+                duration: NAME_IN_DURATION,
+                easing: Easing.out(Easing.ease),
+            });
+            nameOpacity.value = withTiming(1, {
+                duration: NAME_IN_DURATION,
+                easing: Easing.out(Easing.ease),
+            });
+        }, NAME_OUT_DURATION);
+
+        return () => {
+            clearTimeout(timeoutId);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentExerciseName, displayedName]);
 
     // Reset completion visuals whenever we start a *new* exercise
     useEffect(() => {
-        cardOpacity.setValue(1);
-        tickScale.setValue(0);
-        tickOpacity.setValue(0);
-    }, [currentExerciseName, cardOpacity, tickScale, tickOpacity]);
+        cardOpacity.value = 1;
+        tickScale.value = 0;
+        tickOpacity.value = 0;
+    }, [currentExerciseName, cardOpacity, tickOpacity, tickScale]);
 
-    // Completion logic based on phase transitions
+    // --- Completion logic based on phase transitions ---
     useEffect(() => {
         const last = lastPhaseRef.current;
 
         // WORK -> not WORK => mark as completed
         if (last === 'WORK' && phase !== 'WORK' && currentExerciseName) {
-            Animated.timing(cardOpacity, {
-                toValue: 0.5,
-                duration: 220,
-                useNativeDriver: true,
-            }).start(() => {
-                Animated.parallel([
-                    Animated.timing(tickOpacity, {
-                        toValue: 1,
-                        duration: 180,
-                        useNativeDriver: true,
-                    }),
-                    Animated.spring(tickScale, {
-                        toValue: 1,
-                        friction: 6,
-                        useNativeDriver: true,
-                    }),
-                ]).start();
+            cardOpacity.value = withTiming(0.5, { duration: 220 });
+
+            tickOpacity.value = withTiming(1, { duration: 180 });
+            tickScale.value = withTiming(1, {
+                duration: 180,
+                easing: Easing.out(Easing.ease),
             });
         }
 
         // When going back to WORK, ensure the card is "active" again
         if (phase === 'WORK') {
-            cardOpacity.setValue(1);
-            tickScale.setValue(0);
-            tickOpacity.setValue(0);
+            cardOpacity.value = 1;
+            tickScale.value = 0;
+            tickOpacity.value = 0;
         }
 
         lastPhaseRef.current = phase;
@@ -120,41 +134,38 @@ export const ExerciseInfoCard = ({
 
     return (
         <Animated.View
-            style={[
-                st.currentCard,
-                { borderColor: color, opacity: cardOpacity },
-            ]}
+            style={[st.currentCard, cardAnimatedStyle, { borderColor: color }]}
         >
             <View style={st.currentHeaderRow}>
-                <Text style={st.currentTitle}>Exercise</Text>
+                <AppText variant="caption" style={st.currentTitle}>
+                    Exercise
+                </AppText>
             </View>
 
             <View style={st.currentBodyRow}>
-                <Animated.Text
-                    style={[
-                        st.currentName,
-                        {
-                            opacity: nameOpacity,
-                            transform: [{ translateY: nameTranslateY }],
-                        },
-                    ]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                >
-                    {displayedName}
-                </Animated.Text>
+                <Animated.View style={nameAnimatedStyle}>
+                    <AppText
+                        variant="title2"
+                        style={st.currentName}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                    >
+                        {displayedName}
+                    </AppText>
+                </Animated.View>
 
                 <Animated.View
                     style={[
                         st.checkCircle,
-                        {
-                            backgroundColor: color,
-                            opacity: tickOpacity,
-                            transform: [{ scale: tickScale }],
-                        },
+                        { backgroundColor: color },
+                        tickAnimatedStyle,
                     ]}
                 >
-                    <Text style={st.checkMark}>✓</Text>
+                    <Ionicons
+                        name="checkmark"
+                        size={14}
+                        color={theme.palette.text.primary}
+                    />
                 </Animated.View>
             </View>
         </Animated.View>
