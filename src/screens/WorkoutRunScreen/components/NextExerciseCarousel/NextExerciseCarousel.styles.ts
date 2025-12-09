@@ -1,33 +1,35 @@
-import { StyleSheet } from 'react-native';
+import { createStyles } from '@src/theme/createStyles';
 
-const st = StyleSheet.create({
+const useNextExerciseCarouselStyles = createStyles((theme) => ({
     nextCardWrapper: {
         marginTop: 4,
     },
 
     nextCard: {
-        borderRadius: 10,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
+        borderRadius: theme.layout.card.borderRadius,
+        paddingHorizontal: theme.layout.card.padding,
+        paddingVertical: theme.layout.card.padding,
+        // backgroundColor: theme.palette.background.card,
         backgroundColor: '#020617',
+        gap: 4,
         borderWidth: 1,
+        // borderColor: theme.palette.border.subtle,
         borderColor: '#1F2937',
         overflow: 'hidden',
     },
 
     nextTitle: {
-        color: '#9CA3AF',
-        fontSize: 11,
+        color: theme.palette.text.muted,
         textTransform: 'uppercase',
         letterSpacing: 0.5,
         marginBottom: 2,
     },
 
     nextText: {
-        color: '#E5E7EB',
+        color: theme.palette.text.primary,
         fontSize: 15,
         fontWeight: '600',
     },
-});
+}));
 
-export default st;
+export default useNextExerciseCarouselStyles;

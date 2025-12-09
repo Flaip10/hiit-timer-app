@@ -9,6 +9,7 @@ export type TextVariant =
     | 'body'
     | 'bodySmall'
     | 'caption'
+    | 'captionSmall'
     | 'label';
 
 type TypographyMap = Record<TextVariant, TextStyle>;
@@ -60,10 +61,16 @@ export const createTypography = (_theme: AppTheme): TypographyMap => ({
         lineHeight: 12,
         letterSpacing: 0,
     },
+    captionSmall: {
+        fontSize: 11,
+        fontWeight: '400',
+        lineHeight: 11,
+        letterSpacing: 0,
+    },
     label: {
         fontSize: 13,
         fontWeight: '500',
-        lineHeight: 15,
+        lineHeight: 14,
         letterSpacing: 0.05,
     },
 });

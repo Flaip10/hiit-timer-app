@@ -1,87 +1,106 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Text, View } from 'react-native';
-import { Phase } from '@src/core/timer';
-import st from './NextExerciseCarousel.styles';
+import { View } from 'react-native';
+import Animated, {
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withTiming,
+} from 'react-native-reanimated';
 
+import type { Phase } from '@src/core/timer';
+import useNextExerciseCarouselStyles from './NextExerciseCarousel.styles';
+import { AppText } from '@src/components/ui/Typography/AppText';
+
+const OUT_DURATION = 150;
+const IN_DURATION = 180;
 const OPACITY_DELAY = 220;
+const DIM_DELAY = 100;
 
 type NextExerciseCarouselProps = {
     phase: Phase;
     label: string;
 };
 
-export const NextExerciseCarousel = ({
+export const NextExerciseCarousel: React.FC<NextExerciseCarouselProps> = ({
     label,
     phase,
-}: NextExerciseCarouselProps) => {
+}) => {
+    const st = useNextExerciseCarouselStyles();
+
     const [displayed, setDisplayed] = useState(label);
-    const translateY = useRef(new Animated.Value(0)).current;
-    const opacity = useRef(new Animated.Value(1)).current;
-    const cardOpacity = useRef(new Animated.Value(0.5)).current;
+
+    // text animation
+    const translateY = useSharedValue(0);
+    const opacity = useSharedValue(1);
+
+    const textAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: opacity.value,
+        transform: [{ translateY: translateY.value }],
+    }));
+
+    // card overall opacity (dim vs highlight)
+    const cardOpacity = useSharedValue(0.5);
+    const cardAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: cardOpacity.value,
+    }));
 
     const lastPhaseRef = useRef<Phase | null>(null);
 
+    // ----- label change → slide/fade out, swap, slide/fade in -----
     useEffect(() => {
         if (label === displayed) return;
 
-        Animated.parallel([
-            Animated.timing(translateY, {
-                toValue: -8,
-                duration: 150,
-                easing: Easing.out(Easing.ease),
-                useNativeDriver: true,
-            }),
-            Animated.timing(opacity, {
-                toValue: 0,
-                duration: 150,
-                easing: Easing.out(Easing.ease),
-                useNativeDriver: true,
-            }),
-        ]).start(() => {
-            setDisplayed(label);
-            translateY.setValue(8);
-            opacity.setValue(0);
-
-            Animated.parallel([
-                Animated.timing(translateY, {
-                    toValue: 0,
-                    duration: 180,
-                    easing: Easing.out(Easing.ease),
-                    useNativeDriver: true,
-                }),
-                Animated.timing(opacity, {
-                    toValue: 1,
-                    duration: 180,
-                    easing: Easing.out(Easing.ease),
-                    useNativeDriver: true,
-                }),
-            ]).start();
+        // OUT
+        translateY.value = withTiming(-8, {
+            duration: OUT_DURATION,
+            easing: Easing.out(Easing.ease),
         });
-    }, [label, displayed, opacity, translateY]);
+        opacity.value = withTiming(0, {
+            duration: OUT_DURATION,
+            easing: Easing.out(Easing.ease),
+        });
 
+        const timeoutId = setTimeout(() => {
+            setDisplayed(label);
+
+            // reset below and hidden
+            translateY.value = 8;
+            opacity.value = 0;
+
+            // IN
+            translateY.value = withTiming(0, {
+                duration: IN_DURATION,
+                easing: Easing.out(Easing.ease),
+            });
+            opacity.value = withTiming(1, {
+                duration: IN_DURATION,
+                easing: Easing.out(Easing.ease),
+            });
+        }, OUT_DURATION);
+
+        return () => clearTimeout(timeoutId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [label, displayed]);
+
+    // ----- phase → dim / highlight card -----
     useEffect(() => {
         const last = lastPhaseRef.current;
 
+        // WORK -> REST → fade card in (highlight "Next" during rest)
         if (last === 'WORK' && phase === 'REST') {
-            Animated.sequence([
-                Animated.delay(OPACITY_DELAY),
-                Animated.timing(cardOpacity, {
-                    toValue: 1,
-                    duration: 220,
-                    useNativeDriver: true,
-                }),
-            ]).start();
+            cardOpacity.value = withDelay(
+                OPACITY_DELAY,
+                withTiming(1, { duration: 220 })
+            );
         }
 
+        // leaving REST → dim again
         if (phase !== 'REST') {
-            Animated.sequence([
-                Animated.delay(100),
-                Animated.timing(cardOpacity, {
-                    toValue: 0.5,
-                    duration: 180,
-                    useNativeDriver: true,
-                }),
-            ]).start();
+            cardOpacity.value = withDelay(
+                DIM_DELAY,
+                withTiming(0.5, { duration: 180 })
+            );
         }
 
         lastPhaseRef.current = phase;
@@ -90,22 +109,22 @@ export const NextExerciseCarousel = ({
     if (!displayed) return null;
 
     return (
-        <Animated.View style={[st.nextCardWrapper, { opacity: cardOpacity }]}>
+        <Animated.View style={[st.nextCardWrapper, cardAnimatedStyle]}>
             <View style={st.nextCard}>
-                <Text style={st.nextTitle}>Next</Text>
-                <Animated.Text
-                    style={[
-                        st.nextText,
-                        {
-                            opacity,
-                            transform: [{ translateY }],
-                        },
-                    ]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                >
-                    {displayed}
-                </Animated.Text>
+                <AppText variant="captionSmall" style={st.nextTitle}>
+                    Next
+                </AppText>
+
+                <Animated.View style={textAnimatedStyle}>
+                    <AppText
+                        variant="bodySmall"
+                        style={st.nextText}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                    >
+                        {displayed}
+                    </AppText>
+                </Animated.View>
             </View>
         </Animated.View>
     );

@@ -42,7 +42,7 @@ const ConfirmDialog = ({
         <Modal visible={visible} onRequestClose={onCancel}>
             <View style={st.container}>
                 <View style={st.textContainer}>
-                    <AppText variant="title2" style={st.title}>
+                    <AppText variant="title3" style={st.title}>
                         {title}
                     </AppText>
 
