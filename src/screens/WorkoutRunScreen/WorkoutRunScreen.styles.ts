@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { createStyles } from '@src/theme/createStyles';
-import { AppTheme } from '@src/theme/theme';
+import type { AppTheme } from '@src/theme/theme';
+import { colors } from '@src/theme/colors';
 
 export const ARC_SIZE = 280;
 
@@ -23,7 +24,7 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
 
         timer: {
             position: 'absolute',
-            color: '#F2F2F2',
+            color: theme.palette.text.primary,
             fontSize: 96,
             fontVariant: ['tabular-nums'],
         },
@@ -37,14 +38,12 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
             gap: 8,
         },
         emptyTitle: {
-            color: '#F2F2F2',
-            fontSize: 20,
+            color: theme.palette.text.primary,
             fontWeight: '700',
             textAlign: 'center',
         },
         emptyText: {
-            color: '#A1A1AA',
-            fontSize: 14,
+            color: theme.palette.text.muted,
             textAlign: 'center',
             marginTop: 4,
         },
@@ -69,24 +68,16 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
             marginRight: 4,
         },
 
-        // wrapper with fixed width → layout doesn’t shift
-        workoutTimerTextWrapper: {
-            width: 57, // tweak as needed, just ensure it's enough for "MM:SS left"
-        },
-
         workoutTimerText: {
-            color: '#F9FAFB',
-            fontSize: 18,
+            color: theme.palette.text.primary,
             fontWeight: '700',
-            textAlign: 'left', // anchor to left inside the wrapper
+            textAlign: 'left',
         },
 
         // Page Header
-        // Region that holds header + meta strip (fixed height to avoid arc shifting)
         topRegion: {
             width: '100%',
             paddingTop: 16,
-            // tweak this so it roughly matches the height of header + strip while running
             minHeight: 120,
             justifyContent: 'flex-start',
         },
@@ -100,8 +91,7 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
             alignItems: 'center',
         },
         runWorkoutTitle: {
-            color: '#F9FAFB',
-            fontSize: 24,
+            color: theme.palette.text.primary,
             fontWeight: '700',
             letterSpacing: 0.2,
         },
@@ -117,13 +107,12 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
         footerIconWrapper: {
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 4,
+            gap: 8,
         },
 
         footerIconLabel: {
-            color: '#E5E7EB',
-            fontSize: 12,
-            fontWeight: '500',
+            color: theme.palette.text.secondary,
+            fontWeight: '700',
         },
 
         footerFinishedWrapper: {
@@ -132,24 +121,24 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
         },
         footerFinishedButton: {
             width: '100%',
-            borderRadius: 16,
+            borderRadius: 999,
             paddingVertical: 14,
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#4F46E5', // same primary as other CTAs
-            shadowColor: '#000000',
+            backgroundColor: theme.palette.button.primary,
+            shadowColor: colors.black.main,
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.25,
             shadowRadius: 8,
             elevation: 6,
         },
+        footerFinishedButtonPressed: {
+            opacity: 0.7,
+        },
         footerFinishedText: {
-            color: '#F9FAFB',
-            fontSize: 16,
+            color: theme.palette.text.inverted,
             fontWeight: '600',
         },
-
-        // New additions
 
         runHeader: {
             paddingHorizontal: 16,
@@ -161,14 +150,12 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
 
         // ===== Finished header =====
         finishedTitle: {
-            color: '#F9FAFB',
-            fontSize: 24,
+            color: theme.palette.text.primary,
             fontWeight: '700',
             marginBottom: 6,
         },
         finishedSubtitle: {
-            color: '#9CA3AF',
-            fontSize: 14,
+            color: theme.palette.text.muted,
             fontWeight: '500',
         },
         finishedChipsRow: {
@@ -182,22 +169,11 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
             paddingVertical: 8,
             paddingHorizontal: 10,
             borderRadius: 999,
-            backgroundColor: '#020617',
+            backgroundColor: theme.palette.background.card,
             borderWidth: 1,
-            borderColor: '#1F2937',
+            borderColor: theme.palette.border.subtle,
         },
-        finishedChipLabel: {
-            color: '#6B7280',
-            fontSize: 11,
-            textTransform: 'uppercase',
-            letterSpacing: 0.6,
-            marginBottom: 2,
-        },
-        finishedChipValue: {
-            color: '#F9FAFB',
-            fontSize: 14,
-            fontWeight: '600',
-        },
+
         finishedDurationPillContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',
@@ -209,7 +185,7 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
             borderRadius: 999,
             paddingHorizontal: 12,
             paddingVertical: 6,
-            backgroundColor: '#111827',
+            backgroundColor: theme.palette.background.card,
             marginTop: 4,
             justifyContent: 'flex-start',
         },
@@ -220,13 +196,7 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
             gap: 6,
         },
         finishedDurationText: {
-            color: '#F9FAFB',
-            fontSize: 16,
-        },
-        finishedDurationLabel: {
-            color: '#9CA3AF',
-            fontSize: 18,
-            fontWeight: '500',
+            color: theme.palette.text.primary,
         },
 
         finishedFooterRow: {
@@ -239,7 +209,7 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
 
         shareModalBackdrop: {
             flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.7)',
+            backgroundColor: theme.palette.overlay.scrim,
             justifyContent: 'center',
             alignItems: 'center',
         },
@@ -247,11 +217,16 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
         shareModalContent: {
             flex: 1,
             width: '100%',
-            backgroundColor: '#020617',
+            backgroundColor: theme.palette.background.primary,
             gap: 16,
             paddingTop: theme.insets.top,
             paddingBottom: theme.insets.bottom,
             justifyContent: 'space-between',
+        },
+
+        shareModalCardWrapper: {
+            flex: 1,
+            justifyContent: 'center',
         },
 
         shareModalButtonsRow: {

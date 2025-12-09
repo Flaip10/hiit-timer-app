@@ -36,6 +36,8 @@ import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIcon
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
 
+const AnimatedAppText = Animated.createAnimatedComponent(AppText);
+
 export const WorkoutRunScreen = () => {
     useKeepAwake();
 
@@ -109,7 +111,7 @@ export const WorkoutRunScreen = () => {
             <>
                 <MainContainer title="Run workout" scroll={false}>
                     <View style={st.emptyContainer}>
-                        <AppText variant="title3" style={st.emptyTitle}>
+                        <AppText variant="title2" style={st.emptyTitle}>
                             No steps to run
                         </AppText>
                         <AppText variant="bodySmall" style={st.emptyText}>
@@ -191,14 +193,13 @@ export const WorkoutRunScreen = () => {
                                     color={theme.palette.text.primary}
                                     style={st.workoutTimerIcon}
                                 />
-                                <View style={st.workoutTimerTextWrapper}>
-                                    <AppText
-                                        variant="title3"
-                                        style={st.workoutTimerText}
-                                    >
-                                        {formatDuration(remainingWorkoutSec)}
-                                    </AppText>
-                                </View>
+
+                                <AppText
+                                    variant="title3"
+                                    style={st.workoutTimerText}
+                                >
+                                    {formatDuration(remainingWorkoutSec)}
+                                </AppText>
                             </View>
                         </View>
 
@@ -270,10 +271,12 @@ export const WorkoutRunScreen = () => {
                             finished={isFinished}
                             breathingPhase={breathingPhase}
                         />
-                        {/* Timer remains Animated.Text for now */}
-                        <Animated.Text style={[st.timer, timerAnimatedStyle]}>
+                        <AnimatedAppText
+                            variant="title1"
+                            style={[st.timer, timerAnimatedStyle]}
+                        >
                             {isFinished ? 0 : remaining}
-                        </Animated.Text>
+                        </AnimatedAppText>
                     </View>
                 </View>
 
@@ -297,8 +300,6 @@ export const WorkoutRunScreen = () => {
 
                 {/* FINISHED CARD */}
                 <FinishedCard visible={isFinished} />
-
-                {/* Share preview modal – only used on finished state */}
 
                 <AppearingView
                     visible={isFinished}
@@ -325,12 +326,7 @@ export const WorkoutRunScreen = () => {
                     >
                         <View style={st.shareModalBackdrop}>
                             <View style={st.shareModalContent}>
-                                <View
-                                    style={{
-                                        flex: 1,
-                                        justifyContent: 'center',
-                                    }}
-                                >
+                                <View style={st.shareModalCardWrapper}>
                                     <ShareWorkoutCard
                                         workout={workout}
                                         phaseColor={phaseColor}
@@ -365,10 +361,14 @@ export const WorkoutRunScreen = () => {
                     <View style={st.footerFinishedWrapper}>
                         <Pressable
                             onPress={handleDone}
-                            style={({ pressed }) => [
-                                st.footerFinishedButton,
-                                pressed && { opacity: 0.7 },
-                            ]}
+                            style={({ pressed }) =>
+                                pressed
+                                    ? [
+                                          st.footerFinishedButton,
+                                          st.footerFinishedButtonPressed,
+                                      ]
+                                    : [st.footerFinishedButton]
+                            }
                         >
                             <AppText
                                 variant="subtitle"
@@ -380,14 +380,14 @@ export const WorkoutRunScreen = () => {
                     </View>
                 ) : (
                     <View style={st.footerIconRow}>
-                        {/* Skip (left) */}
+                        {/* End button */}
                         <View style={st.footerIconWrapper}>
                             <CircleIconButton
-                                onPress={handleSkip}
+                                onPress={handleEnd}
                                 variant="secondary"
                             >
                                 <Ionicons
-                                    name="play-skip-forward"
+                                    name="stop"
                                     size={22}
                                     color={theme.palette.button.text.secondary}
                                 />
@@ -396,11 +396,11 @@ export const WorkoutRunScreen = () => {
                                 variant="caption"
                                 style={st.footerIconLabel}
                             >
-                                Skip
+                                End
                             </AppText>
                         </View>
 
-                        {/* Main play/pause button (center) */}
+                        {/* Main play/pause button */}
                         <View style={st.footerIconWrapper}>
                             <CircleIconButton
                                 onPress={handlePrimary}
@@ -422,14 +422,14 @@ export const WorkoutRunScreen = () => {
                             </AppText>
                         </View>
 
-                        {/* End (right) */}
+                        {/* Skip button */}
                         <View style={st.footerIconWrapper}>
                             <CircleIconButton
-                                onPress={handleEnd}
+                                onPress={handleSkip}
                                 variant="secondary"
                             >
                                 <Ionicons
-                                    name="stop"
+                                    name="play-skip-forward"
                                     size={22}
                                     color={theme.palette.button.text.secondary}
                                 />
@@ -438,7 +438,7 @@ export const WorkoutRunScreen = () => {
                                 variant="caption"
                                 style={st.footerIconLabel}
                             >
-                                End
+                                Skip
                             </AppText>
                         </View>
                     </View>

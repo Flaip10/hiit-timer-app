@@ -17,7 +17,7 @@ import {
 
 type UseWorkoutRunArgs = {
     steps: Step[];
-    workout: Workout;
+    workout?: Workout;
     shouldAutoStart: boolean;
     router: Router;
 };
@@ -122,7 +122,7 @@ export const useWorkoutRun = ({
             : 'Resume';
 
     // workout structure (block, sets, exercise names)
-    const blocks = workout.blocks ?? [];
+    const blocks = workout?.blocks ?? [];
     const currentBlock = step ? blocks[step.blockIdx] : undefined;
     const totalSets = currentBlock?.sets ?? 0;
 
