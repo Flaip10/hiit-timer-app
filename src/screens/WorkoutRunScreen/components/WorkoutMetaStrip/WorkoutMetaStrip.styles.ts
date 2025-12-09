@@ -1,6 +1,6 @@
-import { StyleSheet } from 'react-native';
+import { createStyles } from '@src/theme/createStyles';
 
-const st = StyleSheet.create({
+const useWorkoutMetaStripStyles = createStyles((theme) => ({
     metaStripContainer: {
         width: '100%',
         gap: 12,
@@ -13,6 +13,10 @@ const st = StyleSheet.create({
     metaStripTopLeft: {
         flex: 1,
     },
+    metaStripTopRight: {
+        flex: 1,
+        alignItems: 'flex-end',
+    },
 
     metaStripPillsRow: {
         flexDirection: 'row',
@@ -23,7 +27,7 @@ const st = StyleSheet.create({
         flex: 1,
         height: 4,
         borderRadius: 999,
-        backgroundColor: '#111827',
+        backgroundColor: theme.palette.accent.soft,
         overflow: 'hidden',
         flexDirection: 'row',
     },
@@ -34,21 +38,17 @@ const st = StyleSheet.create({
         borderRadius: 999,
         backgroundColor: 'transparent',
     },
+
     metaStripBlockText: {
-        color: '#E5E7EB',
-        fontSize: 14,
-        fontWeight: '600',
+        color: theme.palette.text.muted,
+        fontWeight: '700',
     },
 
     metaStripSetText: {
-        color: '#9CA3AF',
-        fontSize: 14,
+        color: theme.palette.text.muted,
         fontWeight: '700',
+        // base font size from caption variant
     },
-    metaStripTopRight: {
-        flex: 1,
-        alignItems: 'flex-end',
-    },
-});
+}));
 
-export default st;
+export default useWorkoutMetaStripStyles;

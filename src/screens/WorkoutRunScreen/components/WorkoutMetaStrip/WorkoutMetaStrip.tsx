@@ -1,21 +1,26 @@
-import React, { useEffect } from 'react';
-import { Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import Animated, {
     Easing,
     useAnimatedStyle,
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
-import st from './WorkoutMetaStrip.styles';
+
+import { AppText } from '@src/components/ui/Typography/AppText';
+import useWorkoutMetaStripStyles from './WorkoutMetaStrip.styles';
 
 type WorkoutMetaStripProps = {
     blockIndex: number; // 0-based
     blockTitle?: string | null;
-    currentSetIndex: number; // 0-based
+    currentSetIndex: number; // 0-based (from engine)
     totalSets: number;
     setProgress: number; // 0..1 (continuous progress inside current set)
     phaseColor: string;
 };
+
+const clampProgress = (p: number | null | undefined): number =>
+    Math.min(1, Math.max(0, p ?? 0));
 
 export const WorkoutMetaStrip = ({
     blockIndex,
@@ -25,6 +30,8 @@ export const WorkoutMetaStrip = ({
     setProgress,
     phaseColor,
 }: WorkoutMetaStripProps) => {
+    const st = useWorkoutMetaStripStyles();
+
     const displayBlockLabel =
         blockTitle && blockTitle.trim().length > 0
             ? blockTitle.trim()
@@ -33,18 +40,29 @@ export const WorkoutMetaStrip = ({
     const currentSet = currentSetIndex + 1;
     const safeTotalSets = totalSets || 1;
 
-    // ---- animated visual progress for *current* set pill ----
-    const visualProgress = useSharedValue(
-        Math.min(1, Math.max(0, setProgress ?? 0))
-    );
+    // "Visual" set index that controls which pill is current.
+    // We only switch this after resetting its progress to 0.
+    const [animatingSet, setAnimatingSet] = useState(currentSetIndex);
 
-    // Normal phase progress
+    // Animated progress for the current visual set
+    const visualProgress = useSharedValue(clampProgress(setProgress));
+
     useEffect(() => {
-        visualProgress.value = withTiming(Math.max(0, setProgress ?? 0), {
-            duration: 200, //to follow 5Hz tick
+        const clamped = clampProgress(setProgress);
+
+        // --- set transition ---
+        if (currentSetIndex !== animatingSet) {
+            visualProgress.value = 0;
+            setAnimatingSet(currentSetIndex);
+            return;
+        }
+
+        // --- normal within-set animation ---
+        visualProgress.value = withTiming(clamped, {
+            duration: 200, // matches 5 Hz tick
             easing: Easing.linear,
         });
-    }, [visualProgress, setProgress]);
+    }, [setProgress, currentSetIndex, animatingSet, visualProgress]);
 
     const currentFillStyle = useAnimatedStyle(() => ({
         flex: visualProgress.value,
@@ -64,8 +82,8 @@ export const WorkoutMetaStrip = ({
             {/* Bottom row: pills per set */}
             <View style={st.metaStripPillsRow}>
                 {pills.map((i) => {
-                    const isPast = i < currentSetIndex;
-                    const isCurrent = i === currentSetIndex;
+                    const isPast = i < animatingSet;
+                    const isCurrent = i === animatingSet;
 
                     if (isPast) {
                         return (
@@ -111,19 +129,27 @@ export const WorkoutMetaStrip = ({
                 })}
             </View>
 
+            {/* Top row: block label + set indicator */}
             <View style={st.metaStripTopRow}>
                 <View style={st.metaStripTopLeft}>
-                    <Text style={st.metaStripBlockText}>
+                    <AppText
+                        variant="bodySmall"
+                        style={st.metaStripBlockText}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                    >
                         {displayBlockLabel}
-                    </Text>
+                    </AppText>
                 </View>
 
                 <View style={st.metaStripTopRight}>
-                    <Text style={st.metaStripSetText}>
-                        Set {currentSet}/{safeTotalSets}
-                    </Text>
+                    <AppText variant="bodySmall" style={st.metaStripSetText}>
+                        Set {currentSet} of {safeTotalSets}
+                    </AppText>
                 </View>
             </View>
         </View>
     );
 };
+
+export default WorkoutMetaStrip;
