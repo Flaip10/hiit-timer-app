@@ -1,25 +1,24 @@
-import { StyleSheet } from 'react-native';
+import { createStyles } from '@src/theme/createStyles';
 
-const st = StyleSheet.create({
+const useFinishedCardStyles = createStyles((theme) => ({
     finishedCard: {
         marginHorizontal: 16,
-        paddingVertical: 16,
-        paddingHorizontal: 18,
-        borderRadius: 18,
-        backgroundColor: '#020617', // dark navy
+        paddingVertical: theme.layout.card.padding,
+        paddingHorizontal: theme.layout.card.padding,
+        borderRadius: theme.layout.card.borderRadius,
+        backgroundColor: theme.palette.background.card,
+        // backgroundColor: '#020617',
         borderWidth: 1,
-        borderColor: '#1F2937',
+        borderColor: theme.palette.border.subtle,
+        // borderColor: '#1F2937',
     },
     finishedTitle: {
-        color: '#E5E7EB',
-        fontSize: 16,
-        fontWeight: '700',
+        color: theme.palette.text.primary,
         marginBottom: 10,
     },
     finishedBody: {
-        color: '#9CA3AF',
-        fontSize: 14,
+        color: theme.palette.text.muted,
     },
-});
+}));
 
-export default st;
+export default useFinishedCardStyles;

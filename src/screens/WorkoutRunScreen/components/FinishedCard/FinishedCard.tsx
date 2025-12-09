@@ -1,20 +1,26 @@
 import React from 'react';
-import { Text } from 'react-native';
 
-import st from './FinishedCard.styles';
 import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
+import { AppText } from '@src/components/ui/Typography/AppText';
+import useFinishedCardStyles from './FinishedCard.styles';
 
 type FinishedCardProps = {
     visible: boolean;
 };
 
 export const FinishedCard = ({ visible }: FinishedCardProps) => {
+    const st = useFinishedCardStyles();
+
     return (
         <AppearingView visible={visible} style={st.finishedCard}>
-            <Text style={st.finishedTitle}>Workout complete 🎉</Text>
-            <Text style={st.finishedBody}>
+            <AppText variant="subtitle" style={st.finishedTitle}>
+                Workout complete 🎉
+            </AppText>
+            <AppText variant="bodySmall" style={st.finishedBody}>
                 Nice work. You&apos;ve finished all steps in this workout.
-            </Text>
+            </AppText>
         </AppearingView>
     );
 };
+
+export default FinishedCard;
