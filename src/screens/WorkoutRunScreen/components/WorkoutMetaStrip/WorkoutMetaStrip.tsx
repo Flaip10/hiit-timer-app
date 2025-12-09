@@ -5,6 +5,7 @@ import Animated, {
     useAnimatedStyle,
     useSharedValue,
     withTiming,
+    cancelAnimation,
 } from 'react-native-reanimated';
 
 import { AppText } from '@src/components/ui/Typography/AppText';
@@ -50,9 +51,15 @@ export const WorkoutMetaStrip = ({
     useEffect(() => {
         const clamped = clampProgress(setProgress);
 
-        // --- set transition ---
+        // --- set transition guard ---
         if (currentSetIndex !== animatingSet) {
+            // Kill any running animation from the old set
+            cancelAnimation(visualProgress);
+
+            // Snap to 0 for the *new* set
             visualProgress.value = 0;
+
+            // Only after the snap, update which pill is "current"
             setAnimatingSet(currentSetIndex);
             return;
         }
