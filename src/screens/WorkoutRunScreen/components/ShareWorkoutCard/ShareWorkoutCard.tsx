@@ -16,7 +16,7 @@ import { useShareWorkoutCardStyles } from './ShareWorkoutCard.styles';
 type ShareWorkoutCardProps = {
     workout: Workout;
     phaseColor: string;
-    shareRef: RefObject<View>;
+    shareRef: RefObject<View | null>;
 };
 
 const buildCompletedLabel = (): string => {
