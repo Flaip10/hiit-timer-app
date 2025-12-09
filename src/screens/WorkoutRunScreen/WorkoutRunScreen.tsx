@@ -261,8 +261,6 @@ export const WorkoutRunScreen = () => {
                     <PhasePill
                         color={phaseColor}
                         label={isFinished ? 'Done' : phaseLabel}
-                        containerStyle={st.phasePill}
-                        textStyle={st.phasePillText}
                     />
 
                     <View style={st.arcWrapper}>

@@ -10,20 +10,6 @@ const useWorkoutRunStyles = createStyles(() => ({
         gap: 30,
     },
 
-    phasePill: {
-        paddingHorizontal: 16,
-        paddingVertical: 6,
-        borderRadius: 999,
-        marginBottom: 0,
-    },
-    phasePillText: {
-        color: '#0B0B0C',
-        fontWeight: '700',
-        fontSize: 14,
-        textTransform: 'uppercase',
-        letterSpacing: 0.8,
-    },
-
     arcWrapper: {
         width: ARC_SIZE,
         height: ARC_SIZE,
