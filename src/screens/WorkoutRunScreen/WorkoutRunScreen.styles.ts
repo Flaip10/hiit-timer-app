@@ -1,266 +1,269 @@
+import { StyleSheet } from 'react-native';
 import { createStyles } from '@src/theme/createStyles';
+import { AppTheme } from '@src/theme/theme';
 
 export const ARC_SIZE = 280;
 
-const useWorkoutRunStyles = createStyles(() => ({
-    arcContainer: {
-        marginTop: 25,
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 30,
-    },
+const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
+    StyleSheet.create({
+        arcContainer: {
+            marginTop: 25,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 30,
+        },
 
-    arcWrapper: {
-        width: ARC_SIZE,
-        height: ARC_SIZE,
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-    },
+        arcWrapper: {
+            width: ARC_SIZE,
+            height: ARC_SIZE,
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+        },
 
-    timer: {
-        position: 'absolute',
-        color: '#F2F2F2',
-        fontSize: 96,
-        fontVariant: ['tabular-nums'],
-    },
+        timer: {
+            position: 'absolute',
+            color: '#F2F2F2',
+            fontSize: 96,
+            fontVariant: ['tabular-nums'],
+        },
 
-    // Empty Run State
-    emptyContainer: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 16,
-        gap: 8,
-    },
-    emptyTitle: {
-        color: '#F2F2F2',
-        fontSize: 20,
-        fontWeight: '700',
-        textAlign: 'center',
-    },
-    emptyText: {
-        color: '#A1A1AA',
-        fontSize: 14,
-        textAlign: 'center',
-        marginTop: 4,
-    },
+        // Empty Run State
+        emptyContainer: {
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            gap: 8,
+        },
+        emptyTitle: {
+            color: '#F2F2F2',
+            fontSize: 20,
+            fontWeight: '700',
+            textAlign: 'center',
+        },
+        emptyText: {
+            color: '#A1A1AA',
+            fontSize: 14,
+            textAlign: 'center',
+            marginTop: 4,
+        },
 
-    // Exercises Info
-    exerciseInfoContainer: {
-        width: '100%',
-        marginTop: -50,
-        paddingHorizontal: 10,
-        paddingVertical: 14,
-        gap: 12,
-    },
+        // Exercises Info
+        exerciseInfoContainer: {
+            width: '100%',
+            marginTop: -50,
+            paddingHorizontal: 10,
+            paddingVertical: 14,
+            gap: 12,
+        },
 
-    // Workout Timer
-    workoutTimerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
+        // Workout Timer
+        workoutTimerContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
 
-    workoutTimerIcon: {
-        marginRight: 4,
-    },
+        workoutTimerIcon: {
+            marginRight: 4,
+        },
 
-    // wrapper with fixed width → layout doesn’t shift
-    workoutTimerTextWrapper: {
-        width: 57, // tweak as needed, just ensure it's enough for "MM:SS left"
-    },
+        // wrapper with fixed width → layout doesn’t shift
+        workoutTimerTextWrapper: {
+            width: 57, // tweak as needed, just ensure it's enough for "MM:SS left"
+        },
 
-    workoutTimerText: {
-        color: '#F9FAFB',
-        fontSize: 18,
-        fontWeight: '700',
-        textAlign: 'left', // anchor to left inside the wrapper
-    },
+        workoutTimerText: {
+            color: '#F9FAFB',
+            fontSize: 18,
+            fontWeight: '700',
+            textAlign: 'left', // anchor to left inside the wrapper
+        },
 
-    // Page Header
-    // Region that holds header + meta strip (fixed height to avoid arc shifting)
-    topRegion: {
-        width: '100%',
-        paddingTop: 16,
-        // tweak this so it roughly matches the height of header + strip while running
-        minHeight: 120,
-        justifyContent: 'flex-start',
-    },
-    pageHeader: {
-        gap: 12,
-        paddingHorizontal: 16,
-    },
-    pageHeaderInfoContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    runWorkoutTitle: {
-        color: '#F9FAFB',
-        fontSize: 24,
-        fontWeight: '700',
-        letterSpacing: 0.2,
-    },
+        // Page Header
+        // Region that holds header + meta strip (fixed height to avoid arc shifting)
+        topRegion: {
+            width: '100%',
+            paddingTop: 16,
+            // tweak this so it roughly matches the height of header + strip while running
+            minHeight: 120,
+            justifyContent: 'flex-start',
+        },
+        pageHeader: {
+            gap: 12,
+            paddingHorizontal: 16,
+        },
+        pageHeaderInfoContainer: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+        },
+        runWorkoutTitle: {
+            color: '#F9FAFB',
+            fontSize: 24,
+            fontWeight: '700',
+            letterSpacing: 0.2,
+        },
 
-    footerIconRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
-        paddingHorizontal: 32,
-    },
+        footerIconRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+            paddingHorizontal: 32,
+        },
 
-    footerIconWrapper: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 4,
-    },
+        footerIconWrapper: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 4,
+        },
 
-    footerIconLabel: {
-        color: '#E5E7EB',
-        fontSize: 12,
-        fontWeight: '500',
-    },
+        footerIconLabel: {
+            color: '#E5E7EB',
+            fontSize: 12,
+            fontWeight: '500',
+        },
 
-    footerFinishedWrapper: {
-        width: '100%',
-        paddingHorizontal: 16,
-    },
-    footerFinishedButton: {
-        width: '100%',
-        borderRadius: 16,
-        paddingVertical: 14,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#4F46E5', // same primary as other CTAs
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 8,
-        elevation: 6,
-    },
-    footerFinishedText: {
-        color: '#F9FAFB',
-        fontSize: 16,
-        fontWeight: '600',
-    },
+        footerFinishedWrapper: {
+            width: '100%',
+            paddingHorizontal: 16,
+        },
+        footerFinishedButton: {
+            width: '100%',
+            borderRadius: 16,
+            paddingVertical: 14,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#4F46E5', // same primary as other CTAs
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.25,
+            shadowRadius: 8,
+            elevation: 6,
+        },
+        footerFinishedText: {
+            color: '#F9FAFB',
+            fontSize: 16,
+            fontWeight: '600',
+        },
 
-    // New additions
+        // New additions
 
-    runHeader: {
-        paddingHorizontal: 16,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingTop: 10,
-    },
+        runHeader: {
+            paddingHorizontal: 16,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingTop: 10,
+        },
 
-    // ===== Finished header =====
-    finishedTitle: {
-        color: '#F9FAFB',
-        fontSize: 24,
-        fontWeight: '700',
-        marginBottom: 6,
-    },
-    finishedSubtitle: {
-        color: '#9CA3AF',
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    finishedChipsRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 8,
-    },
-    finishedChip: {
-        flex: 1,
-        paddingVertical: 8,
-        paddingHorizontal: 10,
-        borderRadius: 999,
-        backgroundColor: '#020617',
-        borderWidth: 1,
-        borderColor: '#1F2937',
-    },
-    finishedChipLabel: {
-        color: '#6B7280',
-        fontSize: 11,
-        textTransform: 'uppercase',
-        letterSpacing: 0.6,
-        marginBottom: 2,
-    },
-    finishedChipValue: {
-        color: '#F9FAFB',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    finishedDurationPillContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    finishedDurationPill: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderRadius: 999,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        backgroundColor: '#111827',
-        marginTop: 4,
-        justifyContent: 'flex-start',
-    },
-    finishedDurationRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 4,
-        gap: 6,
-    },
-    finishedDurationText: {
-        color: '#F9FAFB',
-        fontSize: 16,
-    },
-    finishedDurationLabel: {
-        color: '#9CA3AF',
-        fontSize: 18,
-        fontWeight: '500',
-    },
+        // ===== Finished header =====
+        finishedTitle: {
+            color: '#F9FAFB',
+            fontSize: 24,
+            fontWeight: '700',
+            marginBottom: 6,
+        },
+        finishedSubtitle: {
+            color: '#9CA3AF',
+            fontSize: 14,
+            fontWeight: '500',
+        },
+        finishedChipsRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
+        },
+        finishedChip: {
+            flex: 1,
+            paddingVertical: 8,
+            paddingHorizontal: 10,
+            borderRadius: 999,
+            backgroundColor: '#020617',
+            borderWidth: 1,
+            borderColor: '#1F2937',
+        },
+        finishedChipLabel: {
+            color: '#6B7280',
+            fontSize: 11,
+            textTransform: 'uppercase',
+            letterSpacing: 0.6,
+            marginBottom: 2,
+        },
+        finishedChipValue: {
+            color: '#F9FAFB',
+            fontSize: 14,
+            fontWeight: '600',
+        },
+        finishedDurationPillContainer: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+        },
+        finishedDurationPill: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderRadius: 999,
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            backgroundColor: '#111827',
+            marginTop: 4,
+            justifyContent: 'flex-start',
+        },
+        finishedDurationRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: 4,
+            gap: 6,
+        },
+        finishedDurationText: {
+            color: '#F9FAFB',
+            fontSize: 16,
+        },
+        finishedDurationLabel: {
+            color: '#9CA3AF',
+            fontSize: 18,
+            fontWeight: '500',
+        },
 
-    finishedFooterRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-        flex: 1,
-    },
+        finishedFooterRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            flex: 1,
+        },
 
-    shareModalBackdrop: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-    },
+        shareModalBackdrop: {
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
 
-    shareModalContent: {
-        width: '100%',
-        maxWidth: 380,
-        borderRadius: 24,
-        paddingHorizontal: 16,
-        paddingVertical: 18,
-        backgroundColor: '#020617',
-        gap: 16,
-    },
+        shareModalContent: {
+            flex: 1,
+            width: '100%',
+            backgroundColor: '#020617',
+            gap: 16,
+            paddingTop: theme.insets.top,
+            paddingBottom: theme.insets.bottom,
+            justifyContent: 'space-between',
+        },
 
-    shareModalButtonsRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
+        shareModalButtonsRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
 
-    shareModalButtonsSpacer: {
-        width: 12,
-    },
-}));
+        shareModalButtonsSpacer: {
+            width: 12,
+        },
+    })
+);
 
 export default useWorkoutRunStyles;

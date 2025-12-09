@@ -326,16 +326,15 @@ export const WorkoutRunScreen = () => {
                         <View style={st.shareModalBackdrop}>
                             <View style={st.shareModalContent}>
                                 <View
-                                    ref={shareCardRef}
-                                    collapsable={false} // important for Android + view-shot
+                                    style={{
+                                        flex: 1,
+                                        justifyContent: 'center',
+                                    }}
                                 >
                                     <ShareWorkoutCard
-                                        workoutName={workout.name}
-                                        durationLabel={formatDurationVerbose(
-                                            totalWorkoutPlannedSec
-                                        )}
-                                        completedLabel="Today" // later you can pass a real date string
+                                        workout={workout}
                                         phaseColor={phaseColor}
+                                        shareRef={shareCardRef}
                                     />
                                 </View>
 

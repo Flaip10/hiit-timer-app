@@ -1,107 +1,177 @@
 import { StyleSheet } from 'react-native';
+import { createStyles } from '@src/theme/createStyles';
+import type { AppTheme } from '@src/theme/theme';
 
-const st = StyleSheet.create({
-    cardContainer: {
-        aspectRatio: 0.5, // 2:1, share-friendly
-        borderRadius: 24,
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: '#020617',
-        borderWidth: 1,
-        borderColor: '#111827',
-        justifyContent: 'space-between',
-    },
+export const useShareWorkoutCardStyles = createStyles((theme: AppTheme) =>
+    StyleSheet.create({
+        mainWrapper: {
+            borderRadius: 24,
+            borderWidth: 1,
+            borderColor: theme.palette.border.subtle,
+            overflow: 'hidden',
+        },
+        cardContainer: {
+            aspectRatio: 0.56, // share-friendly 9/16
+            padding: 20,
+            paddingTop: 60,
+            gap: 8,
+            backgroundColor: theme.palette.background.primary,
+            justifyContent: 'space-between',
+        },
 
-    cardHeaderRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
+        // HEADER
+        cardHeaderRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
+        cardAppName: {
+            color: theme.palette.text.muted,
+            textTransform: 'uppercase',
+            letterSpacing: 1,
+            fontWeight: '600',
+        },
+        cardDurationPill: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderRadius: 999,
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            backgroundColor: theme.palette.surface.navigation,
+        },
+        cardDurationIcon: {
+            marginRight: 4,
+        },
+        cardDurationText: {
+            color: theme.palette.text.primary,
+            fontWeight: '500',
+        },
 
-    cardAppName: {
-        color: '#9CA3AF',
-        fontSize: 13,
-        fontWeight: '600',
-        letterSpacing: 1,
-        textTransform: 'uppercase',
-    },
+        // CENTER SECTION
+        centerSection: {
+            flex: 1,
+            gap: 16,
+        },
 
-    cardDurationPill: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderRadius: 999,
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        backgroundColor: '#111827',
-    },
+        cardTitleBlock: {
+            alignItems: 'flex-start',
+            gap: 6,
+        },
+        titleRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+        },
+        cardTitle: {
+            color: theme.palette.text.primary,
+        },
+        fireEmoji: {
+            marginTop: -2,
+        },
+        cardSubtitle: {
+            color: theme.palette.text.muted,
+        },
 
-    cardDurationIcon: {
-        marginRight: 4,
-    },
+        cardArcWrapper: {
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        cardArcCircleOuter: {
+            width: '60%',
+            aspectRatio: 1,
+            borderRadius: 999,
+            borderWidth: 10,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        cardArcInnerText: {
+            color: theme.palette.text.primary,
+            textTransform: 'uppercase',
+            letterSpacing: 1,
+            fontWeight: '700',
+        },
 
-    cardDurationText: {
-        color: '#E5E7EB',
-        fontSize: 13,
-        fontWeight: '500',
-    },
+        // Overview MetaCard
+        metaSummaryWrapper: {
+            gap: 8,
+        },
+        metaSummaryRow: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: 10,
+        },
+        metaMetric: {
+            flex: 1,
+        },
+        metaMetricWide: {
+            flex: 1.3,
+        },
+        metaMetricLabel: {
+            marginBottom: 2,
+        },
+        metaMetricValue: {
+            fontWeight: '600',
+        },
 
-    cardTitleBlock: {
-        marginTop: 8,
-    },
+        // Blocks list (outside MetaCard)
+        blocksList: {
+            marginTop: 10,
+            gap: 10,
+        },
+        blockRow: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: 8,
+        },
+        blockBullet: {
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            marginTop: 6, // align with first line of text
+        },
+        blockContent: {
+            flex: 1,
+            gap: 4,
+        },
+        blockHeaderRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+        },
+        blockTitle: {
+            color: theme.palette.text.primary,
+            fontWeight: '600',
+            flexShrink: 1,
+        },
+        blockSetsPill: {
+            paddingHorizontal: 8,
+            paddingVertical: 2,
+            borderRadius: 999,
+            backgroundColor: theme.palette.background.card,
+        },
+        blockSetsText: {
+            color: theme.palette.text.secondary,
+            fontWeight: '500',
+        },
+        blockExercises: {
+            fontSize: 13,
+            lineHeight: 18, // improves readability when wrapping
+        },
 
-    cardTitle: {
-        color: '#F9FAFB',
-        fontSize: 20,
-        fontWeight: '700',
-    },
-
-    cardSubtitle: {
-        color: '#9CA3AF',
-        fontSize: 14,
-        marginTop: 2,
-    },
-
-    cardArcWrapper: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-
-    cardArcCircleOuter: {
-        width: '62%',
-        aspectRatio: 1,
-        borderRadius: 999,
-        borderWidth: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderColor: '#22C55E',
-    },
-
-    cardArcInnerText: {
-        color: '#F9FAFB',
-        fontSize: 18,
-        fontWeight: '700',
-        textTransform: 'uppercase',
-        letterSpacing: 1,
-    },
-
-    cardFooterRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginTop: 8,
-    },
-
-    cardFooterLeft: {
-        color: '#9CA3AF',
-        fontSize: 12,
-    },
-
-    cardFooterRight: {
-        color: '#6366F1',
-        fontSize: 12,
-        fontWeight: '600',
-    },
-});
-
-export default st;
+        // FOOTER
+        cardFooterRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            marginTop: 8,
+        },
+        cardFooterIcon: {
+            marginRight: 6,
+        },
+        cardFooterLeft: {
+            color: theme.palette.text.muted,
+        },
+    })
+);
