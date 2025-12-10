@@ -14,7 +14,7 @@ import { useTheme } from '@src/theme/ThemeProvider';
 import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
 import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
 
-import FinishedCard from '../FinishedCard/FinishedCard';
+import FinishedCard from './components/FinishedCard/FinishedCard';
 import { PhasePill } from './components/PhasePill/PhasePill';
 import { PhaseArc } from './components/PhaseArc/PhaseArc';
 import { ExerciseInfoCard } from './components/ExerciseInfoCard/ExerciseInfoCard';
