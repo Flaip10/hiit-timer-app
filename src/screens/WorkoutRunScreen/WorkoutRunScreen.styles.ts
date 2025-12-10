@@ -96,45 +96,6 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
             gap: 12,
         },
 
-        // Workout Timer
-        workoutTimerContainer: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
-
-        workoutTimerIcon: {
-            marginRight: 4,
-        },
-
-        workoutTimerText: {
-            color: theme.palette.text.primary,
-            fontWeight: '700',
-            textAlign: 'left',
-        },
-
-        // Page Header
-        topRegion: {
-            width: '100%',
-            paddingTop: 16,
-            minHeight: 120,
-            justifyContent: 'flex-start',
-        },
-        pageHeader: {
-            gap: 12,
-            paddingHorizontal: 16,
-        },
-        pageHeaderInfoContainer: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-        },
-        runWorkoutTitle: {
-            color: theme.palette.text.primary,
-            fontWeight: '700',
-            letterSpacing: 0.2,
-        },
-
         footerIconRow: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -187,16 +148,7 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
             paddingTop: 10,
         },
 
-        // ===== Finished header =====
-        finishedTitle: {
-            color: theme.palette.text.primary,
-            fontWeight: '700',
-            marginBottom: 6,
-        },
-        finishedSubtitle: {
-            color: theme.palette.text.muted,
-            fontWeight: '500',
-        },
+        // ===== Finished header extras (used by FinishedCard etc.) =====
         finishedChipsRow: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -213,29 +165,11 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
             borderColor: theme.palette.border.subtle,
         },
 
-        finishedDurationPillContainer: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-        },
-        finishedDurationPill: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            borderRadius: 999,
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-            backgroundColor: theme.palette.background.card,
-            marginTop: 4,
-            justifyContent: 'flex-start',
-        },
         finishedDurationRow: {
             flexDirection: 'row',
             alignItems: 'center',
             marginTop: 4,
             gap: 6,
-        },
-        finishedDurationText: {
-            color: theme.palette.text.primary,
         },
 
         finishedFooterRow: {
@@ -246,6 +180,7 @@ const useWorkoutRunStyles = createStyles((theme: AppTheme) =>
             flex: 1,
         },
 
+        // Share modal
         shareModalBackdrop: {
             flex: 1,
             backgroundColor: theme.palette.overlay.scrim,

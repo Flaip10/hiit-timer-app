@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { AppState } from 'react-native';
 import type { Router } from 'expo-router';
 
-import type { Step, Phase } from '@core/timer';
+import { createTimer, type Step, type Phase } from '@core/timer';
 import type { Workout } from '@core/entities';
 
 import { computeRemainingWorkoutSec, computeSetProgress } from '../helpers';
-
-import { useTimerEngine } from './useTimerEngine';
-import { useSetMaps } from './useSetMaps';
-import { useCompletionTracking } from './useCompletionTracking';
-import { useBreathingAnimation } from './useBreathingAnimation';
-import { useBlockPause } from './useBlockPause';
+import {
+    cancelAnimation,
+    Easing,
+    useSharedValue,
+    withRepeat,
+    withSequence,
+    withTiming,
+} from 'react-native-reanimated';
 
 type UseWorkoutRunArgs = {
     steps: Step[];
@@ -25,20 +28,152 @@ export const useWorkoutRun = ({
     shouldAutoStart,
     router,
 }: UseWorkoutRunArgs) => {
-    // ===== 1) Timer engine (single source of truth) =====
-    const {
-        stepIndex,
-        remaining,
-        remainingMs,
-        running,
-        start,
-        pause,
-        resume,
-        skip,
-        stop,
-    } = useTimerEngine({ steps, shouldAutoStart });
+    const engineRef = useRef<ReturnType<typeof createTimer> | null>(null);
+    const autoStartedRef = useRef(false);
 
-    // ===== 2) Basic derived state =====
+    const [stepIndex, setStepIndex] = useState(0);
+    const [remaining, setRemaining] = useState(0); // seconds (UI)
+    const [remainingMs, setRemainingMs] = useState(0); // ms (for smooth progress)
+    const [running, setRunning] = useState(false);
+
+    // -------- tracking completion / partial completion --------
+
+    // How many sets we fully completed per block (index aligned with workout.blocks)
+    const [completedSetsByBlock, setCompletedSetsByBlock] = useState<number[]>(
+        []
+    );
+
+    // Total seconds of *completed sets* (used for partial completion time)
+    const [elapsedCompletedSec, setElapsedCompletedSec] = useState(0);
+
+    // Forced finish flag (user ended workout early via End + confirm)
+    const [forceFinished, setForceFinished] = useState(false);
+
+    // Internal refs for completion logic
+    const completedSetKeysRef = useRef<Set<string>>(new Set());
+    const lastStepIndexRef = useRef<number | null>(null);
+    const finalStepProcessedRef = useRef(false);
+
+    // -------- block transition / pause state --------
+
+    const [awaitingBlockContinue, setAwaitingBlockContinue] = useState(false);
+    const [currentBlockIndex, setCurrentBlockIndex] = useState<number | null>(
+        null
+    );
+
+    // Reset completion + block pause tracking whenever workout/steps change
+    useEffect(() => {
+        const blocksLength = workout?.blocks?.length ?? 0;
+        setCompletedSetsByBlock(Array(blocksLength).fill(0));
+        setElapsedCompletedSec(0);
+        completedSetKeysRef.current = new Set();
+        lastStepIndexRef.current = null;
+        finalStepProcessedRef.current = false;
+        setForceFinished(false);
+        setAwaitingBlockContinue(false);
+        setCurrentBlockIndex(null);
+    }, [steps, workout]);
+
+    // Precompute mapping (blockIdx,setIdx) -> last step index in that set
+    const lastSetStepIndexMap = useMemo(() => {
+        const map = new Map<string, number>();
+
+        steps.forEach((s, idx) => {
+            const { blockIdx, setIdx } = s;
+            if (blockIdx == null || setIdx == null) return;
+            const key = `${blockIdx}-${setIdx}`;
+            const prev = map.get(key);
+            if (prev == null || idx > prev) {
+                map.set(key, idx);
+            }
+        });
+
+        return map;
+    }, [steps]);
+
+    // Precompute total planned duration of each set (sum of all its steps)
+    const setDurationSecMap = useMemo(() => {
+        const map = new Map<string, number>();
+
+        steps.forEach((s) => {
+            const { blockIdx, setIdx, durationSec } = s;
+            if (blockIdx == null || setIdx == null) return;
+            const key = `${blockIdx}-${setIdx}`;
+            const prev = map.get(key) ?? 0;
+            map.set(key, prev + (durationSec ?? 0));
+        });
+
+        return map;
+    }, [steps]);
+
+    // Precompute the index of the *first* step for each block
+    const firstStepIndexByBlock = useMemo(() => {
+        const map = new Map<number, number>();
+
+        steps.forEach((s, idx) => {
+            const b = s.blockIdx;
+            if (b == null) return;
+            const prev = map.get(b);
+            if (prev == null || idx < prev) {
+                map.set(b, idx);
+            }
+        });
+
+        return map;
+    }, [steps]);
+
+    // Planned sets per block, to know if workout is fully completed
+    const plannedSetsByBlock = useMemo(
+        () => workout?.blocks?.map((b) => b.sets ?? 0) ?? [],
+        [workout]
+    );
+
+    // -------- engine setup --------
+    useEffect(() => {
+        if (steps.length === 0) return;
+
+        engineRef.current = createTimer(steps, (snapshot) => {
+            setStepIndex(snapshot.stepIndex);
+            setRemaining(snapshot.remainingSec);
+            setRemainingMs(snapshot.remainingMs);
+            setRunning(snapshot.running);
+        });
+
+        const firstDurationSec = steps[0]?.durationSec ?? 0;
+        setStepIndex(0);
+        setRemaining(firstDurationSec);
+        setRemainingMs(firstDurationSec * 1000);
+        setRunning(false);
+
+        if (shouldAutoStart && !autoStartedRef.current) {
+            autoStartedRef.current = true;
+            engineRef.current?.start();
+        }
+
+        return () => {
+            engineRef.current?.stop();
+        };
+    }, [steps, shouldAutoStart]);
+
+    // -------- foreground resync --------
+    useEffect(() => {
+        const sub = AppState.addEventListener('change', (state) => {
+            if (state === 'active') {
+                const engine = engineRef.current;
+                if (!engine) return;
+                if (engine.isRunning()) {
+                    engine.pause();
+                    engine.resume();
+                }
+            }
+        });
+
+        return () => {
+            sub.remove();
+        };
+    }, []);
+
+    // -------- derived values (pure logic) --------
 
     const step: Step | undefined = steps[stepIndex];
 
@@ -49,6 +184,9 @@ export const useWorkoutRun = ({
     // Natural finish (ran all steps until the end)
     const naturalFinished =
         !!step && !running && stepIndex === steps.length - 1 && remaining <= 0;
+
+    // Final "finished" flag also true when user forced finish
+    const isFinished = forceFinished || naturalFinished;
 
     // continuous phase progress (0..1) based on ms
     const durationMs = (step?.durationSec ?? 0) * 1000;
@@ -64,40 +202,37 @@ export const useWorkoutRun = ({
             ? computeRemainingWorkoutSec(steps, stepIndex, remaining)
             : 0;
 
+    // ===== block-level remaining time (current block only) =====
+    const remainingBlockSec = useMemo(() => {
+        if (!step || step.blockIdx == null) return 0;
+
+        const currentBlockIdx = step.blockIdx;
+        let total = 0;
+
+        for (let i = 0; i < steps.length; i += 1) {
+            const s = steps[i];
+            if (s.blockIdx !== currentBlockIdx) continue;
+
+            if (i < stepIndex) {
+                continue;
+            }
+
+            if (i === stepIndex) {
+                total += remaining;
+            } else {
+                total += s.durationSec ?? 0;
+            }
+        }
+
+        return total;
+    }, [step, stepIndex, remaining, steps]);
+
     // set pill progress (0..1, continuous)
     const setProgress =
         step != null ? computeSetProgress(steps, step, remainingMs) : 0;
 
     const isAtStepStart =
         step != null ? remaining === (step.durationSec ?? 0) : false;
-
-    // ===== 3) Set-level maps (last step per set, durations, first step per block) =====
-
-    const { lastSetStepIndexMap, setDurationSecMap, firstStepIndexByBlock } =
-        useSetMaps({ steps, workout });
-
-    // ===== 4) Completion tracking (fully completed sets + elapsed time) =====
-
-    const {
-        completedSetsByBlock,
-        elapsedCompletedSec,
-        totalPlannedSets,
-        totalCompletedSets,
-    } = useCompletionTracking({
-        steps,
-        stepIndex,
-        workout,
-        lastSetStepIndexMap,
-        setDurationSecMap,
-        naturalFinished,
-    });
-
-    // ===== 5) Forced finish flag =====
-
-    const [forceFinished, setForceFinished] = useState(false);
-
-    // Final "finished" flag also true when user forced finish
-    const isFinished = forceFinished || naturalFinished;
 
     const primaryLabel: 'Start' | 'Pause' | 'Resume' | 'Done' = isFinished
         ? 'Done'
@@ -111,6 +246,8 @@ export const useWorkoutRun = ({
     const blocks = workout?.blocks ?? [];
     const currentBlock = step ? blocks[step.blockIdx] : undefined;
     const totalSets = currentBlock?.sets ?? 0;
+    const totalExercisesInBlock = currentBlock?.exercises?.length ?? 0;
+    const totalBlocks = blocks.length;
 
     const getExerciseNameForStep = (s: Step | undefined): string | null => {
         if (!s || s.label !== 'WORK') return null;
@@ -129,6 +266,7 @@ export const useWorkoutRun = ({
 
     let currentExerciseName: string | null = null;
     let nextExerciseName: string | null = null;
+    let currentExerciseIndexInBlock: number | null = null;
 
     if (step) {
         if (phase === 'PREP') {
@@ -147,14 +285,22 @@ export const useWorkoutRun = ({
 
             currentExerciseName = getExerciseNameForStep(firstWork);
             nextExerciseName = getExerciseNameForStep(secondWork);
+            currentExerciseIndexInBlock =
+                firstWork && firstWork.exIdx != null ? firstWork.exIdx : null;
         } else {
             if (phase === 'WORK') {
                 currentExerciseName = getExerciseNameForStep(step);
+                if (step.exIdx != null) {
+                    currentExerciseIndexInBlock = step.exIdx;
+                }
             } else if (phase === 'REST') {
                 for (let i = stepIndex - 1; i >= 0; i -= 1) {
                     const prev = steps[i];
                     if (prev.label === 'WORK') {
                         currentExerciseName = getExerciseNameForStep(prev);
+                        if (prev.exIdx != null) {
+                            currentExerciseIndexInBlock = prev.exIdx;
+                        }
                         break;
                     }
                 }
@@ -170,29 +316,178 @@ export const useWorkoutRun = ({
         }
     }
 
-    // ===== 6) Breathing animation =====
+    // ===== Track fully completed sets & elapsed time =====
 
-    const { breathingPhase } = useBreathingAnimation({
+    // ===== Track fully completed sets & elapsed time =====
+
+    const processCompletedStepIndex = useCallback(
+        (completedIndex: number) => {
+            const completedStep = steps[completedIndex];
+            if (!completedStep) return;
+
+            const { blockIdx, setIdx } = completedStep;
+            if (blockIdx == null || setIdx == null) return;
+
+            const key = `${blockIdx}-${setIdx}`;
+            const lastIdxForSet = lastSetStepIndexMap.get(key);
+
+            // Only mark when we just finished the *last* step of that set
+            if (lastIdxForSet == null || lastIdxForSet !== completedIndex)
+                return;
+            if (completedSetKeysRef.current.has(key)) return;
+
+            completedSetKeysRef.current.add(key);
+
+            // Increment completed sets for that block
+            setCompletedSetsByBlock((prev) => {
+                if (blockIdx < 0) return prev;
+                const next = prev.slice();
+                if (blockIdx >= next.length) return next;
+                next[blockIdx] = (next[blockIdx] ?? 0) + 1;
+                return next;
+            });
+
+            // Add the full planned duration of that set
+            const setDurationSec = setDurationSecMap.get(key) ?? 0;
+            if (setDurationSec > 0) {
+                setElapsedCompletedSec((prev) => prev + setDurationSec);
+            }
+        },
+        [steps, lastSetStepIndexMap, setDurationSecMap]
+    );
+
+    // When stepIndex changes, the previous step has just finished
+    useEffect(() => {
+        if (steps.length === 0) return;
+
+        const prevIndex = lastStepIndexRef.current;
+
+        if (prevIndex == null) {
+            lastStepIndexRef.current = stepIndex;
+            return;
+        }
+
+        if (stepIndex !== prevIndex) {
+            processCompletedStepIndex(prevIndex);
+            lastStepIndexRef.current = stepIndex;
+        }
+    }, [stepIndex, steps.length, processCompletedStepIndex]);
+
+    // When workout naturally finishes, ensure the last step is processed once
+    useEffect(() => {
+        if (!naturalFinished) return;
+        if (finalStepProcessedRef.current) return;
+
+        finalStepProcessedRef.current = true;
+        if (stepIndex >= 0 && stepIndex < steps.length) {
+            processCompletedStepIndex(stepIndex);
+        }
+    }, [naturalFinished, stepIndex, steps.length, processCompletedStepIndex]);
+
+    // -------- breathingPhase: 0..1 scalar for UI (timer + arc) --------
+    const breathingPhase = useSharedValue(0);
+
+    // Are we in the last 3 seconds of *this step* (independent of running)?
+    const isBreathingWindow = useMemo(() => {
+        if (!step || !step.durationSec) return false;
+        return remaining > 0 && remaining <= 3;
+    }, [step, remaining]);
+
+    // Only animate when in the window *and* actually running
+    const shouldAnimateBreathing = isBreathingWindow && running;
+
+    useEffect(() => {
+        cancelAnimation(breathingPhase);
+
+        if (isFinished) {
+            breathingPhase.value = withTiming(0, {
+                duration: 150,
+                easing: Easing.out(Easing.quad),
+            });
+            return;
+        }
+
+        if (!isBreathingWindow) {
+            breathingPhase.value = withTiming(0, {
+                duration: 150,
+                easing: Easing.out(Easing.quad),
+            });
+            return;
+        }
+
+        if (!shouldAnimateBreathing) {
+            // paused inside the window → freeze
+            return;
+        }
+
+        breathingPhase.value = withRepeat(
+            withSequence(
+                withTiming(1, {
+                    duration: 500,
+                    easing: Easing.linear,
+                }),
+                withTiming(0, {
+                    duration: 500,
+                    easing: Easing.out(Easing.cubic),
+                })
+            ),
+            -1,
+            false
+        );
+    }, [isBreathingWindow, shouldAnimateBreathing, isFinished, breathingPhase]);
+
+    // -------- block-level pause between blocks --------
+
+    useEffect(() => {
+        if (!step) {
+            setCurrentBlockIndex(null);
+            setAwaitingBlockContinue(false);
+            return;
+        }
+
+        const blockIdx = step.blockIdx;
+        setCurrentBlockIndex(blockIdx ?? null);
+
+        if (
+            blockIdx == null ||
+            blockIdx === 0 || // no pause before first block
+            forceFinished ||
+            naturalFinished
+        ) {
+            setAwaitingBlockContinue(false);
+            return;
+        }
+
+        const firstIndexForBlock = firstStepIndexByBlock.get(blockIdx);
+
+        // If we just entered the *first* step of this block, pause and show "Prepare"
+        if (firstIndexForBlock != null && stepIndex === firstIndexForBlock) {
+            const engine = engineRef.current;
+            engine?.pause();
+            setRunning(false);
+            setAwaitingBlockContinue(true);
+        } else {
+            // Inside the block -> normal running
+            setAwaitingBlockContinue(false);
+        }
+    }, [
         step,
-        phase,
-        remaining,
-        running,
-        isFinished,
-    });
+        stepIndex,
+        firstStepIndexByBlock,
+        forceFinished,
+        naturalFinished,
+    ]);
 
-    // ===== 7) Block-level pause between blocks =====
+    // -------- "fully completed" flag + completed blocks count --------
 
-    const { awaitingBlockContinue, currentBlockIndex, clearBlockPause } =
-        useBlockPause({
-            step,
-            stepIndex,
-            firstStepIndexByBlock,
-            naturalFinished,
-            forceFinished,
-            pauseEngine: pause,
-        });
-
-    // ===== 8) "fully completed" flag =====
+    const totalPlannedSets = plannedSetsByBlock.reduce(
+        (acc, val) => acc + (val ?? 0),
+        0
+    );
+    const totalCompletedSets = completedSetsByBlock.reduce(
+        (acc, val) => acc + (val ?? 0),
+        0
+    );
 
     const isFullyCompleted =
         !forceFinished &&
@@ -200,10 +495,27 @@ export const useWorkoutRun = ({
         totalPlannedSets > 0 &&
         totalCompletedSets >= totalPlannedSets;
 
-    // ===== 9) controls =====
+    const completedBlocksCount = useMemo(() => {
+        if (plannedSetsByBlock.length === 0) return 0;
+
+        return plannedSetsByBlock.reduce((acc, planned, index) => {
+            const completed = completedSetsByBlock[index] ?? 0;
+            if (planned > 0 && completed >= planned) {
+                return acc + 1;
+            }
+            return acc;
+        }, 0);
+    }, [plannedSetsByBlock, completedSetsByBlock]);
+
+    // -------- controls --------
+
+    const handleStart = () => engineRef.current?.start();
+    const handlePause = () => engineRef.current?.pause();
+    const handleResume = () => engineRef.current?.resume();
+    const handleSkip = () => engineRef.current?.skip();
 
     const handleEnd = () => {
-        pause();
+        handlePause();
         router.back();
     };
 
@@ -212,9 +524,11 @@ export const useWorkoutRun = ({
     };
 
     const handleForceFinish = () => {
-        stop();
+        const engine = engineRef.current;
+        engine?.stop();
+        setRunning(false);
         setForceFinished(true);
-        clearBlockPause();
+        setAwaitingBlockContinue(false);
     };
 
     const handlePrimary = () => {
@@ -224,20 +538,16 @@ export const useWorkoutRun = ({
         }
 
         if (awaitingBlockContinue) {
-            clearBlockPause();
+            setAwaitingBlockContinue(false);
         }
 
         if (running) {
-            pause();
+            handlePause();
         } else if (isAtStepStart) {
-            start();
+            handleStart();
         } else {
-            resume();
+            handleResume();
         }
-    };
-
-    const handleSkip = () => {
-        skip();
     };
 
     return {
@@ -251,6 +561,7 @@ export const useWorkoutRun = ({
         isSetRest,
         phaseProgress,
         remainingWorkoutSec,
+        remainingBlockSec,
         setProgress,
         isFinished,
         primaryLabel,
@@ -258,12 +569,16 @@ export const useWorkoutRun = ({
         // workout structure / names
         currentBlock,
         totalSets,
+        totalBlocks,
         currentBlockIndex,
         currentExerciseName,
         nextExerciseName,
+        currentExerciseIndexInBlock,
+        totalExercisesInBlock,
 
         // completion info
         completedSetsByBlock,
+        completedBlocksCount,
         elapsedCompletedSec,
         isFullyCompleted,
         awaitingBlockContinue,

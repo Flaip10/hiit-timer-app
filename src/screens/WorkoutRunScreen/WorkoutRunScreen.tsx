@@ -68,22 +68,26 @@ export const WorkoutRunScreen = () => {
         isSetRest,
         phaseProgress,
         remainingWorkoutSec,
+        completedBlocksCount,
+        remainingBlockSec,
         setProgress,
         isFinished,
         primaryLabel,
         currentBlock,
         totalSets,
+        currentBlockIndex,
+        totalExercisesInBlock,
         currentExerciseName,
         nextExerciseName,
-        currentBlockIndex,
-        awaitingBlockContinue,
+        currentExerciseIndexInBlock,
         completedSetsByBlock,
         elapsedCompletedSec,
         isFullyCompleted,
+        awaitingBlockContinue,
         breathingPhase,
         handlePrimary,
         handleSkip,
-        handleEnd, // kept for future reuse if needed
+        handleEnd,
         handleDone,
         handleForceFinish,
     } = useWorkoutRun({ steps, workout, shouldAutoStart, router });
@@ -182,15 +186,17 @@ export const WorkoutRunScreen = () => {
                 <RunTopSection
                     workoutName={workout.name}
                     isFinished={isFinished}
-                    remainingWorkoutSec={remainingWorkoutSec}
-                    totalWorkoutPlannedSec={totalWorkoutPlannedSec}
+                    remainingBlockSec={remainingBlockSec}
                     phaseColor={phaseColor}
-                    stepBlockIdx={step.blockIdx}
+                    currentBlockIndex={currentBlockIndex}
+                    totalBlocks={workout.blocks.length}
                     currentBlockTitle={currentBlock?.title ?? null}
                     currentSetIndex={step.setIdx}
                     totalSets={totalSets}
                     setProgress={setProgress}
-                    isBlockPause={isBlockPause}
+                    totalExercisesInBlock={totalExercisesInBlock}
+                    currentExerciseIndexInBlock={currentExerciseIndexInBlock}
+                    isBlockPause={awaitingBlockContinue}
                 />
 
                 {/* PHASE / ARC / EXERCISES */}
