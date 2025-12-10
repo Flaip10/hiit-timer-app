@@ -21,6 +21,7 @@ type WorkoutBlockItemProps = {
      * If not provided, no remove affordance is rendered.
      */
     onRemove?: (id: string) => void;
+    expanded?: boolean;
 };
 
 export const WorkoutBlockItem = ({
@@ -28,6 +29,7 @@ export const WorkoutBlockItem = ({
     block,
     onPress,
     onRemove,
+    expanded = false,
 }: WorkoutBlockItemProps) => {
     const { theme } = useTheme();
     const st = useWorkoutBlockItemStyles();
@@ -117,7 +119,7 @@ export const WorkoutBlockItem = ({
                 borderColor: theme.palette.metaCard.topLeftContent.border,
             }}
             actionStrip={actionStrip}
-            expandable
+            expandable={!expanded}
             withBottomFade={false}
             minHeight={0}
             onPress={handlePress}
