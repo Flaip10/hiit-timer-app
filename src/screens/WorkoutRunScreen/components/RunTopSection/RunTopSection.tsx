@@ -125,59 +125,62 @@ export const RunTopSection = ({
                 </View>
 
                 {/* Set progress (animated pills), only when not in block pause */}
-                {!isBlockPause && (
-                    <>
-                        <SetProgressPills
-                            currentSetIndex={currentSetIndex}
-                            totalSets={totalSets}
-                            setProgress={setProgress}
-                            phaseColor={phaseColor}
-                        />
+                <AppearingView
+                    visible={!isBlockPause}
+                    style={st.bottomRowContainer}
+                    delay={260}
+                    offsetY={0}
+                >
+                    <SetProgressPills
+                        currentSetIndex={currentSetIndex}
+                        totalSets={totalSets}
+                        setProgress={setProgress}
+                        phaseColor={phaseColor}
+                    />
 
-                        <View style={st.rowContainer}>
-                            {/* Block progression */}
-                            {showBlockDots ? (
-                                <View style={st.rowContainer}>
-                                    <AppText
-                                        variant="bodySmall"
-                                        tone="muted"
-                                        style={st.blockHeaderLabel}
-                                        numberOfLines={1}
-                                        ellipsizeMode="tail"
-                                    >
-                                        Blocks
-                                    </AppText>
+                    <View style={st.rowContainer}>
+                        {/* Block progression */}
+                        {showBlockDots ? (
+                            <View style={st.rowContainer}>
+                                <AppText
+                                    variant="bodySmall"
+                                    tone="muted"
+                                    style={st.blockHeaderLabel}
+                                    numberOfLines={1}
+                                    ellipsizeMode="tail"
+                                >
+                                    Blocks
+                                </AppText>
 
-                                    <DotIndicator
-                                        total={totalBlocks}
-                                        current={currentBlockIndex ?? 0}
-                                        color={phaseColor}
-                                    />
-                                </View>
-                            ) : null}
+                                <DotIndicator
+                                    total={totalBlocks}
+                                    current={currentBlockIndex ?? 0}
+                                    color={phaseColor}
+                                />
+                            </View>
+                        ) : null}
 
-                            {/* Exercises progression in current block */}
-                            {safeTotalExercises > 0 && (
-                                <View style={st.rowContainer}>
-                                    <AppText
-                                        variant="bodySmall"
-                                        tone="muted"
-                                        style={st.blockHeaderLabel}
-                                        numberOfLines={1}
-                                        ellipsizeMode="tail"
-                                    >
-                                        Exercises
-                                    </AppText>
-                                    <DotIndicator
-                                        total={safeTotalExercises}
-                                        current={safeExerciseIndex}
-                                        color={phaseColor}
-                                    />
-                                </View>
-                            )}
-                        </View>
-                    </>
-                )}
+                        {/* Exercises progression in current block */}
+                        {safeTotalExercises > 0 && (
+                            <View style={st.rowContainer}>
+                                <AppText
+                                    variant="bodySmall"
+                                    tone="muted"
+                                    style={st.blockHeaderLabel}
+                                    numberOfLines={1}
+                                    ellipsizeMode="tail"
+                                >
+                                    Exercises
+                                </AppText>
+                                <DotIndicator
+                                    total={safeTotalExercises}
+                                    current={safeExerciseIndex}
+                                    color={phaseColor}
+                                />
+                            </View>
+                        )}
+                    </View>
+                </AppearingView>
             </AppearingView>
 
             {/* FINISHED HEADER ================================================ */}

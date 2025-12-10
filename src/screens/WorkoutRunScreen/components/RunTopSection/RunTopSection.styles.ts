@@ -7,7 +7,6 @@ export const useRunTopSectionStyles = createStyles((theme: AppTheme) =>
         mainContainer: {
             width: '100%',
             paddingTop: 16,
-            minHeight: 120,
             justifyContent: 'flex-start',
         },
 
@@ -21,6 +20,10 @@ export const useRunTopSectionStyles = createStyles((theme: AppTheme) =>
             justifyContent: 'space-between',
             alignItems: 'flex-end',
             gap: 10,
+        },
+
+        bottomRowContainer: {
+            gap: 12,
         },
 
         rowContainer: {
@@ -69,7 +72,6 @@ export const useRunTopSectionStyles = createStyles((theme: AppTheme) =>
             alignItems: 'center',
             flexWrap: 'wrap',
             gap: 8,
-            marginTop: 6,
         },
 
         finishedMetaItem: {
