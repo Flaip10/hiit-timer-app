@@ -11,8 +11,8 @@ import Reanimated, {
     cancelAnimation,
 } from 'react-native-reanimated';
 
-import { ARC_SIZE } from '../../WorkoutRunScreen.styles';
 import { useTheme } from '@src/theme/ThemeProvider';
+import { ARC_SIZE } from '../../RunPhaseSection.styles';
 
 const AnimatedPath = Reanimated.createAnimatedComponent(Path);
 
