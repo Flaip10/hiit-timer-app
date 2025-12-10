@@ -7,8 +7,8 @@ import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { formatDuration } from '../../helpers';
 import { useRunTopSectionStyles } from './RunTopSection.styles';
-import { SetProgressPills } from '../WorkoutMetaStrip/SetProgressPills';
-import { DotIndicator } from './DotIndicator/DotIndicator';
+import { SetProgressPills } from './components/SetProgressPills/SetProgressPills';
+import { DotIndicator } from './components/DotIndicator/DotIndicator';
 
 type RunTopSectionProps = {
     workoutName: string;
