@@ -129,7 +129,7 @@ export const RunTopSection = ({
                     visible={!isBlockPause}
                     style={st.bottomRowContainer}
                     delay={260}
-                    offsetY={0}
+                    offsetY={-12}
                 >
                     <SetProgressPills
                         currentSetIndex={currentSetIndex}

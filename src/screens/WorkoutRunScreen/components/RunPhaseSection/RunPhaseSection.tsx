@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import Animated, {
     useAnimatedStyle,
@@ -10,13 +10,17 @@ import type { Phase } from '@core/timer';
 import type { Workout } from '@core/entities';
 
 import { AppText } from '@src/components/ui/Typography/AppText';
-import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
-import { PhasePill } from '../PhasePill/PhasePill';
-import { PhaseArc } from '../PhaseArc/PhaseArc';
-import { ExerciseInfoCard } from '../ExerciseInfoCard/ExerciseInfoCard';
-import { NextExerciseCarousel } from '../NextExerciseCarousel/NextExerciseCarousel';
-import useWorkoutRunStyles from '../../WorkoutRunScreen.styles';
 import { useTheme } from '@src/theme/ThemeProvider';
+import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
+import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
+
+import FinishedCard from '../FinishedCard/FinishedCard';
+import { PhasePill } from './components/PhasePill/PhasePill';
+import { PhaseArc } from './components/PhaseArc/PhaseArc';
+import { ExerciseInfoCard } from './components/ExerciseInfoCard/ExerciseInfoCard';
+import { NextExerciseCarousel } from './components/NextExerciseCarousel/NextExerciseCarousel';
+import { WorkoutBlockItem } from '@src/screens/EditWorkoutScreen/components/WorkoutBlockItem/WorkoutBlockItem';
+import { useRunPhaseSectionStyles } from './RunPhaseSection.styles';
 
 const AnimatedAppText = Animated.createAnimatedComponent(AppText);
 
@@ -41,6 +45,9 @@ type RunPhaseSectionProps = {
     // Exercise info
     currentExerciseName: string | null;
     nextExerciseName: string | null;
+
+    // Finishing Zone
+    openSharePreview: () => void;
 };
 
 export const RunPhaseSection = ({
@@ -56,8 +63,9 @@ export const RunPhaseSection = ({
     breathingPhase,
     currentExerciseName,
     nextExerciseName,
+    openSharePreview,
 }: RunPhaseSectionProps) => {
-    const st = useWorkoutRunStyles();
+    const st = useRunPhaseSectionStyles();
     const { theme } = useTheme();
 
     const isBlockPause = awaitingBlockContinue && !!currentBlock;
@@ -66,159 +74,103 @@ export const RunPhaseSection = ({
         transform: [{ scale: 1 + breathingPhase.value * 0.08 }],
     }));
 
-    const blockPauseInfo = useMemo(() => {
-        if (!isBlockPause || !currentBlock) return null;
+    const pillLabel = isFinished ? 'Done' : phaseLabel;
 
-        const blockIdx =
-            typeof currentBlockIndex === 'number' ? currentBlockIndex : 0;
-
-        const title =
-            currentBlock.title && currentBlock.title.trim().length > 0
-                ? currentBlock.title.trim()
-                : `Block ${blockIdx + 1}`;
-
-        const exerciseNames = currentBlock.exercises.map(
-            (exercise, exerciseIndex) => {
-                const trimmedName = exercise.name?.trim();
-                if (trimmedName && trimmedName.length > 0) {
-                    return trimmedName;
-                }
-                return `Exercise ${exerciseIndex + 1}`;
-            }
-        );
-
-        const exercisesLine = exerciseNames.join(' • ');
-        const setsLabel = `${currentBlock.sets} set${
-            currentBlock.sets === 1 ? '' : 's'
-        }`;
-
-        return {
-            title,
-            exercisesLine,
-            setsLabel,
-        };
-    }, [isBlockPause, currentBlock, currentBlockIndex]);
-
-    const pillLabel = isFinished
-        ? 'Done'
-        : isBlockPause
-          ? 'Prepare'
-          : phaseLabel;
+    const safeBlockIndex = currentBlockIndex ?? 0;
 
     return (
-        <>
-            {/* ARC + PHASE / BLOCK PAUSE */}
-            <View style={st.arcContainer}>
+        <View style={st.mainContainer}>
+            {/* BLOCK PAUSE – reuse WorkoutSummary layout */}
+            <AppearingView
+                visible={isBlockPause && !!currentBlock}
+                style={st.blockPauseContainer}
+                offsetY={0}
+                offsetX={-12}
+                delay={260}
+            >
+                {currentBlock && (
+                    <WorkoutBlockItem
+                        index={safeBlockIndex}
+                        block={currentBlock}
+                        expanded
+                    />
+                )}
+
+                <AppText
+                    variant="captionSmall"
+                    tone="muted"
+                    style={st.blockPauseHint}
+                >
+                    Tap play to start this block.
+                </AppText>
+            </AppearingView>
+
+            {/* ARC / EXERCISES / FINISHED CARD  */}
+            <AppearingView
+                visible={!isBlockPause}
+                style={st.arcContainer}
+                delay={260}
+            >
                 <PhasePill color={phaseColor} label={pillLabel} />
 
-                {isBlockPause && blockPauseInfo ? (
-                    <View style={st.blockPauseContainer}>
-                        <MetaCard
-                            expandable={false}
-                            topLeftContent={{
-                                text: 'Next block',
-                                icon: (
-                                    <Ionicons
-                                        name="barbell-outline"
-                                        size={14}
-                                        color={
-                                            theme.palette.metaCard
-                                                .topLeftContent.text
-                                        }
-                                    />
-                                ),
-                                backgroundColor:
-                                    theme.palette.metaCard.topLeftContent
-                                        .background,
-                                color: theme.palette.metaCard.topLeftContent
-                                    .text,
-                                borderColor:
-                                    theme.palette.metaCard.topLeftContent
-                                        .border,
-                            }}
-                            summaryContent={
-                                <View style={st.blockPauseSummary}>
-                                    <AppText
-                                        variant="body"
-                                        style={st.blockPauseTitle}
-                                        numberOfLines={1}
-                                        ellipsizeMode="tail"
-                                    >
-                                        {blockPauseInfo.title}
-                                    </AppText>
+                <View style={st.arcWrapper}>
+                    <PhaseArc
+                        progress={phaseProgress}
+                        color={phaseColor}
+                        finished={isFinished}
+                        breathingPhase={breathingPhase}
+                    />
+                    <AnimatedAppText
+                        variant="title1"
+                        style={[st.timer, timerAnimatedStyle]}
+                    >
+                        {isFinished ? 0 : remaining}
+                    </AnimatedAppText>
+                </View>
 
-                                    <View style={st.blockPauseRow}>
-                                        <View style={st.blockPauseSetsPill}>
-                                            <AppText
-                                                variant="caption"
-                                                style={st.blockPauseSetsText}
-                                            >
-                                                {blockPauseInfo.setsLabel}
-                                            </AppText>
-                                        </View>
-                                    </View>
+                {/* EXERCISES */}
+                {!isFinished && currentExerciseName && (
+                    <View style={st.exerciseInfoContainer}>
+                        {currentExerciseName.length > 0 && (
+                            <ExerciseInfoCard
+                                phase={phase}
+                                color={phaseColor}
+                                currentExerciseName={currentExerciseName}
+                            />
+                        )}
 
-                                    <AppText
-                                        variant="bodySmall"
-                                        tone="muted"
-                                        style={st.blockPauseExercises}
-                                        numberOfLines={0}
-                                    >
-                                        {blockPauseInfo.exercisesLine}
-                                    </AppText>
-                                </View>
-                            }
-                        />
-
-                        <AppText
-                            variant="captionSmall"
-                            tone="muted"
-                            style={st.blockPauseHint}
-                        >
-                            Tap play to start this block.
-                        </AppText>
-                    </View>
-                ) : (
-                    <View style={st.arcWrapper}>
-                        <PhaseArc
-                            progress={phaseProgress}
-                            color={phaseColor}
-                            finished={isFinished}
-                            breathingPhase={breathingPhase}
-                        />
-                        <AnimatedAppText
-                            variant="title1"
-                            style={[st.timer, timerAnimatedStyle]}
-                        >
-                            {isFinished ? 0 : remaining}
-                        </AnimatedAppText>
+                        {nextExerciseName && nextExerciseName.length > 0 && (
+                            <NextExerciseCarousel
+                                phase={phase}
+                                label={nextExerciseName}
+                            />
+                        )}
                     </View>
                 )}
-            </View>
 
-            {/* CURRENT + NEXT EXERCISE */}
-            <View style={st.exerciseInfoContainer}>
-                {!isFinished &&
-                    !isBlockPause &&
-                    currentExerciseName &&
-                    currentExerciseName.length > 0 && (
-                        <ExerciseInfoCard
-                            phase={phase}
-                            color={phaseColor}
-                            currentExerciseName={currentExerciseName}
-                        />
-                    )}
+                {/* FINISHING ZONE */}
+                {isFinished && (
+                    <View style={st.finishedContainer}>
+                        <FinishedCard visible={isFinished} />
 
-                {!isFinished &&
-                    !isBlockPause &&
-                    nextExerciseName &&
-                    nextExerciseName.length > 0 && (
-                        <NextExerciseCarousel
-                            phase={phase}
-                            label={nextExerciseName}
-                        />
-                    )}
-            </View>
-        </>
+                        <AppearingView
+                            visible={isFinished}
+                            style={st.finishedFooterRow}
+                        >
+                            <CircleIconButton
+                                onPress={openSharePreview}
+                                variant="secondary"
+                            >
+                                <Ionicons
+                                    name="share-outline"
+                                    size={22}
+                                    color={theme.palette.text.primary}
+                                />
+                            </CircleIconButton>
+                        </AppearingView>
+                    </View>
+                )}
+            </AppearingView>
+        </View>
     );
 };
