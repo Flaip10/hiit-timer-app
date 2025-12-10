@@ -199,7 +199,7 @@ export const WorkoutRunScreen = () => {
                     isBlockPause={awaitingBlockContinue}
                 />
 
-                {/* PHASE / ARC / EXERCISES */}
+                {/* PHASE / ARC / EXERCISES / FINISHED CARD */}
                 <RunPhaseSection
                     phase={phase}
                     phaseColor={phaseColor}
@@ -213,27 +213,8 @@ export const WorkoutRunScreen = () => {
                     breathingPhase={breathingPhase}
                     currentExerciseName={currentExerciseName}
                     nextExerciseName={nextExerciseName}
+                    openSharePreview={openSharePreview}
                 />
-
-                {/* FINISHED CARD */}
-                <FinishedCard visible={isFinished} />
-
-                {/* Share button (finished only) */}
-                <AppearingView
-                    visible={isFinished}
-                    style={st.finishedFooterRow}
-                >
-                    <CircleIconButton
-                        onPress={openSharePreview}
-                        variant="secondary"
-                    >
-                        <Ionicons
-                            name="share-outline"
-                            size={22}
-                            color={theme.palette.text.primary}
-                        />
-                    </CircleIconButton>
-                </AppearingView>
 
                 {/* Share preview modal – only used on finished state */}
                 {isFinished && (
