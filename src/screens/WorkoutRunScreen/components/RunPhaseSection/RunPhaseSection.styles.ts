@@ -16,7 +16,7 @@ export const useRunPhaseSectionStyles = createStyles((theme: AppTheme) =>
             flex: 1,
             width: '100%',
             paddingHorizontal: 16,
-            paddingVertical: 24,
+            paddingBottom: 30,
             justifyContent: 'center',
             gap: 16,
         },

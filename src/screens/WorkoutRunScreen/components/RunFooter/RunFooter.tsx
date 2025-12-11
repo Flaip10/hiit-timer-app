@@ -58,7 +58,7 @@ export const RunFooter = ({
         return (
             <View style={st.footerHoldWrapper}>
                 <HoldToConfirmButton
-                    title="Hold to start block"
+                    title="Hold to start Block"
                     variant="primary"
                     holdDurationMs={1200}
                     onConfirmed={onPrimary} // or a dedicated "continueBlock" handler

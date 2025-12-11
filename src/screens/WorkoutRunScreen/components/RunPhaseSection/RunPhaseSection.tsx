@@ -81,6 +81,7 @@ export const RunPhaseSection = ({
     return (
         <View style={st.mainContainer}>
             {/* BLOCK PAUSE – reuse WorkoutSummary layout */}
+
             <AppearingView
                 visible={isBlockPause && !!currentBlock}
                 style={st.blockPauseContainer}
@@ -88,6 +89,13 @@ export const RunPhaseSection = ({
                 offsetX={-12}
                 delay={260}
             >
+                <AppText
+                    variant="bodySmall"
+                    tone="muted"
+                    style={st.blockPauseHint}
+                >
+                    Next Block:
+                </AppText>
                 {currentBlock && (
                     <WorkoutBlockItem
                         index={safeBlockIndex}
@@ -95,14 +103,6 @@ export const RunPhaseSection = ({
                         expanded
                     />
                 )}
-
-                <AppText
-                    variant="captionSmall"
-                    tone="muted"
-                    style={st.blockPauseHint}
-                >
-                    Tap play to start this block.
-                </AppText>
             </AppearingView>
 
             {/* ARC / EXERCISES / FINISHED CARD  */}
