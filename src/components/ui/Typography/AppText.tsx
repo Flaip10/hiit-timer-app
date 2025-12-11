@@ -1,5 +1,5 @@
 import React, { type FC, useMemo } from 'react';
-import { Text, type TextProps, type TextStyle } from 'react-native';
+import { StyleProp, Text, type TextProps, type TextStyle } from 'react-native';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { createTypography, type TextVariant } from '@src/theme/typography';
 
@@ -15,7 +15,7 @@ export interface AppTextProps extends TextProps {
     variant?: TextVariant;
     tone?: TextTone;
     align?: 'left' | 'center' | 'right';
-    style?: TextStyle | TextStyle[];
+    style?: StyleProp<TextStyle>;
     children: React.ReactNode;
 }
 
