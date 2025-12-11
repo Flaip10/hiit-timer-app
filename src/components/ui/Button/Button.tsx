@@ -1,37 +1,22 @@
 import React from 'react';
-import {
-    ActivityIndicator,
-    Pressable,
-    Text,
-    TextStyle,
-    ViewStyle,
-} from 'react-native';
+import { ActivityIndicator, Pressable } from 'react-native';
+
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useButtonStyles } from './Button.styles';
+import type { ButtonProps } from './Button.interfaces';
+import { AppText } from '../Typography/AppText';
 
-type ButtonVariant = 'default' | 'primary' | 'secondary' | 'danger' | 'ghost';
-
-type ButtonProps = {
-    title: string;
-    onPress: () => void;
-    variant?: ButtonVariant;
-    disabled?: boolean;
-    loading?: boolean;
-    style?: ViewStyle;
-    textStyle?: TextStyle;
-    flex?: number | boolean;
-};
-
-export const Button = ({
+export const Button: React.FC<ButtonProps> = ({
     title,
     onPress,
-    variant = 'default',
-    disabled = false,
+    variant = 'primary',
     loading = false,
-    textStyle,
     style,
+    textStyle,
     flex,
-}: ButtonProps) => {
+    disabled, // from PressableProps
+    ...pressableProps
+}) => {
     const { theme } = useTheme();
     const st = useButtonStyles();
 
@@ -44,6 +29,7 @@ export const Button = ({
 
     return (
         <Pressable
+            {...pressableProps}
             onPress={isDisabled ? undefined : onPress}
             style={({ pressed }) => [
                 st.base,
@@ -59,18 +45,12 @@ export const Button = ({
             {loading ? (
                 <ActivityIndicator color={spinnerColor} />
             ) : (
-                <Text
-                    style={[
-                        st.text,
-                        variant === 'primary' && st.textPrimary,
-                        variant === 'secondary' && st.textSecondary,
-                        variant === 'danger' && st.textDanger,
-                        variant === 'ghost' && st.textGhost,
-                        textStyle,
-                    ]}
+                <AppText
+                    variant="bodySmall"
+                    style={[st.text, st[`text_${variant}`], textStyle]}
                 >
                     {title}
-                </Text>
+                </AppText>
             )}
         </Pressable>
     );

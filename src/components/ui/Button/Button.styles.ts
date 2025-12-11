@@ -6,7 +6,7 @@ export const useButtonStyles = createStyles((theme: AppTheme) =>
     StyleSheet.create({
         base: {
             borderRadius: 999,
-            paddingVertical: 12,
+            paddingVertical: 14,
             paddingHorizontal: 14,
             alignItems: 'center',
             justifyContent: 'center',
@@ -15,11 +15,7 @@ export const useButtonStyles = createStyles((theme: AppTheme) =>
         },
 
         // Variants
-        default: {
-            backgroundColor: theme.palette.background.card,
-            borderWidth: 1,
-            borderColor: theme.palette.border.subtle,
-        },
+
         primary: {
             backgroundColor: theme.palette.button.primary,
             borderWidth: 1,
@@ -32,6 +28,8 @@ export const useButtonStyles = createStyles((theme: AppTheme) =>
         },
         danger: {
             backgroundColor: theme.palette.button.danger,
+            borderWidth: 1,
+            borderColor: theme.palette.button.danger,
         },
         ghost: {
             backgroundColor: 'transparent',
@@ -40,19 +38,17 @@ export const useButtonStyles = createStyles((theme: AppTheme) =>
         // Text
         text: {
             fontWeight: '700',
-            fontSize: 14,
-            color: theme.palette.text.primary,
         },
-        textPrimary: {
+        text_primary: {
             color: theme.palette.text.inverted,
         },
-        textSecondary: {
+        text_secondary: {
             color: theme.palette.button.text.secondary,
         },
-        textDanger: {
+        text_danger: {
             color: theme.palette.text.danger,
         },
-        textGhost: {
+        text_ghost: {
             color: theme.palette.accent.primary,
         },
 
