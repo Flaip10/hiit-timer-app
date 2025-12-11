@@ -4,8 +4,10 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
 import { AppText } from '@src/components/ui/Typography/AppText';
-import useWorkoutRunStyles from '../../WorkoutRunScreen.styles';
 import { useTheme } from '@src/theme/ThemeProvider';
+import { useRunFooterStyles } from './RunFooter.styles';
+import { HoldToConfirmButton } from '@src/components/ui/HoldToConfirmButton/HoldToConfirmButton';
+import { Button } from '@src/components/ui/Button/Button';
 
 type RunFooterProps = {
     isFinished: boolean;
@@ -16,6 +18,10 @@ type RunFooterProps = {
     onSkip: () => void;
     onRequestEnd: () => void;
     onDone: () => void;
+
+    // new: block-pause behaviour
+    isBlockPause: boolean;
+    holdToContinueSeconds?: number;
 };
 
 export const RunFooter = ({
@@ -27,32 +33,41 @@ export const RunFooter = ({
     onSkip,
     onRequestEnd,
     onDone,
+    isBlockPause,
+    holdToContinueSeconds = 1.2,
 }: RunFooterProps) => {
-    const st = useWorkoutRunStyles();
+    const st = useRunFooterStyles();
     const { theme } = useTheme();
 
+    // Finished → back button only
     if (isFinished) {
         return (
             <View style={st.footerFinishedWrapper}>
-                <Pressable
+                <Button
+                    title="Back to summary"
                     onPress={onDone}
-                    style={({ pressed }) =>
-                        pressed
-                            ? [
-                                  st.footerFinishedButton,
-                                  st.footerFinishedButtonPressed,
-                              ]
-                            : [st.footerFinishedButton]
-                    }
-                >
-                    <AppText variant="subtitle" style={st.footerFinishedText}>
-                        Back to summary
-                    </AppText>
-                </Pressable>
+                    variant="primary"
+                    // style={st.footerFinishedButton}
+                />
             </View>
         );
     }
 
+    // Block pause → hold button replaces the 3 actions
+    if (isBlockPause) {
+        return (
+            <View style={st.footerHoldWrapper}>
+                <HoldToConfirmButton
+                    title="Hold to start block"
+                    variant="primary"
+                    holdDurationMs={1200}
+                    onConfirmed={onPrimary} // or a dedicated "continueBlock" handler
+                />
+            </View>
+        );
+    }
+
+    // Normal running / paused → End, Play/Pause, Skip
     return (
         <View style={st.footerIconRow}>
             {/* End button (with confirm) */}
