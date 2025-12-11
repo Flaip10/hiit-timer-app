@@ -14,13 +14,10 @@ import { buildSteps } from '@core/timer';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
 import { Button } from '@src/components/ui/Button/Button';
-import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
-import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 
 import useWorkoutRunStyles from './WorkoutRunScreen.styles';
-import { FinishedCard } from './components/FinishedCard/FinishedCard';
 import { ShareWorkoutCard } from './components/ShareWorkoutCard/ShareWorkoutCard';
 import { useWorkoutRun } from './hooks/useWorkoutRun';
 import { colorFor, labelFor } from './helpers';
@@ -167,6 +164,7 @@ export const WorkoutRunScreen = () => {
     };
 
     const handleRequestEnd = () => {
+        if (running) handlePrimary();
         setEndConfirmVisible(true);
     };
 
@@ -176,6 +174,7 @@ export const WorkoutRunScreen = () => {
     };
 
     const handleCancelEnd = () => {
+        handlePrimary();
         setEndConfirmVisible(false);
     };
 
@@ -288,6 +287,7 @@ export const WorkoutRunScreen = () => {
                     onSkip={handleSkip}
                     onRequestEnd={handleRequestEnd}
                     onDone={handleDone}
+                    isBlockPause={awaitingBlockContinue}
                 />
             </FooterBar>
         </>
