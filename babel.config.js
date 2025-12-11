@@ -19,7 +19,7 @@ module.exports = function (api) {
                     },
                 },
             ],
-            'react-native-reanimated/plugin', // MUST be last
+            'react-native-worklets/plugin', // MUST be last
         ],
     };
 };
