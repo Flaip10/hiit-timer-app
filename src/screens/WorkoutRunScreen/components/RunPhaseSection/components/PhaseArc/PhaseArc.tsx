@@ -9,6 +9,7 @@ import Reanimated, {
     Easing,
     SharedValue,
     cancelAnimation,
+    clamp,
 } from 'react-native-reanimated';
 
 import { useTheme } from '@src/theme/ThemeProvider';
@@ -225,51 +226,29 @@ export const PhaseArc = ({
     }, [finished, glowProgress, glowOpacity]);
 
     const mainProps = useAnimatedProps(() => {
-        // Raw arc progress coming from shared value
-        const rawMainProgress = arcProgress.value;
+        const progress = clamp(arcProgress.value, 0, 1);
 
-        // Clamp between 0 and 1 so the strokeDashoffset stays valid
-        const clampedMainProgress =
-            rawMainProgress < 0 ? 0 : rawMainProgress > 1 ? 1 : rawMainProgress;
-
-        // Convert progress → stroke offset
-        const strokeDashoffset = ARC_LENGTH * (1 - clampedMainProgress);
-
-        return { strokeDashoffset };
+        return {
+            strokeDashoffset: ARC_LENGTH * (1 - progress),
+        };
     });
 
     const glowProps = useAnimatedProps(() => {
-        const rawGlowProgress = glowProgress.value;
-
-        const clampedGlowProgress =
-            rawGlowProgress < 0 ? 0 : rawGlowProgress > 1 ? 1 : rawGlowProgress;
-
-        const strokeDashoffset = ARC_LENGTH * (1 - clampedGlowProgress);
+        const progress = clamp(glowProgress.value, 0, 1);
 
         return {
-            strokeDashoffset,
+            strokeDashoffset: ARC_LENGTH * (1 - progress),
             opacity: glowOpacity.value * 0.9,
         };
     });
 
     const breathingProps = useAnimatedProps(() => {
-        // Main arc progress for the halo ring
-        const rawMainProgress = arcProgress.value;
-
-        const clampedMainProgress =
-            rawMainProgress < 0 ? 0 : rawMainProgress > 1 ? 1 : rawMainProgress;
-
-        const strokeDashoffset = ARC_LENGTH * (1 - clampedMainProgress);
-
-        // Breathing animation modifier
-        const rawBreathValue = breathingPhase ? breathingPhase.value : 0;
-
-        const clampedBreathValue =
-            rawBreathValue < 0 ? 0 : rawBreathValue > 1 ? 1 : rawBreathValue;
+        const progress = clamp(arcProgress.value, 0, 1);
+        const breath = clamp(breathingPhase ? breathingPhase.value : 0, 0, 1);
 
         return {
-            strokeDashoffset,
-            opacity: clampedBreathValue * 0.6,
+            strokeDashoffset: ARC_LENGTH * (1 - progress),
+            opacity: breath * 0.6,
         };
     });
 
