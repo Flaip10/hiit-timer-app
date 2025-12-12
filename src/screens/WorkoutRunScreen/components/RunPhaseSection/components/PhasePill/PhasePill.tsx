@@ -2,11 +2,9 @@ import React, { useEffect } from 'react';
 import type { TextStyle, ViewStyle } from 'react-native';
 import Animated, {
     Easing,
-    interpolateColor,
     LinearTransition,
     useAnimatedStyle,
     useSharedValue,
-    withDelay,
     withSequence,
     withTiming,
     cancelAnimation,
@@ -33,11 +31,6 @@ export const PhasePill = ({
     const opacity = useSharedValue(1);
     const scale = useSharedValue(1);
 
-    // color interpolation: fromColor -> toColor with progress 0..1
-    const fromColor = useSharedValue(color);
-    const toColor = useSharedValue(color);
-    const colorProgress = useSharedValue(1);
-
     useEffect(() => {
         // Ignore initial PREP label
         if (label === 'Prepare') return;
@@ -45,20 +38,6 @@ export const PhasePill = ({
         // Cancel any in-flight animations before starting a new transition
         cancelAnimation(opacity);
         cancelAnimation(scale);
-        cancelAnimation(colorProgress);
-
-        fromColor.value = toColor.value;
-        toColor.value = color;
-        colorProgress.value = 0;
-
-        // Color cross-fade
-        colorProgress.value = withDelay(
-            75,
-            withTiming(1, {
-                duration: 250,
-                easing: Easing.inOut(Easing.quad),
-            })
-        );
 
         // Opacity pulse
         opacity.value = withSequence(
@@ -83,19 +62,13 @@ export const PhasePill = ({
                 easing: Easing.inOut(Easing.quad),
             })
         );
-    }, [label, color, opacity, scale, colorProgress, fromColor, toColor]);
+    }, [label, opacity, scale]);
 
     const animatedStyle = useAnimatedStyle(() => {
-        const backgroundColor = interpolateColor(
-            colorProgress.value,
-            [0, 1],
-            [fromColor.value, toColor.value]
-        );
-
         return {
             opacity: opacity.value,
             transform: [{ scale: scale.value }],
-            backgroundColor,
+            backgroundColor: color,
         };
     });
 
