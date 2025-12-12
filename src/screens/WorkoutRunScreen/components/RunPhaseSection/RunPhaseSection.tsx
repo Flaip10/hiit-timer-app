@@ -6,7 +6,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
-import type { Phase } from '@core/timer';
+import type { Phase, Step } from '@core/timer';
 import type { Workout } from '@core/entities';
 
 import { AppText } from '@src/components/ui/Typography/AppText';
@@ -31,6 +31,8 @@ type RunPhaseSectionProps = {
     phaseColor: string;
     phaseLabel: string;
     isFinished: boolean;
+    currentStep: Step;
+    isRunning: boolean;
 
     // Block pause state
     awaitingBlockContinue: boolean;
@@ -59,6 +61,8 @@ export const RunPhaseSection = ({
     currentBlock,
     currentBlockIndex,
     remaining,
+    currentStep,
+    isRunning,
     phaseProgress,
     breathingPhase,
     currentExerciseName,
@@ -115,7 +119,8 @@ export const RunPhaseSection = ({
 
                 <View style={st.arcWrapper}>
                     <PhaseArc
-                        progress={phaseProgress}
+                        currentStep={currentStep}
+                        isRunning={isRunning}
                         color={phaseColor}
                         finished={isFinished}
                         breathingPhase={breathingPhase}

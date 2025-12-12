@@ -13,6 +13,7 @@ import Reanimated, {
 
 import { useTheme } from '@src/theme/ThemeProvider';
 import { ARC_SIZE } from '../../RunPhaseSection.styles';
+import type { Step } from '@src/core/timer';
 
 const AnimatedPath = Reanimated.createAnimatedComponent(Path);
 
@@ -25,7 +26,7 @@ const ARC_SWEEP_DEG = 240;
 const ARC_SWEEP_RAD = (ARC_SWEEP_DEG * Math.PI) / 180;
 const ARC_LENGTH = ARC_RADIUS * ARC_SWEEP_RAD;
 
-const GLOW_DELAY = 130;
+const GLOW_DELAY = 0;
 
 const polarToCartesian = (
     cx: number,
@@ -57,33 +58,36 @@ const describeArc = (
 };
 
 type PhaseArcProps = {
-    progress: number;
     color: string;
     finished: boolean;
     breathingPhase?: SharedValue<number>;
+    currentStep: Step;
+    isRunning: boolean;
 };
 
 export const PhaseArc = ({
-    progress,
     color,
     finished,
     breathingPhase,
+    currentStep,
+    isRunning,
 }: PhaseArcProps) => {
     const { theme } = useTheme();
     const trackColor = theme.palette.background.card;
     // const trackColor = theme.palette.accent.soft;
 
+    // Arc Dimensions consts
     const cx = ARC_SIZE / 2;
     const cy = ARC_SIZE / 2;
-
     const startAngle = -120;
     const endAngle = 120;
     const arcPath = describeArc(cx, cy, ARC_RADIUS, startAngle, endAngle);
 
-    // Main arc progress – follows the real phase progress
-    const mainProgress = useSharedValue(
-        Math.max(0, Math.min(1, progress ?? 0))
-    );
+    // Main Arc animation consts
+    const arcProgress = useSharedValue(0);
+    const animationStart = useRef(0);
+    const elapsedTime = useRef(0);
+    const lastStepId = useRef<string | number | null>(null);
 
     // Glow sweep progress (0..1 along the arc) and opacity
     const glowProgress = useSharedValue(0);
@@ -91,16 +95,81 @@ export const PhaseArc = ({
 
     const prevFinished = useRef(false);
 
-    // Normal phase progress (JS thread)
+    // Main arc animation logic
     useEffect(() => {
-        cancelAnimation(mainProgress);
+        const stepId = currentStep.id;
+        const stepDurationMs = currentStep.durationSec * 1000;
+        const collapseMs = 200;
 
-        const clamped = Math.max(0, Math.min(1, progress ?? 0));
-        mainProgress.value = withTiming(clamped, {
-            duration: 200, // to follow 5 Hz tick
+        // Nothing to animate for 0-length step
+        if (stepDurationMs <= 0) {
+            cancelAnimation(arcProgress);
+            arcProgress.value = 1;
+            elapsedTime.current = stepDurationMs;
+            lastStepId.current = stepId;
+            return;
+        }
+
+        const isNewStep = lastStepId.current !== stepId;
+        lastStepId.current = stepId;
+
+        // 1) NEW STEP
+        if (isNewStep) {
+            cancelAnimation(arcProgress);
+
+            elapsedTime.current = 0;
+            animationStart.current = performance.now();
+
+            if (!isRunning) {
+                // Just reset to 0 with a quick collapse animation
+                arcProgress.value = withTiming(0, {
+                    duration: collapseMs,
+                    easing: Easing.linear,
+                });
+                return;
+            }
+
+            const forwardDuration = Math.max(0, stepDurationMs - collapseMs);
+
+            arcProgress.value = withSequence(
+                withTiming(0, {
+                    duration: collapseMs,
+                    easing: Easing.linear,
+                }),
+                withTiming(1, {
+                    duration: forwardDuration,
+                    easing: Easing.linear,
+                })
+            );
+
+            elapsedTime.current = collapseMs;
+            animationStart.current = performance.now();
+            return;
+        }
+
+        // 2) PAUSE
+        if (!isRunning) {
+            const now = performance.now();
+            elapsedTime.current += now - animationStart.current;
+            cancelAnimation(arcProgress);
+            return;
+        }
+
+        // 3) RESUME / NORMAL RUN
+        const remaining = Math.max(0, stepDurationMs - elapsedTime.current);
+
+        if (remaining === 0) {
+            cancelAnimation(arcProgress);
+            arcProgress.value = 1;
+            return;
+        }
+
+        animationStart.current = performance.now();
+        arcProgress.value = withTiming(1, {
+            duration: remaining,
             easing: Easing.linear,
         });
-    }, [progress, mainProgress]);
+    }, [isRunning, currentStep.id]);
 
     // One-shot glow sweep when we enter "finished"
     useEffect(() => {
@@ -117,12 +186,13 @@ export const PhaseArc = ({
                 GLOW_DELAY,
                 withSequence(
                     withTiming(1, {
-                        duration: 200,
-                        easing: Easing.out(Easing.cubic),
-                    }),
-                    withTiming(0, {
-                        duration: 400,
+                        duration: 500,
                         easing: Easing.in(Easing.cubic),
+                    }),
+
+                    withTiming(0, {
+                        duration: 700,
+                        easing: Easing.out(Easing.cubic),
                     })
                 )
             );
@@ -130,10 +200,25 @@ export const PhaseArc = ({
             glowProgress.value = withDelay(
                 GLOW_DELAY,
                 withTiming(1, {
-                    duration: 700,
+                    duration: 1000,
                     easing: Easing.inOut(Easing.cubic),
                 })
             );
+
+            // If we create ForcedFinish variable
+            // arcProgress.value = withSequence(
+            //     withTiming(0, {
+            //         duration: GLOW_DELAY,
+            //         easing: Easing.inOut(Easing.cubic),
+            //     }),
+            //     withDelay(
+            //         700,
+            //         withTiming(1, {
+            //             duration: 0,
+            //             easing: Easing.linear,
+            //         })
+            //     )
+            // );
         }
 
         prevFinished.current = finished;
@@ -141,7 +226,7 @@ export const PhaseArc = ({
 
     const mainProps = useAnimatedProps(() => {
         // Raw arc progress coming from shared value
-        const rawMainProgress = mainProgress.value;
+        const rawMainProgress = arcProgress.value;
 
         // Clamp between 0 and 1 so the strokeDashoffset stays valid
         const clampedMainProgress =
@@ -169,7 +254,7 @@ export const PhaseArc = ({
 
     const breathingProps = useAnimatedProps(() => {
         // Main arc progress for the halo ring
-        const rawMainProgress = mainProgress.value;
+        const rawMainProgress = arcProgress.value;
 
         const clampedMainProgress =
             rawMainProgress < 0 ? 0 : rawMainProgress > 1 ? 1 : rawMainProgress;
@@ -220,7 +305,7 @@ export const PhaseArc = ({
             <AnimatedPath
                 d={arcPath}
                 stroke={color}
-                strokeWidth={ARC_STROKE + 6}
+                strokeWidth={ARC_STROKE + 8}
                 fill="transparent"
                 strokeLinecap="round"
                 strokeDasharray={`${ARC_LENGTH} ${ARC_LENGTH}`}

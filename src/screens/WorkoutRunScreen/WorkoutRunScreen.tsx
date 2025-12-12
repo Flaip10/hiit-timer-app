@@ -1,6 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
 import { View, Modal } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
@@ -200,6 +199,8 @@ export const WorkoutRunScreen = () => {
 
                 {/* PHASE / ARC / EXERCISES / FINISHED CARD */}
                 <RunPhaseSection
+                    currentStep={step}
+                    isRunning={running}
                     phase={phase}
                     phaseColor={phaseColor}
                     phaseLabel={phaseLabel}
