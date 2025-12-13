@@ -102,6 +102,12 @@ export const WorkoutRunScreen = () => {
         [plan.steps]
     );
 
+    const totalExercisesInWorkout = useMemo(() => {
+        return plan.exercisesCountByBlock.reduce((acc, n) => acc + (n ?? 0), 0);
+    }, [plan.exercisesCountByBlock]);
+
+    const totalSetsInWorkout = plan.totalSetsForRun;
+
     // -------- empty / not found state --------
 
     if (!workout || plan.steps.length === 0 || !step) {
@@ -198,6 +204,8 @@ export const WorkoutRunScreen = () => {
                     setSteps={setSteps}
                     currentStep={step}
                     totalSetsInBlock={totalSetsInBlock}
+                    totalSetsInWorkout={totalSetsInWorkout}
+                    totalExercisesInWorkout={totalExercisesInWorkout}
                 />
 
                 {/* PHASE / ARC / EXERCISES / FINISHED CARD */}

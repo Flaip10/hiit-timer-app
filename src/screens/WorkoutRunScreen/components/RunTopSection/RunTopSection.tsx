@@ -15,39 +15,45 @@ import { DotIndicator } from './components/DotIndicator/DotIndicator';
 
 type RunTopSectionProps = {
     workoutName: string;
+    isFinished: boolean;
+    remainingBlockSec: number;
+    phaseColor: string;
 
     // current context
     currentBlockIndex: number | null;
-    currentBlockTitle?: string | null;
     totalBlocks: number;
+    currentBlockTitle?: string | null;
 
-    totalSetsInBlock: number; // planned sets for the current block
-    totalExercisesInBlock: number; // planned exercises for the current block
+    // block totals (running UI)
+    totalSetsInBlock: number;
+    totalExercisesInBlock: number;
     currentExerciseIndexInBlock: number | null;
 
-    remainingBlockSec: number;
-    isFinished: boolean;
+    // workout totals (finished UI)
+    totalSetsInWorkout: number;
+    totalExercisesInWorkout: number;
+
     isBlockPause: boolean;
     isRunning: boolean;
-
-    phaseColor: string;
     currentStep: Step;
     setSteps: Step[];
 };
 
 export const RunTopSection = ({
     workoutName,
+    isFinished,
+    remainingBlockSec,
+    phaseColor,
     currentBlockIndex,
-    currentBlockTitle,
     totalBlocks,
+    currentBlockTitle,
     totalSetsInBlock,
     totalExercisesInBlock,
     currentExerciseIndexInBlock,
-    remainingBlockSec,
-    isFinished,
+    totalSetsInWorkout,
+    totalExercisesInWorkout,
     isBlockPause,
     isRunning,
-    phaseColor,
     currentStep,
     setSteps,
 }: RunTopSectionProps) => {
@@ -67,9 +73,13 @@ export const RunTopSection = ({
         return `Block ${blockIdx + 1}`;
     }, [hasBlocks, workoutName, currentBlockTitle, blockIdx]);
 
-    const safeTotalExercises = Math.max(0, totalExercisesInBlock);
     const safeExerciseIndex = Math.max(0, currentExerciseIndexInBlock ?? 0);
-    const safeTotalSets = Math.max(0, totalSetsInBlock);
+
+    const safeBlockExercises = Math.max(0, totalExercisesInBlock);
+    const safeBlockSets = Math.max(0, totalSetsInBlock);
+
+    const safeWorkoutExercises = Math.max(0, totalExercisesInWorkout);
+    const safeWorkoutSets = Math.max(0, totalSetsInWorkout);
 
     const [runningHeaderH, setRunningHeaderH] = useState(0);
 
@@ -139,7 +149,7 @@ export const RunTopSection = ({
                     offsetY={-12}
                 >
                     <SetProgressPills
-                        totalSets={totalSetsInBlock}
+                        totalSets={safeBlockSets}
                         phaseColor={phaseColor}
                         currentStep={currentStep}
                         setSteps={setSteps}
@@ -167,7 +177,7 @@ export const RunTopSection = ({
                             </View>
                         ) : null}
 
-                        {safeTotalExercises > 0 ? (
+                        {safeBlockExercises > 0 ? (
                             <View style={st.rowContainer}>
                                 <AppText
                                     variant="bodySmall"
@@ -179,7 +189,7 @@ export const RunTopSection = ({
                                     Exercises
                                 </AppText>
                                 <DotIndicator
-                                    total={safeTotalExercises}
+                                    total={safeBlockExercises}
                                     current={safeExerciseIndex}
                                     color={phaseColor}
                                 />
@@ -250,7 +260,7 @@ export const RunTopSection = ({
                         </View>
                     ) : null}
 
-                    {safeTotalSets > 0 ? (
+                    {safeWorkoutSets > 0 ? (
                         <View style={st.finishedMetaItem}>
                             <Feather
                                 name="repeat"
@@ -265,13 +275,13 @@ export const RunTopSection = ({
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
                             >
-                                {safeTotalSets} set
-                                {safeTotalSets === 1 ? '' : 's'}
+                                {safeWorkoutSets} set
+                                {safeWorkoutSets === 1 ? '' : 's'}
                             </AppText>
                         </View>
                     ) : null}
 
-                    {safeTotalExercises > 0 ? (
+                    {safeWorkoutExercises > 0 ? (
                         <View style={st.finishedMetaItem}>
                             <Feather
                                 name="activity"
@@ -286,8 +296,8 @@ export const RunTopSection = ({
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
                             >
-                                {safeTotalExercises} exercise
-                                {safeTotalExercises === 1 ? '' : 's'}
+                                {safeWorkoutExercises} exercise
+                                {safeWorkoutExercises === 1 ? '' : 's'}
                             </AppText>
                         </View>
                     ) : null}
