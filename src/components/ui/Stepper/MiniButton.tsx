@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text, ViewStyle, TextStyle } from 'react-native';
+import { Text, ViewStyle, TextStyle } from 'react-native';
+import GuardedPressable from '../GuardedPressable/GuardedPressable';
 
 type MiniButtonProps = {
     label: string;
@@ -20,7 +21,7 @@ export const MiniButton: React.FC<MiniButtonProps> = ({
     textStyle,
     pressedStyle,
 }) => (
-    <Pressable
+    <GuardedPressable
         onPress={disabled ? undefined : onPress}
         style={({ pressed }) => [
             buttonStyle,
@@ -29,5 +30,5 @@ export const MiniButton: React.FC<MiniButtonProps> = ({
         ]}
     >
         <Text style={textStyle}>{label}</Text>
-    </Pressable>
+    </GuardedPressable>
 );

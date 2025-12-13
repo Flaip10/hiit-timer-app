@@ -11,6 +11,7 @@ import Animated, {
 import type { HoldToConfirmButtonProps } from './HoldToConfirmButton.interfaces';
 import { useHoldToConfirmButtonStyles } from './HoldToConfirmButton.styles';
 import { AppText } from '../Typography/AppText';
+import GuardedPressable from '../GuardedPressable/GuardedPressable';
 
 export const HoldToConfirmButton: React.FC<HoldToConfirmButtonProps> = ({
     title,
@@ -74,7 +75,7 @@ export const HoldToConfirmButton: React.FC<HoldToConfirmButtonProps> = ({
 
             {/* button */}
             <View style={st.buttonWrapper}>
-                <Pressable
+                <GuardedPressable
                     {...pressableProps}
                     disabled={disabled}
                     onPress={() => {}}
@@ -93,7 +94,7 @@ export const HoldToConfirmButton: React.FC<HoldToConfirmButtonProps> = ({
                     >
                         {title}
                     </AppText>
-                </Pressable>
+                </GuardedPressable>
             </View>
         </View>
     );

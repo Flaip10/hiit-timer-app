@@ -1,8 +1,9 @@
 import React, { type ReactNode } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useCurvedActionStripStyles } from './CurvedActionStrip.styles';
+import GuardedPressable from '../../GuardedPressable/GuardedPressable';
 
 const BASE_WIDTH = 50;
 const BASE_HEIGHT = 60;
@@ -45,7 +46,7 @@ export const CurvedActionStrip = ({
         theme.palette.metaCard.actionStrip.background;
 
     return (
-        <Pressable onPress={onPress} style={st.touchArea} hitSlop={8}>
+        <GuardedPressable onPress={onPress} style={st.touchArea} hitSlop={8}>
             <Svg width={width} height={height} style={st.svg}>
                 <Path d={pathD} fill={fill} />
             </Svg>
@@ -54,6 +55,6 @@ export const CurvedActionStrip = ({
             <View style={st.iconContainer}>
                 {React.isValidElement(icon) ? icon : null}
             </View>
-        </Pressable>
+        </GuardedPressable>
     );
 };

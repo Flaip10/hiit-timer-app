@@ -1,9 +1,10 @@
 import React from 'react';
-import { TextInput, View, Pressable, type ViewStyle } from 'react-native';
+import { TextInput, View, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useSearchFieldStyles } from './SearchField.styles';
+import GuardedPressable from '../GuardedPressable/GuardedPressable';
 
 type SearchFieldProps = {
     value: string;
@@ -47,7 +48,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
             />
 
             {value.length > 0 && (
-                <Pressable
+                <GuardedPressable
                     onPress={() => onChangeText('')}
                     style={st.clearHitbox}
                 >
@@ -56,7 +57,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
                         size={22}
                         color={theme.palette.text.muted}
                     />
-                </Pressable>
+                </GuardedPressable>
             )}
         </View>
     );

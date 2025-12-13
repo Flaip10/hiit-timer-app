@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Pressable } from 'react-native';
+import { View } from 'react-native';
 
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useSettingsStyles } from './SettingsScreen.styles';
+import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
 
 const SettingsScreen = () => {
     const { theme, preference, themeName, setPreference } = useTheme();
@@ -24,7 +25,7 @@ const SettingsScreen = () => {
                         const isActive = preference === opt;
 
                         return (
-                            <Pressable
+                            <GuardedPressable
                                 key={opt}
                                 onPress={() => setPreference(opt)}
                                 style={[
@@ -43,7 +44,7 @@ const SettingsScreen = () => {
                                 >
                                     {opt.charAt(0).toUpperCase() + opt.slice(1)}
                                 </AppText>
-                            </Pressable>
+                            </GuardedPressable>
                         );
                     })}
                 </View>

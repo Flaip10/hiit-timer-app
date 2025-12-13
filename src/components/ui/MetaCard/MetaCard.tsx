@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import React, { useState } from 'react';
-import { Image, LayoutChangeEvent, Pressable, View, Text } from 'react-native';
+import { Image, LayoutChangeEvent, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import type { MetaCardProps } from './MetaCard.interfaces';
@@ -8,6 +8,7 @@ import { useMetaCardStyles } from './MetaCard.styles';
 import MinHeightCollapse from '../MinHeightCollapse/MinHeightCollapse';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { CurvedActionStrip } from './CurvedActionStrip/CurvedActionStrip';
+import GuardedPressable from '../GuardedPressable/GuardedPressable';
 
 const getPillDate = (isoDate?: string | null, hideHours?: boolean): string => {
     if (!isoDate) return '';
@@ -124,7 +125,10 @@ export const MetaCard: FC<MetaCardProps> = ({
     const collapseExpanded = expandable ? expanded : true;
 
     return (
-        <Pressable onPress={onPress} style={[st.cardContainer, containerStyle]}>
+        <GuardedPressable
+            onPress={onPress}
+            style={[st.cardContainer, containerStyle]}
+        >
             {/* Top header */}
             <View style={st.cardHeader}>
                 <View style={[st.topLeftContainer]}>
@@ -197,7 +201,7 @@ export const MetaCard: FC<MetaCardProps> = ({
                 {(actionButton || secondaryActionButton) && (
                     <View style={st.actionButtonsContainer}>
                         {secondaryActionButton && (
-                            <Pressable
+                            <GuardedPressable
                                 onPress={secondaryActionButton.onPress}
                                 style={[
                                     st.actionButton,
@@ -208,10 +212,10 @@ export const MetaCard: FC<MetaCardProps> = ({
                                 ]}
                             >
                                 {secondaryActionButton.icon}
-                            </Pressable>
+                            </GuardedPressable>
                         )}
                         {actionButton && (
-                            <Pressable
+                            <GuardedPressable
                                 onPress={actionButton.onPress}
                                 style={[
                                     st.actionButton,
@@ -222,7 +226,7 @@ export const MetaCard: FC<MetaCardProps> = ({
                                 ]}
                             >
                                 {actionButton.icon}
-                            </Pressable>
+                            </GuardedPressable>
                         )}
                     </View>
                 )}
@@ -308,7 +312,7 @@ export const MetaCard: FC<MetaCardProps> = ({
             </View>
 
             {enableCollapse && (
-                <Pressable
+                <GuardedPressable
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     style={[
                         st.expandIconWrapper,
@@ -325,8 +329,8 @@ export const MetaCard: FC<MetaCardProps> = ({
                         size={18}
                         color={theme.palette.text.secondary}
                     />
-                </Pressable>
+                </GuardedPressable>
             )}
-        </Pressable>
+        </GuardedPressable>
     );
 };

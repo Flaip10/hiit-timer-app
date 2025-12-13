@@ -7,6 +7,7 @@ import { createStyles } from '@src/theme/createStyles';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
 import MinHeightCollapse from '../MinHeightCollapse/MinHeightCollapse';
+import GuardedPressable from '../GuardedPressable/GuardedPressable';
 
 type ErrorBannerProps = {
     message: string;
@@ -125,7 +126,7 @@ export const ErrorBanner = ({ message, onClose, style }: ErrorBannerProps) => {
                     </View>
 
                     {onClose && (
-                        <Pressable onPress={handleClose} hitSlop={8}>
+                        <GuardedPressable onPress={handleClose} hitSlop={8}>
                             <View style={st.dismissRow}>
                                 <Ionicons
                                     name="close"
@@ -136,7 +137,7 @@ export const ErrorBanner = ({ message, onClose, style }: ErrorBannerProps) => {
                                     Dismiss
                                 </AppText>
                             </View>
-                        </Pressable>
+                        </GuardedPressable>
                     )}
                 </View>
             </AppearingView>

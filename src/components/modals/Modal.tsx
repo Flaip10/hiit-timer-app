@@ -1,12 +1,7 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import {
-    Modal as RNModal,
-    View,
-    Pressable,
-    Animated,
-    Easing,
-} from 'react-native';
+import { Modal as RNModal, View, Animated, Easing } from 'react-native';
 import { useModalStyles } from './Modal.styles';
+import GuardedPressable from '../ui/GuardedPressable/GuardedPressable';
 
 type ModalProps = {
     visible: boolean;
@@ -72,7 +67,7 @@ export const Modal = ({
             statusBarTranslucent
         >
             <Animated.View style={[st.backdrop, { opacity: fade }]}>
-                <Pressable
+                <GuardedPressable
                     style={st.backdropPress}
                     onPress={dismissOnBackdrop ? onRequestClose : undefined}
                 />

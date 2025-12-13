@@ -11,4 +11,6 @@ export interface ButtonProps
     style?: ViewStyle;
     textStyle?: TextStyle;
     flex?: number | boolean;
+    preventDoublePress?: boolean;
+    cooldownMs?: number;
 }

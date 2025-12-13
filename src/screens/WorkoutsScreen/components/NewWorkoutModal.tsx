@@ -1,11 +1,12 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { Modal } from '@src/components/modals/Modal';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { Button } from '@src/components/ui/Button/Button';
 import { useNewWorkoutModalStyles } from './NewWorkoutModal.styles';
+import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
 
 type NewWorkoutModalProps = {
     visible: boolean;
@@ -56,11 +57,14 @@ const NewWorkoutModal = ({
                         onPress={handleImport}
                     />
 
-                    <Pressable onPress={closeModal} style={st.cancelButton}>
+                    <GuardedPressable
+                        onPress={closeModal}
+                        style={st.cancelButton}
+                    >
                         <AppText variant="bodySmall" tone="muted">
                             Cancel
                         </AppText>
-                    </Pressable>
+                    </GuardedPressable>
                 </View>
             </View>
         </Modal>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Stepper } from '@src/components/ui/Stepper/Stepper';
@@ -15,6 +15,7 @@ import { useBlockEditor } from './useBlockEditor';
 import { useBlockEditStyles } from './EditBlockScreen.styles';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
+import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
 
 const EditBlockScreen = () => {
     const { blockId } = useLocalSearchParams<{ blockId?: string }>();
@@ -146,7 +147,7 @@ const EditBlockScreen = () => {
                     title="Exercises"
                     topSpacing="large"
                     rightAccessory={
-                        <Pressable
+                        <GuardedPressable
                             onPress={onAddExercise}
                             style={({ pressed }) => [
                                 st.addMinor,
@@ -156,7 +157,7 @@ const EditBlockScreen = () => {
                             <AppText variant="bodySmall" tone="primary">
                                 ＋ Add Exercise
                             </AppText>
-                        </Pressable>
+                        </GuardedPressable>
                     }
                 >
                     <View style={st.exercisesGap}>

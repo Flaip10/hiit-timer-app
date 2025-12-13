@@ -1,8 +1,8 @@
-import { Pressable } from 'react-native';
 import { ReactNode } from 'react';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { AppTheme } from '@src/theme/theme';
 import st from './styles';
+import GuardedPressable from '../GuardedPressable/GuardedPressable';
 
 type Props = {
     onPress: () => void;
@@ -18,7 +18,7 @@ export const IconButton = ({ onPress, children, background }: Props) => {
         : theme.palette.surface.navigation;
 
     return (
-        <Pressable
+        <GuardedPressable
             onPress={onPress}
             style={({ pressed }) => [
                 st.btn,
@@ -27,6 +27,6 @@ export const IconButton = ({ onPress, children, background }: Props) => {
             ]}
         >
             {children}
-        </Pressable>
+        </GuardedPressable>
     );
 };

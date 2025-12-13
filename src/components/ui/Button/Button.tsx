@@ -1,10 +1,11 @@
 import React from 'react';
-import { ActivityIndicator, Pressable } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useButtonStyles } from './Button.styles';
 import type { ButtonProps } from './Button.interfaces';
 import { AppText } from '../Typography/AppText';
+import GuardedPressable from '../GuardedPressable/GuardedPressable';
 
 export const Button: React.FC<ButtonProps> = ({
     title,
@@ -15,6 +16,8 @@ export const Button: React.FC<ButtonProps> = ({
     textStyle,
     flex,
     disabled, // from PressableProps
+    cooldownMs = 200,
+    preventDoublePress = true,
     ...pressableProps
 }) => {
     const { theme } = useTheme();
@@ -28,7 +31,7 @@ export const Button: React.FC<ButtonProps> = ({
             : theme.palette.text.primary;
 
     return (
-        <Pressable
+        <GuardedPressable
             {...pressableProps}
             onPress={isDisabled ? undefined : onPress}
             style={({ pressed }) => [
@@ -52,6 +55,6 @@ export const Button: React.FC<ButtonProps> = ({
                     {title}
                 </AppText>
             )}
-        </Pressable>
+        </GuardedPressable>
     );
 };

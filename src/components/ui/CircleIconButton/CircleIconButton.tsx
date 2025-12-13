@@ -1,7 +1,8 @@
 import React from 'react';
-import { Pressable, type StyleProp, type ViewStyle } from 'react-native';
+import { type StyleProp, type ViewStyle } from 'react-native';
 
 import { useCircleIconButtonStyles } from './CircleIconButton.styles';
+import GuardedPressable from '../GuardedPressable/GuardedPressable';
 
 type CircleIconButtonProps = {
     onPress: () => void;
@@ -30,7 +31,7 @@ export const CircleIconButton = ({
         variant === 'primary' ? st.primaryCircle : st.secondaryCircle;
 
     return (
-        <Pressable
+        <GuardedPressable
             onPress={disabled ? undefined : onPress}
             disabled={disabled}
             style={({ pressed }) => [
@@ -51,6 +52,6 @@ export const CircleIconButton = ({
             ]}
         >
             {children}
-        </Pressable>
+        </GuardedPressable>
     );
 };
