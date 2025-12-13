@@ -5,42 +5,49 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
+
+import type { Step } from '@src/core/timer';
+
 import { formatDuration } from '../../helpers';
 import { useRunTopSectionStyles } from './RunTopSection.styles';
 import { SetProgressPills } from './components/SetProgressPills/SetProgressPills';
 import { DotIndicator } from './components/DotIndicator/DotIndicator';
-import { Step } from '@src/core/timer';
 
 type RunTopSectionProps = {
     workoutName: string;
-    isFinished: boolean;
-    remainingBlockSec: number;
-    phaseColor: string;
+
+    // current context
     currentBlockIndex: number | null;
-    totalBlocks: number;
     currentBlockTitle?: string | null;
-    totalSets: number;
-    totalExercisesInBlock: number;
+    totalBlocks: number;
+
+    totalSetsInBlock: number; // planned sets for the current block
+    totalExercisesInBlock: number; // planned exercises for the current block
     currentExerciseIndexInBlock: number | null;
+
+    remainingBlockSec: number;
+    isFinished: boolean;
     isBlockPause: boolean;
     isRunning: boolean;
+
+    phaseColor: string;
     currentStep: Step;
     setSteps: Step[];
 };
 
 export const RunTopSection = ({
     workoutName,
-    isFinished,
-    remainingBlockSec,
-    phaseColor,
     currentBlockIndex,
-    totalBlocks,
     currentBlockTitle,
-    totalSets,
+    totalBlocks,
+    totalSetsInBlock,
     totalExercisesInBlock,
     currentExerciseIndexInBlock,
+    remainingBlockSec,
+    isFinished,
     isBlockPause,
     isRunning,
+    phaseColor,
     currentStep,
     setSteps,
 }: RunTopSectionProps) => {
@@ -49,28 +56,20 @@ export const RunTopSection = ({
 
     const hasBlocks = totalBlocks > 0;
     const blockIdx = currentBlockIndex ?? 0;
+    const showBlockDots = totalBlocks > 1;
 
     const resolvedBlockTitle = useMemo(() => {
-        if (!hasBlocks) {
-            return workoutName;
-        }
+        if (!hasBlocks) return workoutName;
 
         const trimmed = currentBlockTitle?.trim();
-        if (trimmed && trimmed.length > 0) {
-            return trimmed;
-        }
+        if (trimmed) return trimmed;
 
         return `Block ${blockIdx + 1}`;
     }, [hasBlocks, workoutName, currentBlockTitle, blockIdx]);
 
-    const showBlockDots = totalBlocks > 1;
-
-    const safeTotalExercises =
-        totalExercisesInBlock > 0 ? totalExercisesInBlock : 0;
-    const safeExerciseIndex =
-        currentExerciseIndexInBlock != null ? currentExerciseIndexInBlock : 0;
-
-    const safeTotalSets = totalSets > 0 ? totalSets : 0;
+    const safeTotalExercises = Math.max(0, totalExercisesInBlock);
+    const safeExerciseIndex = Math.max(0, currentExerciseIndexInBlock ?? 0);
+    const safeTotalSets = Math.max(0, totalSetsInBlock);
 
     return (
         <View style={st.mainContainer}>
@@ -81,10 +80,8 @@ export const RunTopSection = ({
                 offsetY={0}
                 offsetX={-12}
             >
-                {/* Running header */}
                 <View style={st.upperRowContainer}>
                     <View style={st.blockHeaderRow}>
-                        {/* Block title + icon */}
                         <View style={st.titleRow}>
                             <Ionicons
                                 name="layers-outline"
@@ -113,7 +110,6 @@ export const RunTopSection = ({
                         </AppText>
                     </View>
 
-                    {/* Block remaining time */}
                     <View style={st.workoutTimerContainer}>
                         <Ionicons
                             name="timer-outline"
@@ -135,7 +131,7 @@ export const RunTopSection = ({
                     offsetY={-12}
                 >
                     <SetProgressPills
-                        totalSets={totalSets}
+                        totalSets={totalSetsInBlock}
                         phaseColor={phaseColor}
                         currentStep={currentStep}
                         setSteps={setSteps}
@@ -143,7 +139,6 @@ export const RunTopSection = ({
                     />
 
                     <View style={st.rowContainer}>
-                        {/* Block progression */}
                         {showBlockDots ? (
                             <View style={st.rowContainer}>
                                 <AppText
@@ -158,14 +153,13 @@ export const RunTopSection = ({
 
                                 <DotIndicator
                                     total={totalBlocks}
-                                    current={currentBlockIndex ?? 0}
+                                    current={blockIdx}
                                     color={phaseColor}
                                 />
                             </View>
                         ) : null}
 
-                        {/* Exercises progression in current block */}
-                        {safeTotalExercises > 0 && (
+                        {safeTotalExercises > 0 ? (
                             <View style={st.rowContainer}>
                                 <AppText
                                     variant="bodySmall"
@@ -182,7 +176,7 @@ export const RunTopSection = ({
                                     color={phaseColor}
                                 />
                             </View>
-                        )}
+                        ) : null}
                     </View>
                 </AppearingView>
             </AppearingView>
@@ -227,7 +221,7 @@ export const RunTopSection = ({
                 </View>
 
                 <View style={st.finishedMetaRow}>
-                    {hasBlocks && (
+                    {hasBlocks ? (
                         <View style={st.finishedMetaItem}>
                             <Ionicons
                                 name="layers-outline"
@@ -246,9 +240,9 @@ export const RunTopSection = ({
                                 {totalBlocks === 1 ? '' : 's'}
                             </AppText>
                         </View>
-                    )}
+                    ) : null}
 
-                    {safeTotalSets > 0 && (
+                    {safeTotalSets > 0 ? (
                         <View style={st.finishedMetaItem}>
                             <Feather
                                 name="repeat"
@@ -267,9 +261,9 @@ export const RunTopSection = ({
                                 {safeTotalSets === 1 ? '' : 's'}
                             </AppText>
                         </View>
-                    )}
+                    ) : null}
 
-                    {safeTotalExercises > 0 && (
+                    {safeTotalExercises > 0 ? (
                         <View style={st.finishedMetaItem}>
                             <Feather
                                 name="activity"
@@ -288,7 +282,7 @@ export const RunTopSection = ({
                                 {safeTotalExercises === 1 ? '' : 's'}
                             </AppText>
                         </View>
-                    )}
+                    ) : null}
                 </View>
             </AppearingView>
         </View>
