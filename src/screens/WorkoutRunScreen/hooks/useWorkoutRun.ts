@@ -5,7 +5,6 @@ import type { Router } from 'expo-router';
 import { createTimer, type Step, type Phase } from '@core/timer';
 import type { Workout } from '@core/entities';
 
-import { computeRemainingWorkoutSec, computeSetProgress } from '../helpers';
 import {
     cancelAnimation,
     Easing,
@@ -33,7 +32,6 @@ export const useWorkoutRun = ({
 
     const [stepIndex, setStepIndex] = useState(0);
     const [remaining, setRemaining] = useState(0); // seconds (UI)
-    const [remainingMs, setRemainingMs] = useState(0); // ms (for smooth progress)
     const [running, setRunning] = useState(false);
 
     // -------- tracking completion / partial completion --------
@@ -135,14 +133,12 @@ export const useWorkoutRun = ({
         engineRef.current = createTimer(steps, (snapshot) => {
             setStepIndex(snapshot.stepIndex);
             setRemaining(snapshot.remainingSec);
-            setRemainingMs(snapshot.remainingMs);
             setRunning(snapshot.running);
         });
 
         const firstDurationSec = steps[0]?.durationSec ?? 0;
         setStepIndex(0);
         setRemaining(firstDurationSec);
-        setRemainingMs(firstDurationSec * 1000);
         setRunning(false);
 
         if (shouldAutoStart && !autoStartedRef.current) {
@@ -188,20 +184,6 @@ export const useWorkoutRun = ({
     // Final "finished" flag also true when user forced finish
     const isFinished = forceFinished || naturalFinished;
 
-    // continuous phase progress (0..1) based on ms
-    const durationMs = (step?.durationSec ?? 0) * 1000;
-    const safeRemainingMs =
-        durationMs > 0 ? Math.max(0, Math.min(remainingMs, durationMs)) : 0;
-
-    const phaseProgress =
-        durationMs > 0 ? (durationMs - safeRemainingMs) / durationMs : 0;
-
-    // workout time left (skipping PREP)
-    const remainingWorkoutSec =
-        steps.length > 0
-            ? computeRemainingWorkoutSec(steps, stepIndex, remaining)
-            : 0;
-
     // ===== block-level remaining time (current block only) =====
     const remainingBlockSec = useMemo(() => {
         if (!step || step.blockIdx == null) return 0;
@@ -226,10 +208,6 @@ export const useWorkoutRun = ({
 
         return total;
     }, [step, stepIndex, remaining, steps]);
-
-    // set pill progress (0..1, continuous)
-    const setProgress =
-        step != null ? computeSetProgress(steps, step, remainingMs) : 0;
 
     const isAtStepStart =
         step != null ? remaining === (step.durationSec ?? 0) : false;
@@ -315,8 +293,6 @@ export const useWorkoutRun = ({
             }
         }
     }
-
-    // ===== Track fully completed sets & elapsed time =====
 
     // ===== Track fully completed sets & elapsed time =====
 
@@ -495,18 +471,6 @@ export const useWorkoutRun = ({
         totalPlannedSets > 0 &&
         totalCompletedSets >= totalPlannedSets;
 
-    const completedBlocksCount = useMemo(() => {
-        if (plannedSetsByBlock.length === 0) return 0;
-
-        return plannedSetsByBlock.reduce((acc, planned, index) => {
-            const completed = completedSetsByBlock[index] ?? 0;
-            if (planned > 0 && completed >= planned) {
-                return acc + 1;
-            }
-            return acc;
-        }, 0);
-    }, [plannedSetsByBlock, completedSetsByBlock]);
-
     // -------- controls --------
 
     const handleStart = () => engineRef.current?.start();
@@ -559,10 +523,7 @@ export const useWorkoutRun = ({
         step,
         phase,
         isSetRest,
-        phaseProgress,
-        remainingWorkoutSec,
         remainingBlockSec,
-        setProgress,
         isFinished,
         primaryLabel,
 
@@ -578,7 +539,6 @@ export const useWorkoutRun = ({
 
         // completion info
         completedSetsByBlock,
-        completedBlocksCount,
         elapsedCompletedSec,
         isFullyCompleted,
         awaitingBlockContinue,
