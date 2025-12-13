@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { LayoutChangeEvent, View } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 
 import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
@@ -71,6 +71,13 @@ export const RunTopSection = ({
     const safeExerciseIndex = Math.max(0, currentExerciseIndexInBlock ?? 0);
     const safeTotalSets = Math.max(0, totalSetsInBlock);
 
+    const [runningHeaderH, setRunningHeaderH] = useState(0);
+
+    const handleRunningLayout = useCallback((e: LayoutChangeEvent) => {
+        const h = Math.ceil(e.nativeEvent.layout.height);
+        setRunningHeaderH((prev) => (h > prev ? h : prev));
+    }, []);
+
     return (
         <View style={st.mainContainer}>
             {/* RUNNING HEADER ================================================== */}
@@ -79,6 +86,7 @@ export const RunTopSection = ({
                 style={st.pageHeader}
                 offsetY={0}
                 offsetX={-12}
+                onLayout={handleRunningLayout}
             >
                 <View style={st.upperRowContainer}>
                     <View style={st.blockHeaderRow}>
@@ -184,7 +192,7 @@ export const RunTopSection = ({
             {/* FINISHED HEADER ================================================ */}
             <AppearingView
                 visible={isFinished}
-                style={st.pageHeader}
+                style={[st.pageHeader, { minHeight: runningHeaderH }]}
                 offsetY={0}
                 offsetX={-12}
                 delay={260}
