@@ -41,7 +41,6 @@ type RunPhaseSectionProps = {
 
     // Arc/timer
     remaining: number;
-    phaseProgress: number;
     breathingPhase: SharedValue<number>;
 
     // Exercise info
@@ -63,7 +62,6 @@ export const RunPhaseSection = ({
     remaining,
     currentStep,
     isRunning,
-    phaseProgress,
     breathingPhase,
     currentExerciseName,
     nextExerciseName,
