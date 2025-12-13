@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Pressable } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
@@ -11,17 +11,23 @@ import { Button } from '@src/components/ui/Button/Button';
 
 type RunFooterProps = {
     isFinished: boolean;
-    phaseColor: string;
+
+    // Timer state
     running: boolean;
     primaryLabel: string;
+
+    // UI
+    phaseColor: string;
+
+    // Actions
     onPrimary: () => void;
     onSkip: () => void;
     onRequestEnd: () => void;
     onDone: () => void;
 
-    // new: block-pause behaviour
+    // Block pause behaviour
     isBlockPause: boolean;
-    holdToContinueSeconds?: number;
+    holdToContinueMs?: number;
 };
 
 export const RunFooter = ({
@@ -34,12 +40,11 @@ export const RunFooter = ({
     onRequestEnd,
     onDone,
     isBlockPause,
-    holdToContinueSeconds = 1.2,
+    holdToContinueMs = 1000,
 }: RunFooterProps) => {
     const st = useRunFooterStyles();
     const { theme } = useTheme();
 
-    // Finished → back button only
     if (isFinished) {
         return (
             <View style={st.footerFinishedWrapper}>
@@ -47,30 +52,26 @@ export const RunFooter = ({
                     title="Back to summary"
                     onPress={onDone}
                     variant="primary"
-                    // style={st.footerFinishedButton}
                 />
             </View>
         );
     }
 
-    // Block pause → hold button replaces the 3 actions
     if (isBlockPause) {
         return (
             <View style={st.footerHoldWrapper}>
                 <HoldToConfirmButton
                     title="Hold to start Block"
                     variant="primary"
-                    holdDurationMs={1200}
-                    onConfirmed={onPrimary} // or a dedicated "continueBlock" handler
+                    holdDurationMs={holdToContinueMs}
+                    onConfirmed={onPrimary}
                 />
             </View>
         );
     }
 
-    // Normal running / paused → End, Play/Pause, Skip
     return (
         <View style={st.footerIconRow}>
-            {/* End button (with confirm) */}
             <View style={st.footerIconWrapper}>
                 <CircleIconButton onPress={onRequestEnd} variant="secondary">
                     <Ionicons
@@ -84,7 +85,6 @@ export const RunFooter = ({
                 </AppText>
             </View>
 
-            {/* Main play/pause button */}
             <View style={st.footerIconWrapper}>
                 <CircleIconButton
                     onPress={onPrimary}
@@ -103,7 +103,6 @@ export const RunFooter = ({
                 </AppText>
             </View>
 
-            {/* Skip button */}
             <View style={st.footerIconWrapper}>
                 <CircleIconButton onPress={onSkip} variant="secondary">
                     <Ionicons
@@ -119,3 +118,5 @@ export const RunFooter = ({
         </View>
     );
 };
+
+export default RunFooter;
