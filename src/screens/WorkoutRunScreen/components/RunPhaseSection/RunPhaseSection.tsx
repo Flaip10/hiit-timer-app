@@ -82,7 +82,6 @@ export const RunPhaseSection = ({
     return (
         <View style={st.mainContainer}>
             {/* BLOCK PAUSE – reuse WorkoutSummary layout */}
-
             <AppearingView
                 visible={isBlockPause}
                 style={st.blockPauseContainer}
@@ -149,27 +148,25 @@ export const RunPhaseSection = ({
                 )}
 
                 {/* FINISHING ZONE */}
-                {isFinished && (
-                    <View style={st.finishedContainer}>
-                        <FinishedCard visible={isFinished} />
+                <AppearingView
+                    visible={isFinished}
+                    style={st.finishedContainer}
+                >
+                    <FinishedCard />
 
-                        <AppearingView
-                            visible={isFinished}
-                            style={st.finishedFooterRow}
+                    <View style={st.finishedFooterRow}>
+                        <CircleIconButton
+                            onPress={openSharePreview}
+                            variant="secondary"
                         >
-                            <CircleIconButton
-                                onPress={openSharePreview}
-                                variant="secondary"
-                            >
-                                <Ionicons
-                                    name="share-outline"
-                                    size={22}
-                                    color={theme.palette.text.primary}
-                                />
-                            </CircleIconButton>
-                        </AppearingView>
+                            <Ionicons
+                                name="share-outline"
+                                size={22}
+                                color={theme.palette.text.primary}
+                            />
+                        </CircleIconButton>
                     </View>
-                )}
+                </AppearingView>
             </AppearingView>
         </View>
     );
