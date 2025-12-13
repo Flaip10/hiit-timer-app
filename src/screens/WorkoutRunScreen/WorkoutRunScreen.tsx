@@ -19,17 +19,16 @@ import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 import useWorkoutRunStyles from './WorkoutRunScreen.styles';
 import { ShareWorkoutCard } from './components/ShareWorkoutCard/ShareWorkoutCard';
 import { useWorkoutRun } from './hooks/useWorkoutRun';
-import { colorFor, labelFor } from './helpers';
-import { useTheme } from '@src/theme/ThemeProvider';
+import { colorFor, getSetStepsForCurrentStep, labelFor } from './helpers';
 import { RunTopSection } from './components/RunTopSection/RunTopSection';
 import { RunPhaseSection } from './components/RunPhaseSection/RunPhaseSection';
 import { RunFooter } from './components/RunFooter/RunFooter';
+import { useWorkoutRunStore } from '@src/state/stores/useWorkoutRunStore';
 
 export const WorkoutRunScreen = () => {
     useKeepAwake();
 
     const st = useWorkoutRunStyles();
-    const { theme } = useTheme();
 
     const [shareVisible, setShareVisible] = useState(false);
     const [endConfirmVisible, setEndConfirmVisible] = useState(false);
@@ -62,11 +61,7 @@ export const WorkoutRunScreen = () => {
         step,
         phase,
         isSetRest,
-        phaseProgress,
-        remainingWorkoutSec,
-        completedBlocksCount,
         remainingBlockSec,
-        setProgress,
         isFinished,
         primaryLabel,
         currentBlock,
@@ -87,6 +82,11 @@ export const WorkoutRunScreen = () => {
         handleDone,
         handleForceFinish,
     } = useWorkoutRun({ steps, workout, shouldAutoStart, router });
+
+    // Initialize run on WorkoutRun store
+    useWorkoutRunStore.getState().startRun({ steps, totalSets });
+
+    const setSteps = getSetStepsForCurrentStep(steps, step).setSteps;
 
     // Planned total duration (excluding PREP, to match "time left" logic)
     const totalWorkoutPlannedSec = useMemo(
@@ -129,8 +129,6 @@ export const WorkoutRunScreen = () => {
 
     const phaseColor = colorFor(phase, !!isSetRest);
     const phaseLabel = labelFor(phase, !!isSetRest);
-
-    const isBlockPause = awaitingBlockContinue && !!currentBlock;
 
     const openSharePreview = () => {
         if (!isFinished) return;
@@ -189,12 +187,13 @@ export const WorkoutRunScreen = () => {
                     currentBlockIndex={currentBlockIndex}
                     totalBlocks={workout.blocks.length}
                     currentBlockTitle={currentBlock?.title ?? null}
-                    currentSetIndex={step.setIdx}
                     totalSets={totalSets}
-                    setProgress={setProgress}
                     totalExercisesInBlock={totalExercisesInBlock}
                     currentExerciseIndexInBlock={currentExerciseIndexInBlock}
                     isBlockPause={awaitingBlockContinue}
+                    isRunning={running}
+                    setSteps={setSteps}
+                    currentStep={step}
                 />
 
                 {/* PHASE / ARC / EXERCISES / FINISHED CARD */}
@@ -209,7 +208,6 @@ export const WorkoutRunScreen = () => {
                     currentBlock={currentBlock}
                     currentBlockIndex={currentBlockIndex}
                     remaining={remaining}
-                    phaseProgress={phaseProgress}
                     breathingPhase={breathingPhase}
                     currentExerciseName={currentExerciseName}
                     nextExerciseName={nextExerciseName}
