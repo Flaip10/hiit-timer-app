@@ -7,7 +7,7 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 
 import type { Phase, Step } from '@core/timer';
-import type { Workout } from '@core/entities';
+import type { WorkoutBlock } from '@core/entities';
 
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
@@ -24,8 +24,6 @@ import { useRunPhaseSectionStyles } from './RunPhaseSection.styles';
 
 const AnimatedAppText = Animated.createAnimatedComponent(AppText);
 
-type WorkoutBlock = Workout['blocks'][number];
-
 type RunPhaseSectionProps = {
     phase: Phase;
     phaseColor: string;
@@ -36,7 +34,7 @@ type RunPhaseSectionProps = {
 
     // Block pause state
     awaitingBlockContinue: boolean;
-    currentBlock: WorkoutBlock | undefined;
+    currentBlock: WorkoutBlock | null;
     currentBlockIndex: number | null;
 
     // Arc/timer
@@ -72,9 +70,10 @@ export const RunPhaseSection = ({
 
     const isBlockPause = awaitingBlockContinue && !!currentBlock;
 
-    const timerAnimatedStyle = useAnimatedStyle(() => ({
-        transform: [{ scale: 1 + breathingPhase.value * 0.08 }],
-    }));
+    const timerAnimatedStyle = useAnimatedStyle(() => {
+        const t = isFinished ? 0 : breathingPhase.value;
+        return { transform: [{ scale: 1 + t * 0.08 }] };
+    }, [isFinished]);
 
     const pillLabel = isFinished ? 'Done' : phaseLabel;
 
@@ -85,7 +84,7 @@ export const RunPhaseSection = ({
             {/* BLOCK PAUSE – reuse WorkoutSummary layout */}
 
             <AppearingView
-                visible={isBlockPause && !!currentBlock}
+                visible={isBlockPause}
                 style={st.blockPauseContainer}
                 offsetY={0}
                 offsetX={-12}
@@ -127,7 +126,7 @@ export const RunPhaseSection = ({
                         variant="title1"
                         style={[st.timer, timerAnimatedStyle]}
                     >
-                        {isFinished ? 0 : remaining}
+                        {isFinished ? 0 : Math.max(0, remaining)}
                     </AnimatedAppText>
                 </View>
 

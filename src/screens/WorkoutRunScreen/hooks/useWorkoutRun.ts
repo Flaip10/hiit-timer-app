@@ -205,7 +205,7 @@ export const useWorkoutRun = ({
     // ============================================================================
     // Workout structure lookup (from plan)
     // ============================================================================
-    const totalSets =
+    const totalSetsInBlock =
         step?.blockIdx != null
             ? (plan.plannedSetsByBlock[step.blockIdx] ?? 0)
             : 0;
@@ -439,7 +439,7 @@ export const useWorkoutRun = ({
         primaryLabel,
 
         // workout structure / names
-        totalSets,
+        totalSetsInBlock,
         currentBlockIndex,
         currentExerciseName,
         nextExerciseName,
