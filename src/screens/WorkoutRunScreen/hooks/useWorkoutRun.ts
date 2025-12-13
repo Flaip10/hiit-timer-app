@@ -2,7 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import type { Router } from 'expo-router';
 
-import { createTimer, type Phase, type Step } from '@core/timer';
+import {
+    createTimer,
+    type Phase,
+    type Step,
+    type TimerSnapshot,
+    type TimerUiTick,
+} from '@core/timer';
 import { useWorkoutRunStore } from '@src/state/stores/useWorkoutRunStore';
 
 import type { RunPlan } from './useRunBuilder';
@@ -21,27 +27,15 @@ export const useWorkoutRun = ({
     shouldAutoStart,
     router,
 }: UseWorkoutRunArgs) => {
-    // ============================================================================
-    // Inputs
-    // ============================================================================
     const { steps } = plan;
 
-    // ============================================================================
-    // Engine refs (no re-render)
-    // ============================================================================
     const engineRef = useRef<ReturnType<typeof createTimer> | null>(null);
     const autoStartedRef = useRef(false);
 
-    // ============================================================================
-    // Local UI state (renders)
-    // ============================================================================
     const [stepIndex, setStepIndex] = useState(0);
-    const [remaining, setRemaining] = useState(0); // seconds (UI)
+    const [remaining, setRemaining] = useState(0); // seconds for UI
     const [running, setRunning] = useState(false);
 
-    // ============================================================================
-    // Completion tracking (renders + refs)
-    // ============================================================================
     const [completedSetsByBlock, setCompletedSetsByBlock] = useState<number[]>(
         []
     );
@@ -52,31 +46,68 @@ export const useWorkoutRun = ({
     const lastStepIndexRef = useRef<number | null>(null);
     const finalStepProcessedRef = useRef(false);
 
-    // ============================================================================
-    // Stable engine commands
-    // ============================================================================
-    const pauseEngine = useCallback(() => {
-        engineRef.current?.pause();
-    }, []);
+    const applySnapshot = useCallback(
+        (snap: TimerSnapshot) => {
+            setStepIndex(snap.stepIndex);
+            setRunning(snap.running);
+            setRemaining(snap.remainingSec);
 
-    const handleStart = useCallback(() => engineRef.current?.start(), []);
-    const handlePause = useCallback(() => engineRef.current?.pause(), []);
-    const handleResume = useCallback(() => engineRef.current?.resume(), []);
-    const handleSkip = useCallback(() => engineRef.current?.skip(), []);
+            useWorkoutRunStore.getState().setEngineSnapshot({
+                running: snap.running,
+                remainingMs: snap.remainingMs,
+                currentStep: steps[snap.stepIndex] ?? null,
+            });
+        },
+        [steps]
+    );
+
+    const applyUiTick = useCallback(
+        (t: TimerUiTick) => {
+            // UI-only refresh: do NOT touch stepIndex/running here
+            setRemaining(t.remainingSec);
+
+            // Keeping store remainingMs in sync is useful for other consumers
+            useWorkoutRunStore.getState().setEngineSnapshot({
+                running: engineRef.current?.isRunning() ?? running,
+                remainingMs: t.remainingMs,
+                currentStep: steps[stepIndex] ?? null,
+            });
+        },
+        [running, stepIndex, steps]
+    );
+
+    // Stable engine commands (now snapshot-driven)
+    const handleStart = useCallback(() => {
+        const snap = engineRef.current?.start();
+        if (snap) applySnapshot(snap);
+    }, [applySnapshot]);
+
+    const handlePause = useCallback(() => {
+        const snap = engineRef.current?.pause();
+        if (snap) applySnapshot(snap);
+    }, [applySnapshot]);
+
+    const handleResume = useCallback(() => {
+        const snap = engineRef.current?.resume();
+        if (snap) applySnapshot(snap);
+    }, [applySnapshot]);
+
+    const handleSkip = useCallback(() => {
+        const snap = engineRef.current?.skip();
+        if (snap) applySnapshot(snap);
+    }, [applySnapshot]);
+
     const handleDone = useCallback(() => {
         router.back();
     }, [router]);
 
-    // ============================================================================
-    // Engine lifecycle + zustand snapshot sync
-    // ============================================================================
+    // Engine lifecycle + zustand init
     useEffect(() => {
         if (steps.length === 0) return;
 
         const firstStep = steps[0] ?? null;
         const firstStepMs = Math.max(0, (firstStep?.durationSec ?? 0) * 1000);
 
-        // Initialize zustand run definition + baseline snapshot
         useWorkoutRunStore.getState().startRun({
             steps,
             totalSets: plan.totalSetsForRun,
@@ -87,40 +118,35 @@ export const useWorkoutRun = ({
             },
         });
 
-        engineRef.current = createTimer(steps, (tick) => {
-            // local UI state
-            setStepIndex(tick.stepIndex);
-            setRemaining(tick.remainingSec);
-            setRunning(tick.running);
-
-            // shared snapshot (ms precision + currentStep object)
-            useWorkoutRunStore.getState().setEngineSnapshot({
-                running: tick.running,
-                remainingMs: tick.remainingMs,
-                currentStep: steps[tick.stepIndex] ?? null,
-            });
+        engineRef.current = createTimer(steps, {
+            onEvent: (snap) => {
+                applySnapshot(snap);
+            },
+            onUiTick: (t) => {
+                applyUiTick(t);
+            },
         });
 
-        // Seed local UI state
-        setStepIndex(0);
-        setRemaining(firstStep?.durationSec ?? 0);
-        setRunning(false);
+        // Seed local UI state from a snapshot (not from assumptions)
+        applySnapshot(engineRef.current.getSnapshot());
 
         if (shouldAutoStart && !autoStartedRef.current) {
             autoStartedRef.current = true;
-            engineRef.current?.start();
+            const snap = engineRef.current.start();
+            applySnapshot(snap);
         }
 
         return () => {
-            engineRef.current?.stop();
+            const snap = engineRef.current?.stop();
+            if (snap) applySnapshot(snap);
+
             useWorkoutRunStore.getState().resetRun();
+            engineRef.current = null;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldAutoStart, plan.runKey]);
 
-    // ============================================================================
-    // Foreground resync (wall-clock drift fix)
-    // ============================================================================
+    // Foreground resync
     useEffect(() => {
         const sub = AppState.addEventListener('change', (state) => {
             if (state !== 'active') return;
@@ -128,19 +154,14 @@ export const useWorkoutRun = ({
             const engine = engineRef.current;
             if (!engine) return;
 
-            if (engine.isRunning()) {
-                // Rebase endAt vs wall clock
-                engine.pause();
-                engine.resume();
-            }
+            const snap = engine.rebase();
+            applySnapshot(snap);
         });
 
         return () => sub.remove();
-    }, []);
+    }, [applySnapshot]);
 
-    // ============================================================================
-    // Derived step state (pure)
-    // ============================================================================
+    // Derived step state
     const step: Step | undefined = steps[stepIndex];
     const phase: Phase = (step?.label ?? 'PREP') as Phase;
 
@@ -163,15 +184,16 @@ export const useWorkoutRun = ({
             ? 'Start'
             : 'Resume';
 
-    // ============================================================================
-    // Precomputed maps (set + block helpers)
-    // ============================================================================
+    // Precomputed maps
     const { lastSetStepIndexMap, setDurationSecMap, firstStepIndexByBlock } =
         useSetMaps({ steps });
 
-    // ============================================================================
     // Block pause between blocks
-    // ============================================================================
+    const pauseEngine = useCallback(() => {
+        const snap = engineRef.current?.pause();
+        if (snap) applySnapshot(snap);
+    }, [applySnapshot]);
+
     const { awaitingBlockContinue, currentBlockIndex, clearBlockPause } =
         useBlockPause({
             step,
@@ -182,9 +204,7 @@ export const useWorkoutRun = ({
             pauseEngine,
         });
 
-    // ============================================================================
     // Remaining time inside current block (UI)
-    // ============================================================================
     const remainingBlockSec = useMemo(() => {
         if (!step || step.blockIdx == null) return 0;
 
@@ -202,9 +222,7 @@ export const useWorkoutRun = ({
         return total;
     }, [step, stepIndex, remaining, steps]);
 
-    // ============================================================================
     // Workout structure lookup (from plan)
-    // ============================================================================
     const totalSetsInBlock =
         step?.blockIdx != null
             ? (plan.plannedSetsByBlock[step.blockIdx] ?? 0)
@@ -228,7 +246,7 @@ export const useWorkoutRun = ({
         [plan.exerciseNamesByBlock]
     );
 
-    // Resolve current + next exercise labels (imperative scan, cheap)
+    // Resolve current + next exercise labels
     let currentExerciseName: string | null = null;
     let nextExerciseName: string | null = null;
     let currentExerciseIndexInBlock: number | null = null;
@@ -277,11 +295,8 @@ export const useWorkoutRun = ({
         }
     }
 
-    // ============================================================================
-    // Completion tracking (sets + elapsed time)
-    // ============================================================================
+    // Completion tracking
     useEffect(() => {
-        // reset for a new run plan
         setCompletedSetsByBlock(Array(plan.totalBlocks).fill(0));
         setElapsedCompletedSec(0);
 
@@ -291,8 +306,6 @@ export const useWorkoutRun = ({
 
         setForceFinished(false);
         clearBlockPause();
-
-        // new plan => allow auto-start again
         autoStartedRef.current = false;
     }, [clearBlockPause, plan.runKey, plan.totalBlocks]);
 
@@ -307,7 +320,6 @@ export const useWorkoutRun = ({
             const key = `${blockIdx}-${setIdx}`;
             const lastIdxForSet = lastSetStepIndexMap.get(key);
 
-            // mark only when the set's final step completes
             if (lastIdxForSet == null || lastIdxForSet !== completedIndex)
                 return;
             if (completedSetKeysRef.current.has(key)) return;
@@ -353,9 +365,7 @@ export const useWorkoutRun = ({
             processCompletedStepIndex(stepIndex);
     }, [naturalFinished, stepIndex, steps.length, processCompletedStepIndex]);
 
-    // ============================================================================
-    // Breathing animation (UI-only shared value)
-    // ============================================================================
+    // Breathing animation
     const { breathingPhase } = useBreathingAnimation({
         step,
         isFinished,
@@ -364,9 +374,7 @@ export const useWorkoutRun = ({
         running,
     });
 
-    // ============================================================================
     // Fully completed flag
-    // ============================================================================
     const totalPlannedSets = plan.plannedSetsByBlock.reduce(
         (acc, val) => acc + (val ?? 0),
         0
@@ -382,13 +390,11 @@ export const useWorkoutRun = ({
         totalPlannedSets > 0 &&
         totalCompletedSets >= totalPlannedSets;
 
-    // ============================================================================
     // User actions
-    // ============================================================================
     const handleForceFinish = useCallback(() => {
-        engineRef.current?.stop();
+        const snap = engineRef.current?.stop();
+        if (snap) applySnapshot(snap);
 
-        setRunning(false);
         setForceFinished(true);
         clearBlockPause();
 
@@ -397,9 +403,12 @@ export const useWorkoutRun = ({
             remainingMs: 0,
             currentStep: steps[stepIndex] ?? null,
         });
-    }, [clearBlockPause, stepIndex, steps]);
+    }, [applySnapshot, clearBlockPause, stepIndex, steps]);
 
     const handlePrimary = useCallback(() => {
+        const engine = engineRef.current;
+        if (!engine) return;
+
         if (isFinished) {
             handleDone();
             return;
@@ -407,9 +416,13 @@ export const useWorkoutRun = ({
 
         if (awaitingBlockContinue) clearBlockPause();
 
-        if (running) handlePause();
-        else if (isAtStepStart) handleStart();
-        else handleResume();
+        if (engine.isRunning()) {
+            handlePause();
+        } else if (isAtStepStart) {
+            handleStart();
+        } else {
+            handleResume();
+        }
     }, [
         awaitingBlockContinue,
         clearBlockPause,
@@ -419,12 +432,8 @@ export const useWorkoutRun = ({
         handleStart,
         isAtStepStart,
         isFinished,
-        running,
     ]);
 
-    // ============================================================================
-    // Public API
-    // ============================================================================
     return {
         // raw timer state
         remaining,
