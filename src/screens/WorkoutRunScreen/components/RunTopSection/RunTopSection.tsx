@@ -9,6 +9,7 @@ import { formatDuration } from '../../helpers';
 import { useRunTopSectionStyles } from './RunTopSection.styles';
 import { SetProgressPills } from './components/SetProgressPills/SetProgressPills';
 import { DotIndicator } from './components/DotIndicator/DotIndicator';
+import { Step } from '@src/core/timer';
 
 type RunTopSectionProps = {
     workoutName: string;
@@ -18,12 +19,13 @@ type RunTopSectionProps = {
     currentBlockIndex: number | null;
     totalBlocks: number;
     currentBlockTitle?: string | null;
-    currentSetIndex: number;
     totalSets: number;
-    setProgress: number;
     totalExercisesInBlock: number;
     currentExerciseIndexInBlock: number | null;
     isBlockPause: boolean;
+    isRunning: boolean;
+    currentStep: Step;
+    setSteps: Step[];
 };
 
 export const RunTopSection = ({
@@ -34,12 +36,13 @@ export const RunTopSection = ({
     currentBlockIndex,
     totalBlocks,
     currentBlockTitle,
-    currentSetIndex,
     totalSets,
-    setProgress,
     totalExercisesInBlock,
     currentExerciseIndexInBlock,
     isBlockPause,
+    isRunning,
+    currentStep,
+    setSteps,
 }: RunTopSectionProps) => {
     const st = useRunTopSectionStyles();
     const { theme } = useTheme();
@@ -132,10 +135,11 @@ export const RunTopSection = ({
                     offsetY={-12}
                 >
                     <SetProgressPills
-                        currentSetIndex={currentSetIndex}
                         totalSets={totalSets}
-                        setProgress={setProgress}
                         phaseColor={phaseColor}
+                        currentStep={currentStep}
+                        setSteps={setSteps}
+                        isRunning={isRunning}
                     />
 
                     <View style={st.rowContainer}>
