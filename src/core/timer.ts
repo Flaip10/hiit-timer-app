@@ -72,6 +72,7 @@ export const buildSteps = (
                 // REST between exercises (within same set, but only between timed ones)
                 const lastExerciseInSet = wi === L - 1;
                 const restEx = block.restBetweenExercisesSec;
+
                 if (!lastExerciseInSet && restEx > 0) {
                     steps.push({
                         id: `rest-ex-${bi}-${si}-${exIdx}`,
@@ -88,6 +89,7 @@ export const buildSteps = (
             // REST between sets (after the last exercise of the set)
             const lastSet = si === sets - 1;
             const restSet = block.restBetweenSetsSec;
+
             if (!lastSet && restSet > 0) {
                 steps.push({
                     id: `rest-set-${bi}-${si}`,
@@ -116,34 +118,74 @@ const startWallMs = Date.now();
 const startPerf = performance.now();
 const nowMs = (): number => startWallMs + (performance.now() - startPerf);
 
-export type Tick = {
+export interface TimerSnapshot {
     stepIndex: number;
-    remainingSec: number;
-    remainingMs: number;
     running: boolean;
-};
+    remainingMs: number; // ground truth
+    remainingSec: number; // ceil UI seconds
+}
 
-// Timer engine with ~5 Hz tick (good enough for smooth UI)
-export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
-    const TICK_MS = 200; // 5 times per second
+export interface TimerUiTick {
+    remainingMs: number;
+    remainingSec: number;
+}
+
+export interface TimerCallbacks {
+    /**
+     * Authoritative events: step changes, start/pause/resume/skip/stop.
+     * Use this to sync React state like stepIndex/running.
+     */
+    onEvent?: (s: TimerSnapshot) => void;
+
+    /**
+     * UI refresh only (1Hz aligned). Must NOT be used as authority for stepIndex/running.
+     * Use this for the countdown number + store remainingMs.
+     */
+    onUiTick?: (t: TimerUiTick) => void;
+}
+
+/**
+ * Timer engine:
+ * - Ground truth is `endAt` (wall ms)
+ * - Step transitions are event-driven (setTimeout to boundary)
+ * - UI updates are 1Hz (aligned), but do not drive step boundaries
+ */
+export const createTimer = (steps: Step[], cb: TimerCallbacks = {}) => {
+    const { onEvent, onUiTick } = cb;
 
     let index = 0;
     let running = false;
-    let endAt = 0; // wall-clock ms when current step should end
+
+    let endAt = 0; // wall ms when current step ends
     let pausedRemainMs: number | null = null;
-    let intervalId: ReturnType<typeof setInterval> | null = null;
 
-    const currentStep = () => steps[index];
+    let boundaryTimeoutId: ReturnType<typeof setTimeout> | null = null;
+    let uiIntervalId: ReturnType<typeof setInterval> | null = null;
+    let uiAlignTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    const issueTick = (remainMsRaw: number) => {
-        const remainMs = Math.max(0, remainMsRaw);
-        const secLeft = Math.ceil(remainMs / 1000);
-        onTick({
-            stepIndex: index,
-            remainingSec: secLeft,
-            remainingMs: remainMs,
-            running,
-        });
+    const currentStep = (): Step | undefined => steps[index];
+
+    const clearBoundary = () => {
+        if (boundaryTimeoutId != null) {
+            clearTimeout(boundaryTimeoutId);
+            boundaryTimeoutId = null;
+        }
+    };
+
+    const clearUi = () => {
+        if (uiIntervalId != null) {
+            clearInterval(uiIntervalId);
+            uiIntervalId = null;
+        }
+        if (uiAlignTimeoutId != null) {
+            clearTimeout(uiAlignTimeoutId);
+            uiAlignTimeoutId = null;
+        }
+    };
+
+    const clearAllTimers = () => {
+        clearBoundary();
+        clearUi();
     };
 
     const currentRemainMs = (): number => {
@@ -158,44 +200,109 @@ export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
         return Math.max(0, endAt - nowMs());
     };
 
-    const clearTimer = () => {
-        if (intervalId != null) {
-            clearInterval(intervalId);
-            intervalId = null;
-        }
+    const toRemainingSec = (ms: number) => (ms <= 0 ? 0 : Math.ceil(ms / 1000));
+
+    const snapshot = (): TimerSnapshot => {
+        const remainMs = Math.max(0, currentRemainMs());
+        return {
+            stepIndex: index,
+            running,
+            remainingMs: remainMs,
+            remainingSec: toRemainingSec(remainMs),
+        };
     };
 
-    const loop = () => {
+    const emitEvent = () => {
+        if (!onEvent) return;
+        onEvent(snapshot());
+    };
+
+    const emitUi = () => {
+        if (!onUiTick) return;
+        const remainMs = Math.max(0, currentRemainMs());
+        onUiTick({
+            remainingMs: remainMs,
+            remainingSec: toRemainingSec(remainMs),
+        });
+    };
+
+    const scheduleUi = () => {
+        clearUi();
         if (!running) return;
 
         const msLeft = currentRemainMs();
 
-        if (msLeft <= 0) {
-            // step finished – move to next or stop
-            if (index < steps.length - 1) {
-                index += 1;
-                const next = currentStep();
-                const durMs = (next?.durationSec ?? 0) * 1000;
-                endAt = nowMs() + durMs;
-                issueTick(durMs);
-            } else {
-                // workout finished
+        // Align first update so seconds flip on boundaries.
+        const msToNextSecondBoundary = msLeft % 1000;
+        const firstDelay =
+            msToNextSecondBoundary === 0 ? 1000 : msToNextSecondBoundary;
+
+        uiAlignTimeoutId = setTimeout(() => {
+            if (!running) return;
+
+            emitUi();
+
+            uiIntervalId = setInterval(() => {
+                if (!running) return;
+                emitUi();
+            }, 1000);
+        }, firstDelay);
+    };
+
+    const scheduleBoundary = () => {
+        clearBoundary();
+        if (!running) return;
+
+        const msLeft = currentRemainMs();
+
+        boundaryTimeoutId = setTimeout(() => {
+            if (!running) return;
+
+            // Catch-up loop in case timers were delayed.
+            while (running && currentStep()) {
+                const remain = currentRemainMs();
+
+                if (remain > 0) {
+                    // Still inside this step: reschedule boundary and refresh UI once.
+                    scheduleBoundary();
+                    emitUi();
+                    return;
+                }
+
+                // Step ended -> advance or finish
+                if (index < steps.length - 1) {
+                    index += 1;
+                    const next = currentStep();
+                    const durMs = (next?.durationSec ?? 0) * 1000;
+
+                    endAt = nowMs() + durMs;
+                    pausedRemainMs = null;
+
+                    // Authoritative event: step changed
+                    emitEvent();
+
+                    // Reschedule timers for the new step
+                    scheduleUi();
+                    // continue loop: if durMs===0, advance again
+                    continue;
+                }
+
                 stop();
+                return;
             }
-            return;
-        }
 
-        // normal tick
-        issueTick(msLeft);
+            stop();
+        }, msLeft);
     };
 
-    const startInterval = () => {
-        clearTimer();
-        intervalId = setInterval(loop, TICK_MS);
+    const scheduleAll = () => {
+        if (!running) return;
+        scheduleUi();
+        scheduleBoundary();
     };
 
-    const start = () => {
-        if (running || steps.length === 0) return;
+    const start = (): TimerSnapshot => {
+        if (running || steps.length === 0) return snapshot();
 
         const step = currentStep();
         const durMs = (step?.durationSec ?? 0) * 1000;
@@ -204,22 +311,30 @@ export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
         pausedRemainMs = null;
         endAt = nowMs() + durMs;
 
-        issueTick(durMs);
-        startInterval();
+        emitEvent();
+        emitUi();
+        scheduleAll();
+
+        return snapshot();
     };
 
-    const pause = () => {
-        if (!running) return;
+    const pause = (): TimerSnapshot => {
+        if (!running) return snapshot();
 
         const remain = currentRemainMs();
+
         running = false;
         pausedRemainMs = remain;
-        clearTimer();
-        issueTick(remain);
+
+        clearAllTimers();
+        emitEvent();
+        emitUi();
+
+        return snapshot();
     };
 
-    const resume = () => {
-        if (running || steps.length === 0) return;
+    const resume = (): TimerSnapshot => {
+        if (running || steps.length === 0) return snapshot();
 
         const step = currentStep();
         const fallback = (step?.durationSec ?? 0) * 1000;
@@ -229,52 +344,68 @@ export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
         pausedRemainMs = null;
         endAt = nowMs() + remain;
 
-        issueTick(remain);
-        startInterval();
+        emitEvent();
+        emitUi();
+        scheduleAll();
+
+        return snapshot();
     };
 
-    const skip = () => {
-        if (steps.length === 0) return;
+    const skip = (): TimerSnapshot => {
+        if (steps.length === 0) return snapshot();
 
         if (index < steps.length - 1) {
             index += 1;
+
             const step = currentStep();
             const durMs = (step?.durationSec ?? 0) * 1000;
 
             if (running) {
                 endAt = nowMs() + durMs;
-                issueTick(durMs);
+                pausedRemainMs = null;
+                clearAllTimers();
+                emitEvent();
+                emitUi();
+                scheduleAll();
             } else {
                 pausedRemainMs = durMs;
-                issueTick(durMs);
+                emitEvent();
+                emitUi();
             }
-        } else {
-            stop();
+
+            return snapshot();
         }
+
+        return stop();
     };
 
-    const stop = () => {
+    const stop = (): TimerSnapshot => {
         running = false;
-        clearTimer();
-        pausedRemainMs = null;
+        pausedRemainMs = 0;
+        clearAllTimers();
 
-        const step = currentStep();
-        if (!step) {
-            onTick({
-                stepIndex: index,
-                remainingSec: 0,
-                remainingMs: 0,
-                running,
-            });
-            return;
-        }
+        // Keep index as-is (last position)
+        emitEvent();
+        onUiTick?.({ remainingMs: 0, remainingSec: 0 });
 
-        onTick({
-            stepIndex: index,
-            remainingSec: 0,
-            remainingMs: 0,
-            running,
-        });
+        return snapshot();
+    };
+
+    /**
+     * Optional: rebase timers after app returns to foreground.
+     * Keeps remaining time consistent and reschedules boundary/ui properly.
+     */
+    const rebase = (): TimerSnapshot => {
+        if (!running) return snapshot();
+
+        const remain = currentRemainMs();
+        endAt = nowMs() + remain;
+
+        clearAllTimers();
+        scheduleAll();
+        emitUi();
+
+        return snapshot();
     };
 
     return {
@@ -283,7 +414,10 @@ export const createTimer = (steps: Step[], onTick: (t: Tick) => void) => {
         resume,
         skip,
         stop,
+        rebase,
+
         getIndex: () => index,
         isRunning: () => running,
+        getSnapshot: () => snapshot(),
     };
 };
