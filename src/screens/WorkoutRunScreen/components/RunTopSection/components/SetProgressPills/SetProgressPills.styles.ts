@@ -1,7 +1,6 @@
 import { createStyles } from '@src/theme/createStyles';
 
 const useWorkoutMetaStripStyles = createStyles((theme) => ({
-    // Just the pills row + pill segments – no labels/layout here anymore
     metaStripPillsRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -12,15 +11,23 @@ const useWorkoutMetaStripStyles = createStyles((theme) => ({
         flex: 1,
         height: 5,
         borderRadius: 999,
-        // backgroundColor: theme.palette.accent.soft,
         backgroundColor: theme.palette.background.card,
         overflow: 'hidden',
         flexDirection: 'row',
+        position: 'relative', // important (for absolute fill overlay)
     },
     metaStripPillFill: {
         borderRadius: 999,
     },
+    metaStripPillFillAbsolute: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        borderRadius: 999,
+    },
     metaStripPillRemainder: {
+        flex: 1,
         borderRadius: 999,
         backgroundColor: 'transparent',
     },

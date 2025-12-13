@@ -1,126 +1,62 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import Animated, {
-    Easing,
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming,
-    cancelAnimation,
-} from 'react-native-reanimated';
 
 import useWorkoutMetaStripStyles from './SetProgressPills.styles';
+import type { Step } from '@src/core/timer';
+import { ProgressPill } from './ProgressPill/ProgressPill';
 
-type SetProgressPillsProps = {
-    currentSetIndex: number; // 0-based (from engine)
+interface SetProgressPillsProps {
     totalSets: number;
-    setProgress: number; // 0..1 (continuous progress inside current set)
     phaseColor: string;
-};
+    isRunning: boolean;
+    currentStep: Step;
+    setSteps: Step[];
+}
 
-const clampProgress = (p: number | null | undefined): number =>
-    Math.min(1, Math.max(0, p ?? 0));
-
-export const SetProgressPills = ({
-    currentSetIndex,
+export const SetProgressPills: React.FC<SetProgressPillsProps> = ({
     totalSets,
-    setProgress,
     phaseColor,
-}: SetProgressPillsProps) => {
+    isRunning,
+    currentStep,
+    setSteps,
+}) => {
     const st = useWorkoutMetaStripStyles();
 
-    const safeTotalSets = totalSets || 1;
+    const currentSetIndex = currentStep.setIdx;
 
-    // "Visual" set index that controls which pill is current.
-    // We only switch this after resetting its progress to 0.
-    const [animatingSet, setAnimatingSet] = useState(currentSetIndex);
+    const safeTotalSets = Math.max(totalSets || 1, 1);
 
-    // Animated progress for the current visual set
-    const visualProgress = useSharedValue(clampProgress(setProgress));
+    const pills = useMemo(
+        () => Array.from({ length: safeTotalSets }, (_, i) => i),
+        [safeTotalSets]
+    );
+
+    const [visualSetIdx, setVisualSetIdx] = useState(currentSetIndex);
+
+    const isSetRest =
+        currentStep.label === 'REST' && currentStep.id.startsWith('rest-set-');
 
     useEffect(() => {
-        const clamped = clampProgress(setProgress);
+        const next = isSetRest
+            ? Math.min(currentSetIndex + 1, safeTotalSets - 1)
+            : currentSetIndex;
 
-        // --- set transition guard ---
-        if (currentSetIndex !== animatingSet) {
-            // Kill any running animation from the old set
-            cancelAnimation(visualProgress);
-
-            // Snap to 0 for the *new* set
-            visualProgress.value = 0;
-
-            // Only after the snap, update which pill is "current"
-            setAnimatingSet(currentSetIndex);
-            return;
-        }
-
-        // --- normal within-set animation ---
-        visualProgress.value = withTiming(clamped, {
-            duration: 200, // matches 5 Hz tick
-            easing: Easing.linear,
-        });
-    }, [setProgress, currentSetIndex, animatingSet, visualProgress]);
-
-    const currentFillStyle = useAnimatedStyle(() => ({
-        flex: visualProgress.value,
-    }));
-
-    const currentRemainderStyle = useAnimatedStyle(() => ({
-        flex: 1 - visualProgress.value,
-    }));
-
-    const pills = Array.from(
-        { length: Math.max(safeTotalSets, 1) },
-        (_, i) => i
-    );
+        if (visualSetIdx !== next) setVisualSetIdx(next);
+    }, [isSetRest, currentSetIndex, safeTotalSets, visualSetIdx]);
 
     return (
         <View style={st.metaStripPillsRow}>
-            {pills.map((i) => {
-                const isPast = i < animatingSet;
-                const isCurrent = i === animatingSet;
-
-                if (isPast) {
-                    return (
-                        <View key={i} style={st.metaStripPillOuter}>
-                            <View
-                                style={[
-                                    st.metaStripPillFill,
-                                    {
-                                        flex: 1,
-                                        backgroundColor: phaseColor,
-                                    },
-                                ]}
-                            />
-                        </View>
-                    );
-                }
-
-                if (isCurrent) {
-                    return (
-                        <View key={i} style={st.metaStripPillOuter}>
-                            <Animated.View
-                                style={[
-                                    st.metaStripPillFill,
-                                    { backgroundColor: phaseColor },
-                                    currentFillStyle,
-                                ]}
-                            />
-                            <Animated.View
-                                style={[
-                                    st.metaStripPillRemainder,
-                                    currentRemainderStyle,
-                                ]}
-                            />
-                        </View>
-                    );
-                }
-
-                return (
-                    <View key={i} style={st.metaStripPillOuter}>
-                        <View style={st.metaStripPillRemainder} />
-                    </View>
-                );
-            })}
+            {pills.map((i) => (
+                <ProgressPill
+                    key={i}
+                    index={i}
+                    visualSetIdx={visualSetIdx}
+                    phaseColor={phaseColor}
+                    isRunning={isRunning}
+                    currentStep={currentStep}
+                    setSteps={setSteps}
+                />
+            ))}
         </View>
     );
 };
