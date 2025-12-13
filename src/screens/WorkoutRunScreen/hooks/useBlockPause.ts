@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Step } from '@core/timer';
 
 type UseBlockPauseArgs = {
@@ -8,7 +7,9 @@ type UseBlockPauseArgs = {
     firstStepIndexByBlock: Map<number, number>;
     naturalFinished: boolean;
     forceFinished: boolean;
+
     pauseEngine: () => void;
+    onPausedAtBlockStart?: (step: Step) => void;
 };
 
 export const useBlockPause = ({
@@ -18,25 +19,23 @@ export const useBlockPause = ({
     naturalFinished,
     forceFinished,
     pauseEngine,
+    onPausedAtBlockStart,
 }: UseBlockPauseArgs) => {
     const [awaitingBlockContinue, setAwaitingBlockContinue] = useState(false);
-    const [currentBlockIndex, setCurrentBlockIndex] = useState<number | null>(
-        null
-    );
+
+    const currentBlockIndex = useMemo(() => step?.blockIdx ?? null, [step]);
 
     useEffect(() => {
         if (!step) {
-            setCurrentBlockIndex(null);
             setAwaitingBlockContinue(false);
             return;
         }
 
         const blockIdx = step.blockIdx;
-        setCurrentBlockIndex(blockIdx ?? null);
 
         if (
             blockIdx == null ||
-            blockIdx === 0 || // no pause before first block
+            blockIdx === 0 ||
             forceFinished ||
             naturalFinished
         ) {
@@ -46,14 +45,15 @@ export const useBlockPause = ({
 
         const firstIndexForBlock = firstStepIndexByBlock.get(blockIdx);
 
-        // If we just entered the *first* step of this block, pause and show "Prepare"
+        // entered first step of a new block => pause
         if (firstIndexForBlock != null && stepIndex === firstIndexForBlock) {
             pauseEngine();
+            onPausedAtBlockStart?.(step);
             setAwaitingBlockContinue(true);
-        } else {
-            // Inside the block -> normal running
-            setAwaitingBlockContinue(false);
+            return;
         }
+
+        setAwaitingBlockContinue(false);
     }, [
         step,
         stepIndex,
@@ -61,11 +61,12 @@ export const useBlockPause = ({
         forceFinished,
         naturalFinished,
         pauseEngine,
+        onPausedAtBlockStart,
     ]);
 
-    const clearBlockPause = () => {
+    const clearBlockPause = useCallback(() => {
         setAwaitingBlockContinue(false);
-    };
+    }, []);
 
     return {
         awaitingBlockContinue,
