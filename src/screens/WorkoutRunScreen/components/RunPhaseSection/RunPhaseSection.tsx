@@ -86,8 +86,6 @@ export const RunPhaseSection = ({
             <AppearingView
                 visible={isBlockPause}
                 style={st.blockPauseContainer}
-                offsetY={0}
-                offsetX={-12}
                 delay={260}
             >
                 <AppText
