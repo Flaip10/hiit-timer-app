@@ -84,7 +84,6 @@ export const ProgressPill: React.FC<ProgressPillProps> = ({
 
         // freeze steps (PREP excluded / rest-set special-case should return 1..1)
         if (stepDurationMs === 0) {
-            console.log('Here 1');
             cancelAnimation(pillProgress);
             pillProgress.value = withTiming(startProgress, {
                 duration: transitionTime,
