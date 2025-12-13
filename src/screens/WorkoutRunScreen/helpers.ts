@@ -1,4 +1,5 @@
 import type { Phase, Step } from '@core/timer';
+import { clamp } from 'react-native-reanimated';
 
 export const colorFor = (phase: Phase, isSetRest: boolean): string => {
     if (phase === 'WORK') return '#22C55E';
@@ -40,65 +41,128 @@ export const formatDurationVerbose = (sec: number): string => {
     return `${minutes} min ${paddedSeconds} sec`;
 };
 
-export const computeRemainingWorkoutSec = (
-    steps: Step[],
-    stepIndex: number,
-    remainingCurrentStepSec: number
-): number => {
-    return steps.reduce((acc, s, idx) => {
-        if (s.label === 'PREP') return acc;
+export interface SetProgressRules {
+    includeRestWithinSet: boolean; // usually true
+    excludePrep: boolean; // true
+    excludeRestBetweenSets: boolean; // true (rest-set-*)
+}
 
-        if (idx > stepIndex) return acc + (s.durationSec ?? 0);
-        if (idx === stepIndex) return acc + remainingCurrentStepSec;
-        return acc;
-    }, 0);
+export const defaultSetProgressRules: SetProgressRules = {
+    includeRestWithinSet: true,
+    excludePrep: true,
+    excludeRestBetweenSets: true,
 };
 
-export const computeSetProgress = (
-    steps: Step[],
-    currentStep: Step,
-    remainingMs: number
-): number => {
-    const currentBlockIdx = currentStep.blockIdx;
-    const currentSetIdx = currentStep.setIdx;
+export const isCountedSetStep = (
+    step: Step,
+    rules: SetProgressRules = defaultSetProgressRules
+): boolean => {
+    if (rules.excludePrep && step.label === 'PREP') return false;
 
-    let totalSetDurationMs = 0;
-    let elapsedInSetMs = 0;
-
-    for (let i = 0; i < steps.length; i += 1) {
-        const s = steps[i];
-
-        // only that block+set
-        if (s.blockIdx !== currentBlockIdx || s.setIdx !== currentSetIdx) {
-            continue;
-        }
-
-        // no PREP in set progress
-        if (s.label === 'PREP') continue;
-
-        // no REST between sets
-        if (s.label === 'REST' && s.id.startsWith('rest-set-')) continue;
-
-        const stepDurationMs = (s.durationSec ?? 0) * 1000;
-        totalSetDurationMs += stepDurationMs;
-
-        if (s === currentStep) {
-            const clampedRemaining = Math.min(
-                stepDurationMs,
-                Math.max(0, remainingMs)
-            );
-            elapsedInSetMs += stepDurationMs - clampedRemaining;
-        } else {
-            const indexOfCurrent = steps.indexOf(currentStep);
-            const indexOfS = i;
-            if (indexOfS < indexOfCurrent) {
-                elapsedInSetMs += stepDurationMs;
-            }
-        }
+    if (
+        rules.excludeRestBetweenSets &&
+        step.label === 'REST' &&
+        step.id.startsWith('rest-set-')
+    ) {
+        return false;
     }
 
-    if (totalSetDurationMs <= 0) return 0;
+    if (!rules.includeRestWithinSet && step.label === 'REST') return false;
 
-    const raw = elapsedInSetMs / totalSetDurationMs;
-    return Math.min(1, Math.max(0, raw));
+    return true;
+};
+
+export interface StepProgressRange {
+    setDurationMs: number;
+    stepDurationMs: number;
+    startProgress: number; // 0..1
+    endProgress: number; // 0..1
+}
+
+export const computeStepProgressRangeInSet = (
+    setSteps: Step[], // already filtered to current block+set, order preserved
+    currentStep: Step,
+    rules: SetProgressRules = defaultSetProgressRules
+): StepProgressRange => {
+    const currentId = currentStep.id;
+
+    // Special-case: rest between sets should NOT reset progress.
+    // It visually belongs to the *end* of the set, so freeze at 100%.
+    const isRestBetweenSets =
+        currentStep.label === 'REST' && currentId.startsWith('rest-set-');
+
+    // Build counted timeline inside the set
+    const countedSteps = setSteps.filter((s) => isCountedSetStep(s, rules));
+
+    const durations = countedSteps.map((s) =>
+        Math.max(0, (s.durationSec ?? 0) * 1000)
+    );
+
+    const setDurationMs = durations.reduce((a, b) => a + b, 0);
+
+    if (setDurationMs <= 0) {
+        return {
+            setDurationMs: 0,
+            stepDurationMs: 0,
+            startProgress: 0,
+            endProgress: 0,
+        };
+    }
+
+    if (isRestBetweenSets) {
+        return {
+            setDurationMs,
+            stepDurationMs: 0, // freeze
+            startProgress: 1,
+            endProgress: 1,
+        };
+    }
+
+    const idx = countedSteps.findIndex((s) => s.id === currentId);
+
+    // If current step is not part of the counted timeline (e.g., PREP),
+    // return 0..0 so UI can freeze/reset as needed.
+    if (idx === -1) {
+        return {
+            setDurationMs,
+            stepDurationMs: 0,
+            startProgress: 0,
+            endProgress: 0,
+        };
+    }
+
+    const stepDurationMs = durations[idx];
+
+    let elapsedBeforeMs = 0;
+    for (let i = 0; i < idx; i += 1) elapsedBeforeMs += durations[i];
+
+    const startProgress = elapsedBeforeMs / setDurationMs;
+    const endProgress = (elapsedBeforeMs + stepDurationMs) / setDurationMs;
+
+    return {
+        setDurationMs,
+        stepDurationMs,
+        startProgress: clamp(startProgress, 0, 1),
+        endProgress: clamp(endProgress, 0, 1),
+    };
+};
+
+export interface SetStepsResult {
+    setSteps: Step[];
+    blockIdx: number;
+    setIdx: number;
+}
+
+export const getSetStepsForCurrentStep = (
+    steps: Step[],
+    currentStep: Step
+): SetStepsResult => {
+    const { blockIdx, setIdx } = currentStep;
+
+    // Keep original order by filtering in-place order (no sort!)
+    const setSteps = steps.filter(
+        (s) => s.blockIdx === blockIdx && s.setIdx === setIdx
+    );
+
+    return { setSteps, blockIdx, setIdx };
 };

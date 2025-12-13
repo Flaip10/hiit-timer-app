@@ -8,7 +8,6 @@ import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 
 import { useWorkout } from '@state/useWorkouts';
-import { buildSteps } from '@core/timer';
 
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
@@ -23,7 +22,7 @@ import { colorFor, getSetStepsForCurrentStep, labelFor } from './helpers';
 import { RunTopSection } from './components/RunTopSection/RunTopSection';
 import { RunPhaseSection } from './components/RunPhaseSection/RunPhaseSection';
 import { RunFooter } from './components/RunFooter/RunFooter';
-import { useWorkoutRunStore } from '@src/state/stores/useWorkoutRunStore';
+import { useRunBuilder } from './hooks/useRunBuilder';
 
 export const WorkoutRunScreen = () => {
     useKeepAwake();
@@ -41,66 +40,71 @@ export const WorkoutRunScreen = () => {
     const router = useRouter();
     const workout = useWorkout(id);
 
-    // Build steps from workout blocks
-    const { steps } = useMemo(() => {
-        if (!workout) {
-            return {
-                steps: [] as ReturnType<typeof buildSteps>['steps'],
-            };
-        }
-        const built = buildSteps(5, workout.blocks);
-        return { steps: built.steps };
-    }, [workout]);
-
     const shouldAutoStart =
         autoStart === '1' || autoStart === 'true' || autoStart === 'yes';
 
+    const plan = useRunBuilder({ workout, prepSec: 5 });
+
     const {
+        // raw timer state
         remaining,
         running,
+
+        // derived timer info
         step,
         phase,
         isSetRest,
         remainingBlockSec,
         isFinished,
         primaryLabel,
-        currentBlock,
-        totalSets,
+
+        // workout structure / names
+        totalSetsInBlock,
         currentBlockIndex,
-        totalExercisesInBlock,
         currentExerciseName,
         nextExerciseName,
         currentExerciseIndexInBlock,
+        totalExercisesInBlock,
+
+        // completion info
         completedSetsByBlock,
         elapsedCompletedSec,
         isFullyCompleted,
         awaitingBlockContinue,
+
+        // breathing scalar for UI (0..1)
         breathingPhase,
+
+        // controls
         handlePrimary,
         handleSkip,
-        handleEnd,
         handleDone,
         handleForceFinish,
-    } = useWorkoutRun({ steps, workout, shouldAutoStart, router });
+    } = useWorkoutRun({ plan, shouldAutoStart, router });
 
-    // Initialize run on WorkoutRun store
-    useWorkoutRunStore.getState().startRun({ steps, totalSets });
+    const currentBlock =
+        currentBlockIndex != null
+            ? (workout?.blocks[currentBlockIndex] ?? null)
+            : null;
 
-    const setSteps = getSetStepsForCurrentStep(steps, step).setSteps;
+    const setSteps = useMemo(() => {
+        if (!step) return [];
+        return getSetStepsForCurrentStep(plan.steps, step).setSteps;
+    }, [plan.steps, step]);
 
     // Planned total duration (excluding PREP, to match "time left" logic)
     const totalWorkoutPlannedSec = useMemo(
         () =>
-            steps.reduce((acc, s) => {
+            plan.steps.reduce((acc, s) => {
                 if (s.label === 'PREP') return acc;
                 return acc + (s.durationSec ?? 0);
             }, 0),
-        [steps]
+        [plan.steps]
     );
 
     // -------- empty / not found state --------
 
-    if (!workout || steps.length === 0 || !step) {
+    if (!workout || plan.steps.length === 0 || !step) {
         return (
             <>
                 <MainContainer title="Run workout" scroll={false}>
@@ -185,15 +189,15 @@ export const WorkoutRunScreen = () => {
                     remainingBlockSec={remainingBlockSec}
                     phaseColor={phaseColor}
                     currentBlockIndex={currentBlockIndex}
-                    totalBlocks={workout.blocks.length}
-                    currentBlockTitle={currentBlock?.title ?? null}
-                    totalSets={totalSets}
+                    totalBlocks={plan.totalBlocks}
+                    currentBlockTitle={currentBlock?.title}
                     totalExercisesInBlock={totalExercisesInBlock}
                     currentExerciseIndexInBlock={currentExerciseIndexInBlock}
                     isBlockPause={awaitingBlockContinue}
                     isRunning={running}
                     setSteps={setSteps}
                     currentStep={step}
+                    totalSetsInBlock={totalSetsInBlock}
                 />
 
                 {/* PHASE / ARC / EXERCISES / FINISHED CARD */}
