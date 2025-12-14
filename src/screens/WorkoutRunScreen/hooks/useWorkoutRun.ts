@@ -46,8 +46,17 @@ export const useWorkoutRun = ({
     const lastStepIndexRef = useRef<number | null>(null);
     const finalStepProcessedRef = useRef(false);
 
+    const lastSnapRef = useRef<TimerSnapshot>({
+        stepIndex: 0,
+        running: false,
+        remainingSec: 0,
+        remainingMs: 0,
+    });
+
     const applySnapshot = useCallback(
         (snap: TimerSnapshot) => {
+            lastSnapRef.current = snap;
+
             setStepIndex(snap.stepIndex);
             setRunning(snap.running);
             setRemaining(snap.remainingSec);
@@ -63,43 +72,18 @@ export const useWorkoutRun = ({
 
     const applyUiTick = useCallback(
         (t: TimerUiTick) => {
-            // UI-only refresh: do NOT touch stepIndex/running here
             setRemaining(t.remainingSec);
 
-            // Keeping store remainingMs in sync is useful for other consumers
+            const snap = lastSnapRef.current;
+
             useWorkoutRunStore.getState().setEngineSnapshot({
-                running: engineRef.current?.isRunning() ?? running,
+                running: snap.running,
                 remainingMs: t.remainingMs,
-                currentStep: steps[stepIndex] ?? null,
+                currentStep: steps[snap.stepIndex] ?? null,
             });
         },
-        [running, stepIndex, steps]
+        [steps]
     );
-
-    // Stable engine commands (now snapshot-driven)
-    const handleStart = useCallback(() => {
-        const snap = engineRef.current?.start();
-        if (snap) applySnapshot(snap);
-    }, [applySnapshot]);
-
-    const handlePause = useCallback(() => {
-        const snap = engineRef.current?.pause();
-        if (snap) applySnapshot(snap);
-    }, [applySnapshot]);
-
-    const handleResume = useCallback(() => {
-        const snap = engineRef.current?.resume();
-        if (snap) applySnapshot(snap);
-    }, [applySnapshot]);
-
-    const handleSkip = useCallback(() => {
-        const snap = engineRef.current?.skip();
-        if (snap) applySnapshot(snap);
-    }, [applySnapshot]);
-
-    const handleDone = useCallback(() => {
-        router.back();
-    }, [router]);
 
     // Engine lifecycle + zustand init
     useEffect(() => {
@@ -168,17 +152,23 @@ export const useWorkoutRun = ({
     const isSetRest =
         phase === 'REST' && !!step?.id && step.id.startsWith('rest-set-');
 
+    const lastSnap = lastSnapRef.current;
+
     const naturalFinished =
-        !!step && !running && stepIndex === steps.length - 1 && remaining <= 0;
+        lastSnap.stepIndex === steps.length - 1 &&
+        !lastSnap.running &&
+        lastSnap.remainingMs <= 0;
 
     const isFinished = forceFinished || naturalFinished;
 
-    const isAtStepStart =
-        step != null ? remaining === (step.durationSec ?? 0) : false;
+    const s = steps[lastSnap.stepIndex];
+    const durMs = (s?.durationSec ?? 0) * 1000;
+
+    const isAtStepStart = !!s && lastSnap.remainingMs >= durMs;
 
     const primaryLabel: 'Start' | 'Pause' | 'Resume' | 'Done' = isFinished
         ? 'Done'
-        : running
+        : lastSnapRef.current.running
           ? 'Pause'
           : isAtStepStart
             ? 'Start'
@@ -234,11 +224,11 @@ export const useWorkoutRun = ({
             : 0;
 
     const getExerciseNameForStep = useCallback(
-        (s: Step | undefined): string | null => {
-            if (!s || s.label !== 'WORK') return null;
+        (sp: Step | undefined): string | null => {
+            if (!sp || sp.label !== 'WORK') return null;
 
-            const b = s.blockIdx;
-            const e = s.exIdx;
+            const b = sp.blockIdx;
+            const e = sp.exIdx;
             if (b == null || e == null) return null;
 
             return plan.exerciseNamesByBlock[b]?.[e] ?? `Exercise ${e + 1}`;
@@ -390,6 +380,33 @@ export const useWorkoutRun = ({
         totalPlannedSets > 0 &&
         totalCompletedSets >= totalPlannedSets;
 
+    // Stable engine commands (now snapshot-driven)
+    const handleStart = useCallback(() => {
+        const snap = engineRef.current?.start();
+        if (snap) applySnapshot(snap);
+    }, [applySnapshot]);
+
+    const handlePause = useCallback(() => {
+        const snap = engineRef.current?.pause();
+        if (snap) applySnapshot(snap);
+    }, [applySnapshot]);
+
+    const handleResume = useCallback(() => {
+        const snap = engineRef.current?.resume();
+        if (snap) applySnapshot(snap);
+    }, [applySnapshot]);
+
+    const handleSkip = useCallback(() => {
+        if (awaitingBlockContinue) return;
+
+        const snap = engineRef.current?.skip();
+        if (snap) applySnapshot(snap);
+    }, [applySnapshot, awaitingBlockContinue]);
+
+    const handleDone = useCallback(() => {
+        router.back();
+    }, [router]);
+
     // User actions
     const handleForceFinish = useCallback(() => {
         const snap = engineRef.current?.stop();
@@ -416,9 +433,14 @@ export const useWorkoutRun = ({
 
         if (awaitingBlockContinue) clearBlockPause();
 
-        if (engine.isRunning()) {
+        const snap = engine.getSnapshot();
+
+        if (snap.running) {
             handlePause();
-        } else if (isAtStepStart) {
+            return;
+        }
+
+        if (isAtStepStart) {
             handleStart();
         } else {
             handleResume();
