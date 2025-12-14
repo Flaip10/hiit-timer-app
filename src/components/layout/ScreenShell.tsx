@@ -5,9 +5,13 @@ import { useTheme } from '@src/theme/ThemeProvider';
 
 type ScreenShellProps = {
     children: ReactNode;
+    hasTopBar: boolean;
 };
 
-export const ScreenShell = ({ children }: ScreenShellProps) => {
+export const ScreenShell = ({
+    children,
+    hasTopBar = false,
+}: ScreenShellProps) => {
     const { theme } = useTheme();
 
     return (
@@ -16,7 +20,7 @@ export const ScreenShell = ({ children }: ScreenShellProps) => {
                 flex: 1,
                 backgroundColor: theme.palette.background.primary,
             }}
-            edges={['top', 'left', 'right']}
+            edges={hasTopBar ? ['left', 'right'] : ['top', 'left', 'right']}
         >
             {children}
         </SafeAreaView>

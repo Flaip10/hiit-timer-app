@@ -34,7 +34,7 @@ export const MainContainer = ({
     );
 
     return (
-        <ScreenShell>
+        <ScreenShell hasTopBar={!!title}>
             {title ? <TopBar title={title} /> : null}
 
             <KeyboardAvoidingView
