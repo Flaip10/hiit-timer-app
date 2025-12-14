@@ -7,7 +7,7 @@ export interface GuardedPressableProps extends PressableProps {
 }
 
 export const GuardedPressable: React.FC<GuardedPressableProps> = ({
-    cooldownMs = 200,
+    cooldownMs = 300,
     preventDoublePress = true,
     onPress,
     disabled,

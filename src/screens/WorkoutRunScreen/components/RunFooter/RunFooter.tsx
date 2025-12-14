@@ -97,6 +97,7 @@ export const RunFooter = ({
                     <CircleIconButton
                         onPress={onRequestEnd}
                         variant="secondary"
+                        disabled={isBlockPause}
                     >
                         <Ionicons
                             name="stop"
@@ -115,6 +116,7 @@ export const RunFooter = ({
                         variant="primary"
                         backgroundColor={phaseColor}
                         size={76}
+                        disabled={isBlockPause}
                     >
                         <Ionicons
                             name={running ? 'pause' : 'play'}
@@ -128,7 +130,11 @@ export const RunFooter = ({
                 </View>
 
                 <View style={st.footerIconWrapper}>
-                    <CircleIconButton onPress={onSkip} variant="secondary">
+                    <CircleIconButton
+                        onPress={onSkip}
+                        variant="secondary"
+                        disabled={isBlockPause}
+                    >
                         <Ionicons
                             name="play-skip-forward"
                             size={22}
