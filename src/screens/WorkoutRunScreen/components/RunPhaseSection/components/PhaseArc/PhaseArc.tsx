@@ -97,16 +97,23 @@ export const PhaseArc = ({
     const prevFinished = useRef(false);
 
     // Main arc animation logic
+    const desiredRunningSV = useSharedValue(isRunning);
+
+    useEffect(() => {
+        desiredRunningSV.value = isRunning;
+    }, [isRunning, desiredRunningSV]);
+
+    const isCollapsingSV = useSharedValue(false);
+
     useEffect(() => {
         const stepId = currentStep.id;
         const stepDurationMs = currentStep.durationSec * 1000;
         const collapseMs = 200;
 
-        // Nothing to animate for 0-length step
         if (stepDurationMs <= 0) {
             cancelAnimation(arcProgress);
             arcProgress.value = 1;
-            elapsedTime.current = stepDurationMs;
+            elapsedTime.current = 0;
             lastStepId.current = stepId;
             return;
         }
@@ -114,49 +121,54 @@ export const PhaseArc = ({
         const isNewStep = lastStepId.current !== stepId;
         lastStepId.current = stepId;
 
-        // 1) NEW STEP
+        // 1) NEW STEP: ALWAYS collapse to 0 (never cancel it)
         if (isNewStep) {
             cancelAnimation(arcProgress);
 
+            // Important: collapse is visual only. It should NOT consume workout time.
             elapsedTime.current = 0;
             animationStart.current = performance.now();
 
-            if (!isRunning) {
-                // Just reset to 0 with a quick collapse animation
-                arcProgress.value = withTiming(0, {
-                    duration: collapseMs,
-                    easing: Easing.linear,
-                });
-                return;
-            }
+            isCollapsingSV.value = true;
 
-            const forwardDuration = Math.max(0, stepDurationMs - collapseMs);
+            arcProgress.value = withTiming(
+                0,
+                { duration: collapseMs, easing: Easing.linear },
+                (collapseFinished) => {
+                    'worklet';
+                    isCollapsingSV.value = false;
+                    if (!collapseFinished) return;
 
-            arcProgress.value = withSequence(
-                withTiming(0, {
-                    duration: collapseMs,
-                    easing: Easing.linear,
-                }),
-                withTiming(1, {
-                    duration: forwardDuration,
-                    easing: Easing.linear,
-                })
+                    // After collapse:
+                    // - if paused => stay at 0
+                    // - if running => start forward fill
+                    if (!desiredRunningSV.value) return;
+
+                    arcProgress.value = withTiming(1, {
+                        duration: stepDurationMs - collapseMs,
+                        easing: Easing.linear,
+                    });
+                }
             );
 
-            elapsedTime.current = collapseMs;
-            animationStart.current = performance.now();
             return;
         }
 
         // 2) PAUSE
+        // If we're collapsing: do NOTHING (let collapse finish and then stop at 0)
         if (!isRunning) {
+            if (isCollapsingSV.value) return;
+
             const now = performance.now();
             elapsedTime.current += now - animationStart.current;
-            cancelAnimation(arcProgress);
+            cancelAnimation(arcProgress); // freeze forward fill
             return;
         }
 
         // 3) RESUME / NORMAL RUN
+        // If we're collapsing: do NOTHING (collapse callback will decide what happens next)
+        if (isCollapsingSV.value) return;
+
         const remaining = Math.max(0, stepDurationMs - elapsedTime.current);
 
         if (remaining === 0) {
@@ -170,6 +182,7 @@ export const PhaseArc = ({
             duration: remaining,
             easing: Easing.linear,
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isRunning, currentStep.id]);
 
     // One-shot glow sweep when we enter "finished"
