@@ -18,13 +18,30 @@ export const Modal = ({
 }: ModalProps) => {
     const fade = useRef(new Animated.Value(0)).current;
     const scale = useRef(new Animated.Value(0.96)).current;
-    const [rendered, setRendered] = useState(visible);
+
+    // This controls RNModal visibility (keep mounted while animating out)
+    const [mounted, setMounted] = useState(visible);
+
+    // guard stale callbacks
+    const animTokenRef = useRef(0);
 
     const st = useModalStyles();
 
     useEffect(() => {
+        animTokenRef.current += 1;
+        const token = animTokenRef.current;
+
+        fade.stopAnimation();
+        scale.stopAnimation();
+
         if (visible) {
-            setRendered(true);
+            // ensure RNModal is shown first
+            if (!mounted) setMounted(true);
+
+            // reset baseline for a clean open (prevents “state saved” feeling)
+            fade.setValue(0);
+            scale.setValue(0.96);
+
             Animated.parallel([
                 Animated.timing(fade, {
                     toValue: 1,
@@ -38,29 +55,38 @@ export const Modal = ({
                     bounciness: 6,
                 }),
             ]).start();
-        } else {
-            Animated.parallel([
-                Animated.timing(fade, {
-                    toValue: 0,
-                    duration: 180,
-                    easing: Easing.in(Easing.quad),
-                    useNativeDriver: true,
-                }),
-                Animated.timing(scale, {
-                    toValue: 0.96,
-                    duration: 180,
-                    easing: Easing.inOut(Easing.quad),
-                    useNativeDriver: true,
-                }),
-            ]).start(() => setRendered(false));
+            return;
         }
-    }, [visible, fade, scale]);
 
-    if (!rendered) return null;
+        // If we’re not mounted, nothing to close
+        if (!mounted) return;
+
+        Animated.parallel([
+            Animated.timing(fade, {
+                toValue: 0,
+                duration: 180,
+                easing: Easing.in(Easing.quad),
+                useNativeDriver: true,
+            }),
+            Animated.timing(scale, {
+                toValue: 0.96,
+                duration: 180,
+                easing: Easing.inOut(Easing.quad),
+                useNativeDriver: true,
+            }),
+        ]).start(({ finished }) => {
+            if (!finished) return;
+            if (animTokenRef.current !== token) return; // stale
+            // parent still wants it closed -> unmount
+            setMounted(false);
+        });
+    }, [visible, mounted, fade, scale]);
+
+    if (!mounted) return null;
 
     return (
         <RNModal
-            visible={visible}
+            visible={mounted} // IMPORTANT: not `visible`
             transparent
             animationType="none"
             onRequestClose={onRequestClose}
