@@ -11,7 +11,7 @@ export const useDrawerItemRowStyles = createStyles((theme) =>
             paddingRight: 24,
 
             borderTopRightRadius: 999,
-            borderBottomRightRadius: 100,
+            borderBottomRightRadius: 999,
         },
 
         pressableActive: {
