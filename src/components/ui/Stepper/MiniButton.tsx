@@ -22,6 +22,7 @@ export const MiniButton: React.FC<MiniButtonProps> = ({
     pressedStyle,
 }) => (
     <GuardedPressable
+        preventDoublePress={false}
         onPress={disabled ? undefined : onPress}
         style={({ pressed }) => [
             buttonStyle,
