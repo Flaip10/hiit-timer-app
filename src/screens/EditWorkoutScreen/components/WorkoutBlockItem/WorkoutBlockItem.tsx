@@ -22,6 +22,7 @@ type WorkoutBlockItemProps = {
      */
     onRemove?: (id: string) => void;
     expanded?: boolean;
+    initiallyExpanded?: boolean;
 };
 
 export const WorkoutBlockItem = ({
@@ -30,6 +31,7 @@ export const WorkoutBlockItem = ({
     onPress,
     onRemove,
     expanded = false,
+    initiallyExpanded = false,
 }: WorkoutBlockItemProps) => {
     const { theme } = useTheme();
     const st = useWorkoutBlockItemStyles();
@@ -120,6 +122,7 @@ export const WorkoutBlockItem = ({
             }}
             actionStrip={actionStrip}
             expandable={!expanded}
+            initiallyExpanded={initiallyExpanded}
             withBottomFade={false}
             minHeight={0}
             onPress={handlePress}

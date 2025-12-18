@@ -185,6 +185,7 @@ const EditWorkoutScreen = () => {
                             index={index}
                             onPress={onEditBlock}
                             onRemove={setBlockToRemove}
+                            initiallyExpanded
                         />
                     ))}
 
