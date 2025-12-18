@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 
-import { TopBar } from '@src/components/navigation/TopBar';
+import { TopBar } from '@src/components/navigation/TopBar/TopBar';
 import { ScreenShell } from '../ScreenShell';
 import { useMainContainerStyles } from './MainContainer.styles';
 

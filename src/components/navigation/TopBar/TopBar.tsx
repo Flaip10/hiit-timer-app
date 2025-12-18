@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import { useRouter, useSegments } from 'expo-router';
 
-import { IconButton } from '../ui/IconButton/IconButton';
+import { IconButton } from '../../ui/IconButton/IconButton';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { PILL_H, useStyles } from './TopBar.styles';

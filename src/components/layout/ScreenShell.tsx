@@ -1,4 +1,3 @@
-// src/components/layout/ScreenShell.tsx
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ReactNode } from 'react';
 import { useTheme } from '@src/theme/ThemeProvider';
