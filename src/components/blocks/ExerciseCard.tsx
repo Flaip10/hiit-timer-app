@@ -29,12 +29,18 @@ export const ExerciseCard: React.FC<Props> = ({
     const label = `Exercise ${index + 1}`;
 
     const setName = (v: string) => {
-        const trimmed = v.trim();
+        onChange({
+            ...exercise,
+            name: v,
+        });
+    };
+
+    const commitName = () => {
+        const trimmed = exercise.name?.trim();
 
         onChange({
             ...exercise,
-            // only persist if user actually typed something meaningful
-            name: trimmed.length > 0 ? trimmed : undefined,
+            name: trimmed && trimmed.length > 0 ? trimmed : undefined,
         });
     };
 
@@ -80,6 +86,7 @@ export const ExerciseCard: React.FC<Props> = ({
                     value={exercise.name ?? ''}
                     placeholder={label}
                     onChangeText={setName}
+                    onBlur={commitName}
                 />
 
                 <View style={st.durationRow}>
