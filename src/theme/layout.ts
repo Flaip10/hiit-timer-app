@@ -1,6 +1,8 @@
 export interface ThemeLayout {
     screen: {
         padding: number;
+        paddingVertical: number;
+        paddingHorizontal: number;
     };
     mainContainer: {
         gap: number;
@@ -23,6 +25,8 @@ export interface ThemeLayout {
 const BASE_LAYOUT: ThemeLayout = {
     screen: {
         padding: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 16,
     },
     mainContainer: {
         gap: 20,
@@ -45,6 +49,8 @@ const BASE_LAYOUT: ThemeLayout = {
 export const createLayout = (scale: number): ThemeLayout => ({
     screen: {
         padding: Math.round(BASE_LAYOUT.screen.padding * scale),
+        paddingVertical: Math.round(BASE_LAYOUT.screen.padding * scale),
+        paddingHorizontal: Math.round(BASE_LAYOUT.screen.padding * scale),
     },
     mainContainer: {
         gap: Math.round(BASE_LAYOUT.mainContainer.gap * scale),

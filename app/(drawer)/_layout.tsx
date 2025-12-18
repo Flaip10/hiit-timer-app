@@ -1,15 +1,27 @@
+import React from 'react';
 import { Drawer } from 'expo-router/drawer';
+import { useTheme } from '@src/theme/ThemeProvider';
+import AppDrawerContent from '../../src/components/navigation/AppDrawerContent/AppDrawerContent';
 
 const DrawerLayout = () => {
+    const { theme } = useTheme();
+
     return (
         <Drawer
-            initialRouteName="index"
+            drawerContent={AppDrawerContent}
             screenOptions={{
                 headerShown: false,
                 drawerType: 'front',
-                drawerStyle: { backgroundColor: '#0B0B0C', width: 280 },
-                drawerActiveTintColor: '#FFFFFF',
-                drawerInactiveTintColor: '#A1A1AA',
+                drawerStyle: {
+                    backgroundColor: theme.palette.background.card,
+                    width: 280,
+                    overflow: 'hidden',
+                    borderRadius: 0,
+                    borderTopLeftRadius: 0,
+                    borderTopRightRadius: 0,
+                    borderBottomLeftRadius: 0,
+                    borderBottomRightRadius: 0,
+                },
             }}
         >
             <Drawer.Screen name="index" options={{ title: 'Home' }} />
