@@ -102,19 +102,11 @@ const EditBlockScreen = () => {
                         />
 
                         <Stepper
-                            label="Sets in block"
-                            value={block.sets}
-                            onChange={onSets}
-                            min={1}
-                        />
-
-                        <Stepper
                             label="Exercises in block"
                             value={block.exercises.length}
                             onChange={onNumExercises}
                             min={1}
                         />
-
                         {/* Global Exercise Duration setter */}
                         <Stepper
                             label="Exercise duration (s)"
@@ -125,17 +117,24 @@ const EditBlockScreen = () => {
                         />
 
                         <Stepper
-                            label="Rest between sets (s)"
-                            value={block.restBetweenSetsSec}
-                            onChange={onRestBetweenSets}
+                            label="Rest between exercises (s)"
+                            value={block.restBetweenExercisesSec}
+                            onChange={onRestBetweenExercises}
                             min={0}
                             step={5}
                         />
 
                         <Stepper
-                            label="Rest between exercises (s)"
-                            value={block.restBetweenExercisesSec}
-                            onChange={onRestBetweenExercises}
+                            label="Sets in block"
+                            value={block.sets}
+                            onChange={onSets}
+                            min={1}
+                        />
+
+                        <Stepper
+                            label="Rest between sets (s)"
+                            value={block.restBetweenSetsSec}
+                            onChange={onRestBetweenSets}
                             min={0}
                             step={5}
                         />
