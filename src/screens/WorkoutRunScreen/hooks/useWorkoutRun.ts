@@ -359,7 +359,6 @@ export const useWorkoutRun = ({
     const { breathingPhase } = useBreathingAnimation({
         step,
         isFinished,
-        phase,
         remaining,
         running,
     });
