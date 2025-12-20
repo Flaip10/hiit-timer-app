@@ -23,7 +23,6 @@ export const buildSteps = (
     blocks: WorkoutBlock[]
 ): { steps: Step[] } => {
     const steps: Step[] = [];
-    let firstWorkAdded = false;
 
     blocks.forEach((block, bi) => {
         // Only consider exercises that have a timed duration
@@ -36,26 +35,35 @@ export const buildSteps = (
 
         if (L === 0 || sets === 0) return;
 
-        for (let si = 0; si < sets; si++) {
-            for (let wi = 0; wi < L; wi++) {
+        // PREP should happen once per block, before the first set only
+        let blockPrepAdded = false;
+
+        for (let si = 0; si < sets; si += 1) {
+            for (let wi = 0; wi < L; wi += 1) {
                 const { ex, exIdx } = workExercises[wi];
                 const workSec = ex.value;
 
-                // Optional global PREP at the very beginning
-                if (!firstWorkAdded && prepSec > 0) {
+                // Block-level PREP (once), before the first WORK of this block
+                if (!blockPrepAdded && prepSec > 0) {
                     steps.push({
-                        id: `prep-${bi}-${si}-${exIdx}`,
+                        id: `prep-${bi}`,
                         label: 'PREP',
                         durationSec: prepSec,
                         blockIdx: bi,
-                        exIdx,
-                        setIdx: si,
+
+                        // PREP is not tied to a specific exercise/set
+                        exIdx: -1,
+                        setIdx: -1,
+
+                        // Useful for UI: show what's coming next
                         name: ex.name,
+                        nextName: ex.name,
                     });
-                    firstWorkAdded = true;
-                } else if (!firstWorkAdded) {
-                    // no prep, but we still mark that we've hit the first WORK
-                    firstWorkAdded = true;
+
+                    blockPrepAdded = true;
+                } else if (!blockPrepAdded) {
+                    // no prep, but still mark that we've hit the first WORK in this block
+                    blockPrepAdded = true;
                 }
 
                 // WORK step for this exercise
