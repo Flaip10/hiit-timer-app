@@ -125,9 +125,8 @@ export const TopBar = ({
         <View style={[st.root, { paddingTop: theme.insets.top }]}>
             <StatusBar barStyle={barStyle} />
 
-            {/* bar is relative so we can absolutely position actions */}
             <View style={st.bar}>
-                {/* spacers define lateral space (SLOT_W). they don't own the buttons */}
+                {/* spacers define lateral space (SLOT_W) */}
                 <View style={st.sideSpacer} pointerEvents="none" />
                 <View style={st.center} onLayout={onCenterLayout}>
                     <View style={st.pillHost}>
@@ -159,7 +158,6 @@ export const TopBar = ({
                 </View>
                 <View style={st.sideSpacer} pointerEvents="none" />
 
-                {/* actions are absolute so they are NOT constrained by SLOT_W */}
                 <View
                     style={[st.action, st.leftAction]}
                     pointerEvents="box-none"

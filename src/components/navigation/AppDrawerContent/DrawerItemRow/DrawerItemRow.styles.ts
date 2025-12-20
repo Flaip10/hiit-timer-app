@@ -30,7 +30,6 @@ export const useDrawerItemRowStyles = createStyles((theme) =>
 
         labelActive: {
             color: theme.palette.text.inverted,
-            fontWeight: 700,
         },
 
         labelInactive: {
