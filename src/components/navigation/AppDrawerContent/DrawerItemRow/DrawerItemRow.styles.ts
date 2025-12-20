@@ -4,11 +4,13 @@ import { createStyles } from '@src/theme/createStyles';
 export const useDrawerItemRowStyles = createStyles((theme) =>
     StyleSheet.create({
         pressableBase: {
-            marginRight: 56,
+            marginRight: 45,
+            marginLeft: 10,
 
             paddingVertical: 14,
             paddingLeft: 16,
             paddingRight: 24,
+            borderRadius: 999,
 
             borderTopRightRadius: 999,
             borderBottomRightRadius: 999,
