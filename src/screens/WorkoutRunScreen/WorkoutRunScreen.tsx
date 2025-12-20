@@ -23,6 +23,7 @@ import { RunTopSection } from './components/RunTopSection/RunTopSection';
 import { RunPhaseSection } from './components/RunPhaseSection/RunPhaseSection';
 import { RunFooter } from './components/RunFooter/RunFooter';
 import { useRunBuilder } from './hooks/useRunBuilder';
+import useStepBeeps from './hooks/useStepBeeps';
 
 export const WorkoutRunScreen = () => {
     useKeepAwake();
@@ -81,6 +82,13 @@ export const WorkoutRunScreen = () => {
         handleDone,
         handleForceFinish,
     } = useWorkoutRun({ plan, shouldAutoStart, router });
+
+    useStepBeeps({
+        stepKey: step.id,
+        running,
+        remainingSec: remaining,
+        stepDurationSec: step?.durationSec,
+    });
 
     const currentBlock =
         currentBlockIndex != null
