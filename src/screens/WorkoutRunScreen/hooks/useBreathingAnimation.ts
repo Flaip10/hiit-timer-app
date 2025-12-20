@@ -8,11 +8,10 @@ import {
     withTiming,
 } from 'react-native-reanimated';
 
-import type { Step, Phase } from '@core/timer';
+import type { Step } from '@core/timer';
 
 type UseBreathingAnimationArgs = {
     step: Step | undefined;
-    phase: Phase;
     remaining: number;
     running: boolean;
     isFinished: boolean;
@@ -20,19 +19,17 @@ type UseBreathingAnimationArgs = {
 
 export const useBreathingAnimation = ({
     step,
-    phase,
     remaining,
     running,
     isFinished,
 }: UseBreathingAnimationArgs) => {
     const breathingPhase = useSharedValue(0);
 
-    // Are we in the last 3 seconds of *this step* (independent of running)?
+    // Run in the last 3 seconds of each step
     const isBreathingWindow = useMemo(() => {
         if (!step || !step.durationSec) return false;
-        if (phase !== 'WORK') return false;
         return remaining > 0 && remaining <= 3;
-    }, [step, phase, remaining]);
+    }, [step, remaining]);
 
     // Only animate when in the window *and* actually running
     const shouldAnimateBreathing = isBreathingWindow && running;
