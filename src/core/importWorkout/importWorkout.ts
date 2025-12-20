@@ -1,7 +1,7 @@
 import * as DocumentPicker from 'expo-document-picker';
 import RNFS from 'react-native-fs';
 import type { ExportedWorkoutFileV1 } from '../exportWorkout/exportTypes';
-import type { Workout } from '../entities';
+import type { Workout } from '../entities/entities';
 
 export type ImportResult =
     | { ok: true; workout: Workout }

@@ -1,6 +1,6 @@
 import RNFS from 'react-native-fs';
 import * as Sharing from 'expo-sharing';
-import type { Workout } from '@src/core/entities';
+import type { Workout } from '@src/core/entities/entities';
 import { ExportedWorkoutFileV1 } from '../exportWorkout/exportTypes';
 
 export const HIIT_WORKOUT_MIME = 'application/vnd.hiittimer.workout+json';

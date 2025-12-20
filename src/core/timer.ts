@@ -1,4 +1,4 @@
-import type { WorkoutBlock } from './entities';
+import type { WorkoutBlock } from './entities/entities';
 
 export type Phase = 'PREP' | 'WORK' | 'REST';
 

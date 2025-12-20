@@ -1,4 +1,4 @@
-import type { WorkoutBlock } from '@core/entities';
+import type { WorkoutBlock } from '@src/core/entities/entities';
 import { uid } from '@core/id';
 
 // Parse a string/number → non-negative integer

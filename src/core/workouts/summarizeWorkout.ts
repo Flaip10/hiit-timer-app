@@ -1,4 +1,4 @@
-import type { Workout } from '@core/entities';
+import type { Workout } from '@src/core/entities/entities';
 
 export interface WorkoutSummary {
     blocks: number;

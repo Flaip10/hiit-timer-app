@@ -7,7 +7,7 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 
 import type { Phase, Step } from '@core/timer';
-import type { WorkoutBlock } from '@core/entities';
+import type { WorkoutBlock } from '@src/core/entities/entities';
 
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';

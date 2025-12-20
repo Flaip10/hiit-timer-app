@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import type { Exercise } from '@src/core/entities';
+import type { Exercise } from '@src/core/entities/entities';
 import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
 import { TextField } from '@src/components/ui/TextField/TextField';
 import { Stepper } from '@src/components/ui/Stepper/Stepper';

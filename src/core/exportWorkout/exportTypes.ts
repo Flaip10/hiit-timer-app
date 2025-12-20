@@ -1,4 +1,4 @@
-import { Workout } from '../entities';
+import { Workout } from '../entities/entities';
 
 export type ExportedWorkoutFileV1 = {
     version: 1;

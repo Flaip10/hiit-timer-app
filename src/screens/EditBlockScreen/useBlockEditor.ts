@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import type { Workout, WorkoutBlock, Exercise } from '@core/entities';
+import type {
+    Workout,
+    WorkoutBlock,
+    Exercise,
+} from '@src/core/entities/entities';
 import { uid } from '@core/id';
 
 import {

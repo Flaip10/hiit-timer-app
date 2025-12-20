@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import type { Workout } from '@core/entities';
+import type { Workout } from '@src/core/entities/entities';
 import type { Step } from '@core/timer';
 import { buildSteps } from '@core/timer';
 

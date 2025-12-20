@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import type { WorkoutBlock } from '../../core/entities';
+import type { WorkoutBlock } from '../../core/entities/entities';
 
 export const BlockSummary = ({
     block,

@@ -3,7 +3,7 @@ import { immer } from 'zustand/middleware/immer';
 import { useShallow } from 'zustand/react/shallow';
 import { nanoid } from 'nanoid/non-secure';
 
-import type { Workout, WorkoutBlock } from '@src/core/entities';
+import type { Workout, WorkoutBlock } from '@src/core/entities/entities';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
