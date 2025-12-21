@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
-import type { Router } from 'expo-router';
 
 import {
     createTimer,
@@ -19,14 +18,9 @@ import { useSetMaps } from './useSetMaps';
 type UseWorkoutRunArgs = {
     plan: RunPlan;
     shouldAutoStart: boolean;
-    router: Router;
 };
 
-export const useWorkoutRun = ({
-    plan,
-    shouldAutoStart,
-    router,
-}: UseWorkoutRunArgs) => {
+export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
     const { steps } = plan;
 
     const engineRef = useRef<ReturnType<typeof createTimer> | null>(null);
@@ -402,10 +396,6 @@ export const useWorkoutRun = ({
         if (snap) applySnapshot(snap);
     }, [applySnapshot, awaitingBlockContinue]);
 
-    const handleDone = useCallback(() => {
-        router.back();
-    }, [router]);
-
     // User actions
     const handleForceFinish = useCallback(() => {
         const snap = engineRef.current?.stop();
@@ -425,11 +415,6 @@ export const useWorkoutRun = ({
         const engine = engineRef.current;
         if (!engine) return;
 
-        if (isFinished) {
-            handleDone();
-            return;
-        }
-
         if (awaitingBlockContinue) clearBlockPause();
 
         const snap = engine.getSnapshot();
@@ -447,12 +432,10 @@ export const useWorkoutRun = ({
     }, [
         awaitingBlockContinue,
         clearBlockPause,
-        handleDone,
         handlePause,
         handleResume,
         handleStart,
         isAtStepStart,
-        isFinished,
     ]);
 
     return {
@@ -488,7 +471,6 @@ export const useWorkoutRun = ({
         // controls
         handlePrimary,
         handleSkip,
-        handleDone,
         handleForceFinish,
     };
 };

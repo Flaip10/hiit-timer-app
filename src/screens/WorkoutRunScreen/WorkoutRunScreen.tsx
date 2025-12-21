@@ -7,7 +7,7 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 
-import { useWorkout } from '@state/useWorkouts';
+import { useWorkout, useWorkouts } from '@state/useWorkouts';
 
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
@@ -27,6 +27,7 @@ import useStepBeeps from './hooks/useStepBeeps';
 
 export const WorkoutRunScreen = () => {
     useKeepAwake();
+    const router = useRouter();
 
     const st = useWorkoutRunStyles();
 
@@ -34,15 +35,20 @@ export const WorkoutRunScreen = () => {
     const [endConfirmVisible, setEndConfirmVisible] = useState(false);
     const shareCardRef = useRef<View | null>(null);
 
-    const { id, autoStart } = useLocalSearchParams<{
+    const { id, autoStart, mode } = useLocalSearchParams<{
         id?: string;
         autoStart?: string;
+        mode?: 'quick';
     }>();
-    const router = useRouter();
-    const workout = useWorkout(id);
 
+    const savedWorkout = useWorkout(id);
+    const draftWorkout = useWorkouts((s) => s.draft);
+
+    const workout = mode === 'quick' ? draftWorkout : savedWorkout;
     const shouldAutoStart =
         autoStart === '1' || autoStart === 'true' || autoStart === 'yes';
+
+    const clearDraft = useWorkouts((s) => s.clearDraft);
 
     const plan = useRunBuilder({ workout, prepSec: 5 });
 
@@ -79,15 +85,15 @@ export const WorkoutRunScreen = () => {
         // controls
         handlePrimary,
         handleSkip,
-        handleDone,
         handleForceFinish,
-    } = useWorkoutRun({ plan, shouldAutoStart, router });
+    } = useWorkoutRun({ plan, shouldAutoStart });
 
     useStepBeeps({
-        stepKey: step.id,
+        stepKey: step?.id ?? `none-${plan.runKey}`,
         running,
         remainingSec: remaining,
         stepDurationSec: step?.durationSec,
+        enabled: !!step,
     });
 
     const currentBlock =
@@ -191,6 +197,16 @@ export const WorkoutRunScreen = () => {
     const handleCancelEnd = () => {
         handlePrimary();
         setEndConfirmVisible(false);
+    };
+
+    const handleDone = () => {
+        router.replace('/(drawer)');
+
+        if (mode === 'quick') {
+            requestAnimationFrame(() => {
+                clearDraft();
+            });
+        }
     };
 
     return (

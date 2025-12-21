@@ -22,6 +22,8 @@ type WorkoutsState = {
 
     // draft workflow
     startDraftNew: () => void;
+    // quick workout (single-block draft)
+    startDraftQuick: () => void;
     startDraftFromExisting: (id: string) => void;
     startDraftFromImported: (workout: Workout) => void;
     updateDraftMeta: (patch: Partial<Pick<Workout, 'name'>>) => void;
@@ -44,19 +46,19 @@ const starterBlock = (): WorkoutBlock => ({
     exercises: [
         {
             id: uid(),
-            name: 'Jumping Jacks',
+            // name: 'Jumping Jacks',
             mode: 'time',
             value: 30, // 30s
         },
         {
             id: uid(),
-            name: 'High Knees',
+            // name: 'High Knees',
             mode: 'time',
             value: 30,
         },
         {
             id: uid(),
-            name: 'Mountain Climbers',
+            // name: 'Mountain Climbers',
             mode: 'time',
             value: 30,
         },
@@ -67,6 +69,17 @@ const starterWorkout = (): Workout => ({
     id: uid(),
     name: 'New Workout',
     blocks: [starterBlock()],
+});
+
+const quickWorkout = (): Workout => ({
+    id: uid(),
+    name: 'Quick Workout',
+    blocks: [
+        {
+            ...starterBlock(),
+            title: 'Quick Block',
+        },
+    ],
 });
 
 // --- store --------------------------------------------------------
@@ -122,6 +135,12 @@ export const useWorkouts = create<WorkoutsState>()(
             startDraftNew: () =>
                 set(() => ({
                     draft: starterWorkout(),
+                })),
+
+            // start a quick workout draft (single block)
+            startDraftQuick: () =>
+                set(() => ({
+                    draft: quickWorkout(),
                 })),
 
             // start from an existing workout (deep clone)

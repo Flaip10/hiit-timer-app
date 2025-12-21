@@ -18,7 +18,11 @@ import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
 
 const EditBlockScreen = () => {
-    const { blockId } = useLocalSearchParams<{ blockId?: string }>();
+    const { blockId, quick } = useLocalSearchParams<{
+        blockId?: string;
+        quick?: string;
+    }>();
+    const isQuick = quick === '1' || quick === 'true' || quick === 'yes';
     const router = useRouter();
 
     const draft = useWorkouts((state) => state.draft);
@@ -80,6 +84,13 @@ const EditBlockScreen = () => {
         setSaving(true);
         try {
             updateDraftBlock(block.id, block);
+
+            if (isQuick) {
+                // go straight to run using the draft (no workout id)
+                router.push('/run?mode=quick&autoStart=1');
+                return;
+            }
+
             router.back();
         } finally {
             setSaving(false);
@@ -90,7 +101,7 @@ const EditBlockScreen = () => {
 
     return (
         <>
-            <MainContainer title={'Edit Block'}>
+            <MainContainer title={isQuick ? 'Quick Workout' : 'Edit Block'}>
                 {/* Block setup section */}
                 <ScreenSection title="Block setup" topSpacing="none">
                     <View style={st.sectionContentGap}>
@@ -140,7 +151,6 @@ const EditBlockScreen = () => {
                         />
                     </View>
                 </ScreenSection>
-
                 {/* Exercises section */}
                 <ScreenSection
                     title="Exercises"
@@ -183,7 +193,7 @@ const EditBlockScreen = () => {
                     flex={1}
                 />
                 <Button
-                    title="Save Block"
+                    title={isQuick ? 'Start Workout' : 'Save Block'}
                     variant="primary"
                     onPress={onSave}
                     loading={saving}
