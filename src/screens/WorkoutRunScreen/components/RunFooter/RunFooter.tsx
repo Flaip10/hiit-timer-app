@@ -84,7 +84,7 @@ export const RunFooter = ({
                     title="Hold to start Block"
                     variant="primary"
                     holdDurationMs={holdToContinueMs}
-                    onConfirmed={onPrimary}
+                    onConfirmed={isFinished ? onDone : onPrimary}
                 />
             </AppearingView>
 
