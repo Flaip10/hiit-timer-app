@@ -46,7 +46,7 @@ const WorkoutsScreen = () => {
     const list = useAllWorkouts();
     const { remove, startDraftFromImported } = useWorkouts();
 
-    const [q, setQ] = useState('');
+    const [search, setSearch] = useState('');
     const [toRemove, setToRemove] = useState<string | null>(null);
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -56,10 +56,10 @@ const WorkoutsScreen = () => {
     const st = useWorkoutsScreenStyles();
 
     const data = useMemo(() => {
-        const qq = q.trim().toLowerCase();
-        if (!qq) return list;
-        return list.filter((w) => w?.name.toLowerCase().includes(qq));
-    }, [list, q]);
+        const searchTerm = search.trim().toLowerCase();
+        if (!searchTerm) return list;
+        return list.filter((w) => w?.name.toLowerCase().includes(searchTerm));
+    }, [list, search]);
 
     const closeModal = () => {
         setModalVisible(false);
@@ -114,8 +114,8 @@ const WorkoutsScreen = () => {
                 ListHeaderComponent={
                     <View style={st.headerRow}>
                         <SearchField
-                            value={q}
-                            onChangeText={setQ}
+                            value={search}
+                            onChangeText={setSearch}
                             fullWidth
                             placeholder="Search workouts"
                         />
