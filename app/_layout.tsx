@@ -1,4 +1,3 @@
-import 'react-native-gesture-handler';
 import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '@src/theme/ThemeProvider';
@@ -16,6 +15,10 @@ const RootLayout = () => {
                 >
                     <Stack.Screen
                         name="(drawer)"
+                        options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                        name="history/[sessionId]"
                         options={{ headerShown: false }}
                     />
                     <Stack.Screen
