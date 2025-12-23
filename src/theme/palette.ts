@@ -63,6 +63,10 @@ export interface ThemePalette {
             background: string;
             icon: string;
         };
+        datePill: {
+            background: string;
+            icon: string;
+        };
     };
     overlay: {
         scrim: string;
@@ -132,6 +136,10 @@ export const lightPalette: ThemePalette = {
             background: colors.violet[500],
             icon: colors.violet[300],
         },
+        datePill: {
+            background: colors.violet[300],
+            icon: colors.violet.dark,
+        },
     },
     overlay: {
         scrim: colors.overlay.scrim,
@@ -200,6 +208,10 @@ export const darkPalette: ThemePalette = {
         actionStrip: {
             background: colors.gray.secondaryButton,
             icon: colors.red[500],
+        },
+        datePill: {
+            background: colors.gray.secondaryButton,
+            icon: colors.gray[50],
         },
     },
     overlay: {
