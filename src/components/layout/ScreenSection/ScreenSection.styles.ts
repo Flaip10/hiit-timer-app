@@ -6,6 +6,7 @@ import type { ScreenSectionTopSpacing } from './ScreenSection.interfaces';
 type ScreenSectionStyleProps = {
     topSpacing?: ScreenSectionTopSpacing;
     gap: number;
+    flex: boolean;
 };
 
 const getTopMargin = (spacing?: ScreenSectionTopSpacing): number => {
@@ -29,6 +30,7 @@ export const useScreenSectionStyles = createStyles(
             container: {
                 marginTop: getTopMargin(props.topSpacing),
                 width: '100%',
+                flex: props.flex ? 1 : undefined,
             },
             headerRow: {
                 flexDirection: 'row',
@@ -42,6 +44,7 @@ export const useScreenSectionStyles = createStyles(
             content: {
                 gap: props.gap,
                 width: '100%',
+                flex: props.flex ? 1 : undefined,
             },
         })
 );

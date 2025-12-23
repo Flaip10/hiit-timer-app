@@ -6,8 +6,10 @@ export type ScreenSectionTopSpacing = 'none' | 'small' | 'medium' | 'large';
 export interface ScreenSectionProps {
     title?: string;
     rightAccessory?: React.ReactNode;
-    children: React.ReactNode;
+    children?: React.ReactNode;
+    contentContainerStyle?: ViewStyle;
     containerStyle?: ViewStyle;
     topSpacing?: ScreenSectionTopSpacing;
     gap?: number;
+    flex?: boolean;
 }
