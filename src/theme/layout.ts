@@ -14,6 +14,9 @@ export interface ThemeLayout {
         padding: number;
         borderRadius: number;
     };
+    tile: {
+        borderRadius: number;
+    };
     listItem: {
         gap: number;
     };
@@ -38,6 +41,7 @@ const BASE_LAYOUT: ThemeLayout = {
         padding: 14,
         borderRadius: 14,
     },
+    tile: { borderRadius: 20 },
     listItem: {
         gap: 10,
     },
@@ -61,6 +65,9 @@ export const createLayout = (scale: number): ThemeLayout => ({
     card: {
         padding: Math.round(BASE_LAYOUT.card.padding * scale),
         borderRadius: Math.round(BASE_LAYOUT.card.borderRadius * scale),
+    },
+    tile: {
+        borderRadius: Math.round(BASE_LAYOUT.tile.borderRadius * scale),
     },
     listItem: {
         gap: Math.round(BASE_LAYOUT.listItem.gap * scale),
