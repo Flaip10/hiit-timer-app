@@ -134,6 +134,11 @@ export const MetaCard: FC<MetaCardProps> = ({
                 <View style={[st.topLeftContainer]}>
                     {date ? (
                         <View style={st.dateTimePill}>
+                            <Ionicons
+                                name="calendar-outline"
+                                size={14}
+                                color={theme.palette.text.secondary}
+                            />
                             <Text style={st.dateTimePillText} numberOfLines={1}>
                                 {getPillDate(date, hideHours)}
                             </Text>

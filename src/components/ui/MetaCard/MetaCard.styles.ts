@@ -20,7 +20,7 @@ export const useMetaCardStyles = createStyles(
                 flexDirection: 'column',
                 position: 'relative',
                 overflow: 'hidden',
-                borderWidth: 1,
+                // borderWidth: 1,
                 borderColor: theme.palette.metaCard.container.border,
                 gap: 14,
             },
@@ -42,20 +42,23 @@ export const useMetaCardStyles = createStyles(
             },
 
             dateTimePill: {
-                backgroundColor: theme.palette.accent.surfaces,
+                backgroundColor: theme.palette.metaCard.datePill.background,
                 borderTopLeftRadius: 14,
                 borderBottomRightRadius: 14,
                 paddingHorizontal: 12,
                 paddingVertical: 2,
                 borderRightWidth: 1,
                 borderBottomWidth: 1,
-                borderColor: theme.palette.border.subtle,
+                borderColor: theme.palette.metaCard.container.border,
                 marginRight: 4,
+                flexDirection: 'row',
+                gap: 6,
+                alignItems: 'center',
             },
             dateTimePillText: {
-                color: theme.palette.text.inverted,
+                color: theme.palette.text.secondary,
                 fontSize: 13,
-                fontWeight: '700',
+                fontWeight: '400',
             },
 
             topLeftContent: {
