@@ -19,5 +19,15 @@ export const useStyles = createStyles((theme: AppTheme) =>
         gridItem: {
             flex: 1,
         },
+
+        list: {
+            flex: 1,
+            width: '100%',
+        },
+
+        listContent: {
+            gap: theme.layout.listItem.gap,
+            paddingBottom: theme.insets.bottom,
+        },
     })
 );

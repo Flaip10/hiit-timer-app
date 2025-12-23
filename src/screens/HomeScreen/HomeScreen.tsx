@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
@@ -6,14 +6,28 @@ import { AppText } from '@src/components/ui/Typography/AppText';
 import { HomeActionTile } from './components/HomeActionTile/HomeActionTile';
 import { useStyles } from './HomeScreen.styles';
 import { useTheme } from '@src/theme/ThemeProvider';
+import { useWorkouts } from '@src/state/useWorkouts';
+import { useRecentSessions } from '@src/state/stores/useWorkoutHistory';
+import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
+import SessionListItem from '../HistoryScreen/components/SessionListitem/SessionListItem';
 
 const HomeScreen = () => {
     const router = useRouter();
     const { theme } = useTheme();
     const st = useStyles();
 
+    const recent = useRecentSessions(5);
+
+    const onOpenSession = (sessionId: string) => {
+        router.push(`/history/${sessionId}`);
+    };
+
     return (
-        <MainContainer title="Home" gap={theme.layout.mainContainer.gap}>
+        <MainContainer
+            title="Home"
+            gap={theme.layout.mainContainer.gap}
+            scroll={false}
+        >
             <View style={st.headerContainer}>
                 <AppText variant="title3" style={st.heading}>
                     Welcome
@@ -35,7 +49,16 @@ const HomeScreen = () => {
                     subtitle="Start immediately"
                     icon="play"
                     variant="primary"
-                    onPress={() => router.push('/run')}
+                    onPress={() => {
+                        useWorkouts.getState().startDraftQuick();
+
+                        const b0 = useWorkouts.getState().draft?.blocks?.[0];
+                        if (!b0) return;
+
+                        router.push(
+                            `/workouts/edit-block?blockId=${b0.id}&quick=1`
+                        );
+                    }}
                 />
 
                 {/* Secondary actions */}
@@ -57,6 +80,26 @@ const HomeScreen = () => {
                     </View>
                 </View>
             </View>
+
+            <ScreenSection title="Recent Workouts" flex>
+                <FlatList
+                    data={recent}
+                    keyExtractor={(s) => s.id}
+                    contentContainerStyle={st.listContent}
+                    style={st.list}
+                    renderItem={({ item }) => (
+                        <SessionListItem
+                            session={item}
+                            onPress={() => onOpenSession(item.id)}
+                        />
+                    )}
+                    ListEmptyComponent={
+                        <AppText variant="bodySmall" tone="secondary">
+                            No sessions yet.
+                        </AppText>
+                    }
+                />
+            </ScreenSection>
         </MainContainer>
     );
 };
