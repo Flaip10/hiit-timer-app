@@ -1,478 +1,442 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { AppState } from 'react-native';
 
 import {
-    createTimer,
     type Phase,
-    type Step,
+    type RunPlan,
+    type TimerEvent,
     type TimerSnapshot,
-    type TimerUiTick,
-} from '@core/timer';
+    type CountdownUiTick,
+} from '@core/timer.interfaces';
+
+import { createTimer } from '@core/timer';
+
 import { useWorkoutRunStore } from '@src/state/stores/useWorkoutRunStore';
 
-import type { RunPlan } from './useRunBuilder';
 import { useBreathingAnimation } from './useBreathingAnimation';
-import { useBlockPause } from './useBlockPause';
-import { useSetMaps } from './useSetMaps';
+
+import { createInitialRunState, runReducer } from './useWorkoutRun.reducer';
+import { WorkoutSessionStats } from '@src/core/entities/workoutSession.interfaces';
+import { msToSeconds } from '@src/helpers/time.helpers';
+import { msArrayToSecondsArray } from '../helpers';
+import { setKey } from '@src/core/timer.helpers';
+
+/* -------------------------------------------------------------------------- */
+/* Types                                                                      */
+/* -------------------------------------------------------------------------- */
 
 type UseWorkoutRunArgs = {
     plan: RunPlan;
     shouldAutoStart: boolean;
 };
 
+/* -------------------------------------------------------------------------- */
+/* Hook                                                                       */
+/* -------------------------------------------------------------------------- */
+
 export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
-    const { steps } = plan;
+    const { steps, meta } = plan;
 
     const engineRef = useRef<ReturnType<typeof createTimer> | null>(null);
     const autoStartedRef = useRef(false);
 
-    const [stepIndex, setStepIndex] = useState(0);
-    const [remaining, setRemaining] = useState(0); // seconds for UI
-    const [running, setRunning] = useState(false);
+    // completion refs (non-react, dedupe + correctness)
+    const completedWorkStepIndexRef = useRef<Set<number>>(new Set());
+    const completedSetKeyRef = useRef<Set<string>>(new Set());
+    const workCompletedCountBySetRef = useRef<Map<string, number>>(new Map());
 
-    const [completedSetsByBlock, setCompletedSetsByBlock] = useState<number[]>(
-        []
+    const [state, dispatch] = useReducer(
+        runReducer,
+        createInitialRunState({ nowMs: Date.now(), meta })
     );
-    const [elapsedCompletedSec, setElapsedCompletedSec] = useState(0);
-    const [forceFinished, setForceFinished] = useState(false);
 
-    const completedSetKeysRef = useRef<Set<string>>(new Set());
-    const lastStepIndexRef = useRef<number | null>(null);
-    const finalStepProcessedRef = useRef(false);
+    /* ---------------------------------------------------------------------- */
+    /* Mirror engine snapshot into Zustand store                              */
+    /* ---------------------------------------------------------------------- */
 
-    const lastSnapRef = useRef<TimerSnapshot>({
-        stepIndex: 0,
-        running: false,
-        remainingSec: 0,
-        remainingMs: 0,
-    });
-
-    const applySnapshot = useCallback(
-        (snap: TimerSnapshot) => {
-            lastSnapRef.current = snap;
-
-            setStepIndex(snap.stepIndex);
-            setRunning(snap.running);
-            setRemaining(snap.remainingSec);
+    const syncStoreSnapshot = useCallback(
+        (snap: TimerSnapshot, remainingMsOverride?: number) => {
+            const remainingMs =
+                typeof remainingMsOverride === 'number'
+                    ? remainingMsOverride
+                    : snap.remainingMs;
 
             useWorkoutRunStore.getState().setEngineSnapshot({
                 running: snap.running,
-                remainingMs: snap.remainingMs,
+                remainingMs,
                 currentStep: steps[snap.stepIndex] ?? null,
             });
         },
-        [steps]
+        [steps] // steps is now stable per runKey anyway
     );
 
-    const applyUiTick = useCallback(
-        (t: TimerUiTick) => {
-            setRemaining(t.remainingSec);
+    /* ---------------------------------------------------------------------- */
+    /* Timer event handler                                                     */
+    /* ---------------------------------------------------------------------- */
 
-            const snap = lastSnapRef.current;
+    const handleTimerEvent = useCallback(
+        (e: TimerEvent) => {
+            // Always forward events to reducer (time accounting + timer mirror)
+            dispatch({ type: 'TIMER_EVENT', event: e });
 
-            useWorkoutRunStore.getState().setEngineSnapshot({
-                running: snap.running,
-                remainingMs: t.remainingMs,
-                currentStep: steps[snap.stepIndex] ?? null,
-            });
-        },
-        [steps]
-    );
-
-    // Engine lifecycle + zustand init
-    useEffect(() => {
-        if (steps.length === 0) return;
-
-        const firstStep = steps[0] ?? null;
-        const firstStepMs = Math.max(0, (firstStep?.durationSec ?? 0) * 1000);
-
-        useWorkoutRunStore.getState().startRun({
-            steps,
-            totalSets: plan.totalSetsForRun,
-            snapshot: {
-                running: false,
-                remainingMs: firstStepMs,
-                currentStep: firstStep,
-            },
-        });
-
-        engineRef.current = createTimer(steps, {
-            onEvent: (snap) => {
-                applySnapshot(snap);
-            },
-            onUiTick: (t) => {
-                applyUiTick(t);
-            },
-        });
-
-        // Seed local UI state from a snapshot (not from assumptions)
-        applySnapshot(engineRef.current.getSnapshot());
-
-        if (shouldAutoStart && !autoStartedRef.current) {
-            autoStartedRef.current = true;
-            const snap = engineRef.current.start();
-            applySnapshot(snap);
-        }
-
-        return () => {
-            const snap = engineRef.current?.stop();
-            if (snap) applySnapshot(snap);
-
-            useWorkoutRunStore.getState().resetRun();
-            engineRef.current = null;
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shouldAutoStart, plan.runKey]);
-
-    // Foreground resync
-    useEffect(() => {
-        const sub = AppState.addEventListener('change', (state) => {
-            if (state !== 'active') return;
-
-            const engine = engineRef.current;
-            if (!engine) return;
-
-            const snap = engine.rebase();
-            applySnapshot(snap);
-        });
-
-        return () => sub.remove();
-    }, [applySnapshot]);
-
-    // Derived step state
-    const step: Step | undefined = steps[stepIndex];
-    const phase: Phase = (step?.label ?? 'PREP') as Phase;
-
-    const isSetRest =
-        phase === 'REST' && !!step?.id && step.id.startsWith('rest-set-');
-
-    const lastSnap = lastSnapRef.current;
-
-    const naturalFinished =
-        lastSnap.stepIndex === steps.length - 1 &&
-        !lastSnap.running &&
-        lastSnap.remainingMs <= 0;
-
-    const isFinished = forceFinished || naturalFinished;
-
-    const s = steps[lastSnap.stepIndex];
-    const durMs = (s?.durationSec ?? 0) * 1000;
-
-    const isAtStepStart = !!s && lastSnap.remainingMs >= durMs;
-
-    const primaryLabel: 'Start' | 'Pause' | 'Resume' | 'Done' = isFinished
-        ? 'Done'
-        : lastSnapRef.current.running
-          ? 'Pause'
-          : isAtStepStart
-            ? 'Start'
-            : 'Resume';
-
-    // Precomputed maps
-    const { lastSetStepIndexMap, setDurationSecMap, firstStepIndexByBlock } =
-        useSetMaps({ steps });
-
-    // Block pause between blocks
-    const pauseEngine = useCallback(() => {
-        const snap = engineRef.current?.pause();
-        if (snap) applySnapshot(snap);
-    }, [applySnapshot]);
-
-    const { awaitingBlockContinue, currentBlockIndex, clearBlockPause } =
-        useBlockPause({
-            step,
-            stepIndex,
-            firstStepIndexByBlock,
-            naturalFinished,
-            forceFinished,
-            pauseEngine,
-        });
-
-    // Remaining time inside current block (UI)
-    const remainingBlockSec = useMemo(() => {
-        if (!step || step.blockIdx == null) return 0;
-
-        const currentBlockIdx = step.blockIdx;
-        let total = 0;
-
-        for (let i = 0; i < steps.length; i += 1) {
-            const s = steps[i];
-            if (s.blockIdx !== currentBlockIdx) continue;
-            if (i < stepIndex) continue;
-
-            total += i === stepIndex ? remaining : (s.durationSec ?? 0);
-        }
-
-        return total;
-    }, [step, stepIndex, remaining, steps]);
-
-    // Workout structure lookup (from plan)
-    const totalSetsInBlock =
-        step?.blockIdx != null
-            ? (plan.plannedSetsByBlock[step.blockIdx] ?? 0)
-            : 0;
-
-    const totalExercisesInBlock =
-        step?.blockIdx != null
-            ? (plan.exercisesCountByBlock[step.blockIdx] ?? 0)
-            : 0;
-
-    const getExerciseNameForStep = useCallback(
-        (sp: Step | undefined): string | null => {
-            if (!sp || sp.label !== 'WORK') return null;
-
-            const b = sp.blockIdx;
-            const e = sp.exIdx;
-            if (b == null || e == null) return null;
-
-            return plan.exerciseNamesByBlock[b]?.[e] ?? `Exercise ${e + 1}`;
-        },
-        [plan.exerciseNamesByBlock]
-    );
-
-    // Resolve current + next exercise labels
-    let currentExerciseName: string | null = null;
-    let nextExerciseName: string | null = null;
-    let currentExerciseIndexInBlock: number | null = null;
-
-    if (step) {
-        if (phase === 'PREP') {
-            const upcoming: Step[] = [];
-
-            for (let i = stepIndex; i < steps.length; i += 1) {
-                const candidate = steps[i];
-                if (candidate.label === 'WORK') {
-                    upcoming.push(candidate);
-                    if (upcoming.length === 2) break;
-                }
+            // Mirror engine snapshot to the store for UI rendering
+            if (e.type === 'STATE_SYNC') {
+                const snap = e.snapshot;
+                syncStoreSnapshot(snap);
+                return;
             }
 
-            const firstWork = upcoming[0];
-            const secondWork = upcoming[1];
+            // Force store countdown to 0ms immediately on finish
+            if (e.type === 'RUN_FINISHED') {
+                const snap = engineRef.current?.getSnapshot();
+                if (snap) syncStoreSnapshot(snap, 0);
+                return;
+            }
 
-            currentExerciseName = getExerciseNameForStep(firstWork);
-            nextExerciseName = getExerciseNameForStep(secondWork);
-            currentExerciseIndexInBlock =
-                firstWork && firstWork.exIdx != null ? firstWork.exIdx : null;
-        } else {
-            if (phase === 'WORK') {
-                currentExerciseName = getExerciseNameForStep(step);
-                currentExerciseIndexInBlock = step.exIdx ?? null;
-            } else if (phase === 'REST') {
-                for (let i = stepIndex - 1; i >= 0; i -= 1) {
-                    const prev = steps[i];
-                    if (prev.label === 'WORK') {
-                        currentExerciseName = getExerciseNameForStep(prev);
-                        currentExerciseIndexInBlock = prev.exIdx ?? null;
-                        break;
+            // Block gate: pause at the first step of each block > 0
+            if (e.type === 'STEP_STARTED') {
+                const idx = e.stepIndex;
+                if (idx > 0) {
+                    const previousBlock = steps[idx - 1]?.blockIdx;
+                    const currentBlock = e.step.blockIdx;
+                    const blockStarted = previousBlock !== currentBlock;
+
+                    if (blockStarted && currentBlock > 0) {
+                        engineRef.current?.pause();
+                        dispatch({ type: 'ENTER_BLOCK_PAUSE', nowMs: e.nowMs });
                     }
                 }
             }
 
-            for (let i = stepIndex + 1; i < steps.length; i += 1) {
-                const future = steps[i];
-                if (future.label === 'WORK') {
-                    nextExerciseName = getExerciseNameForStep(future);
-                    break;
+            // Completion guards: prevent double-counting on repeated events
+            if (e.type === 'STEP_ENDED') {
+                const endedStep = e.step;
+
+                if (endedStep.label !== 'WORK') return;
+                if (e.reason !== 'natural') return;
+
+                if (completedWorkStepIndexRef.current.has(e.stepIndex)) return;
+                completedWorkStepIndexRef.current.add(e.stepIndex);
+
+                const b = endedStep.blockIdx;
+                const sIdx = endedStep.setIdx;
+                const exIdx = endedStep.exIdx;
+
+                if (b < 0 || sIdx < 0 || exIdx < 0) return;
+
+                // Exercise completion (must match RunAction shape)
+                dispatch({
+                    type: 'MARK_EXERCISE_COMPLETED',
+                    blockIdx: b,
+                });
+
+                // Set completion (uses meta.workStepsCountBySet)
+                const kSet = setKey(b, sIdx);
+                const prev = workCompletedCountBySetRef.current.get(kSet) ?? 0;
+                const next = prev + 1;
+                workCompletedCountBySetRef.current.set(kSet, next);
+
+                const plannedWork = meta.workStepsCountBySet.get(kSet) ?? 0;
+                if (plannedWork > 0 && next >= plannedWork) {
+                    if (completedSetKeyRef.current.has(kSet)) return;
+                    completedSetKeyRef.current.add(kSet);
+
+                    dispatch({
+                        type: 'MARK_SET_COMPLETED',
+                        blockIdx: b,
+                    });
                 }
             }
-        }
-    }
-
-    // Completion tracking
-    useEffect(() => {
-        setCompletedSetsByBlock(Array(plan.totalBlocks).fill(0));
-        setElapsedCompletedSec(0);
-
-        completedSetKeysRef.current = new Set();
-        lastStepIndexRef.current = null;
-        finalStepProcessedRef.current = false;
-
-        setForceFinished(false);
-        clearBlockPause();
-        autoStartedRef.current = false;
-    }, [clearBlockPause, plan.runKey, plan.totalBlocks]);
-
-    const processCompletedStepIndex = useCallback(
-        (completedIndex: number) => {
-            const completedStep = steps[completedIndex];
-            if (!completedStep) return;
-
-            const { blockIdx, setIdx } = completedStep;
-            if (blockIdx == null || setIdx == null) return;
-
-            const key = `${blockIdx}-${setIdx}`;
-            const lastIdxForSet = lastSetStepIndexMap.get(key);
-
-            if (lastIdxForSet == null || lastIdxForSet !== completedIndex)
-                return;
-            if (completedSetKeysRef.current.has(key)) return;
-
-            completedSetKeysRef.current.add(key);
-
-            setCompletedSetsByBlock((prev) => {
-                const next = prev.slice();
-                if (blockIdx < 0 || blockIdx >= next.length) return next;
-                next[blockIdx] = (next[blockIdx] ?? 0) + 1;
-                return next;
-            });
-
-            const setDurationSec = setDurationSecMap.get(key) ?? 0;
-            if (setDurationSec > 0)
-                setElapsedCompletedSec((prev) => prev + setDurationSec);
         },
-        [steps, lastSetStepIndexMap, setDurationSecMap]
+        [meta.workStepsCountBySet, steps, syncStoreSnapshot]
     );
 
+    /* ---------------------------------------------------------------------- */
+    /* UI tick handler                                                         */
+    /* ---------------------------------------------------------------------- */
+
+    const applyCountdownUiTick = useCallback(
+        (t: CountdownUiTick) => {
+            dispatch({ type: 'COUNTDOWN_TICK', tick: t });
+
+            const snap = engineRef.current?.getSnapshot();
+            if (!snap) return;
+            syncStoreSnapshot(snap, t.remainingMs);
+        },
+        [syncStoreSnapshot]
+    );
+
+    /* ---------------------------------------------------------------------- */
+    /* Engine lifecycle                                                        */
+    /* ---------------------------------------------------------------------- */
+
     useEffect(() => {
+        // (Re)initialize the run whenever the plan changes (meta.runKey).
         if (steps.length === 0) return;
 
-        const prevIndex = lastStepIndexRef.current;
+        // Seed Zustand store with the initial snapshot (before engine exists) so UI has something to render.
+        const first = steps[0] ?? null;
+        const firstMs = Math.max(0, (first?.durationSec ?? 0) * 1000);
 
-        if (prevIndex == null) {
-            lastStepIndexRef.current = stepIndex;
+        useWorkoutRunStore.getState().startRun({
+            steps,
+            totalSets: meta.totalSetsForRun,
+            snapshot: {
+                running: false,
+                remainingMs: firstMs,
+                currentStep: first,
+            },
+        });
+
+        // Reset reducer + completion dedupe refs for the new run.
+        const now = Date.now();
+        completedWorkStepIndexRef.current = new Set();
+        completedSetKeyRef.current = new Set();
+        workCompletedCountBySetRef.current = new Map();
+        dispatch({ type: 'RESET', nowMs: now, meta });
+
+        // Create a fresh timer engine bound to this plan.
+        engineRef.current = createTimer(steps, {
+            onCountdownUiTick: applyCountdownUiTick,
+            onTimerEvent: handleTimerEvent,
+        });
+
+        // Mirror initial engine snapshot into the store immediately (keeps currentStep aligned).
+        const initialSnap = engineRef.current.getSnapshot();
+        syncStoreSnapshot(initialSnap);
+
+        if (shouldAutoStart && !autoStartedRef.current) {
+            autoStartedRef.current = true;
+            engineRef.current.start();
+        }
+
+        return () => {
+            // Cleanup old engine + store when the plan changes or screen unmounts.
+            engineRef.current?.stop();
+            useWorkoutRunStore.getState().resetRun();
+            engineRef.current = null;
+            autoStartedRef.current = false;
+        };
+    }, [
+        applyCountdownUiTick,
+        handleTimerEvent,
+        meta,
+        meta.runKey,
+        shouldAutoStart,
+        steps,
+        syncStoreSnapshot,
+    ]);
+
+    /* ---------------------------------------------------------------------- */
+    /* Foreground rebase                                                       */
+    /* ---------------------------------------------------------------------- */
+
+    useEffect(() => {
+        const sub = AppState.addEventListener('change', (s) => {
+            if (s !== 'active') return;
+            engineRef.current?.rebase();
+        });
+
+        return () => sub.remove();
+    }, []);
+
+    /* ---------------------------------------------------------------------- */
+    /* Derived step state                                                      */
+    /* ---------------------------------------------------------------------- */
+
+    const stepIndex = state.stepIndex;
+    const step = steps[stepIndex] ?? null;
+
+    const phase: Phase = step?.label ?? 'PREP';
+
+    const isSetRest =
+        step?.label === 'REST' &&
+        typeof step.id === 'string' &&
+        step.id.startsWith('rest-set-');
+
+    const primaryLabel: 'Start' | 'Pause' | 'Resume' | 'Continue' | 'Done' =
+        state.finished
+            ? 'Done'
+            : state.awaitingBlockContinue
+              ? 'Continue'
+              : state.running
+                ? 'Pause'
+                : state.hasStarted
+                  ? 'Resume'
+                  : 'Start';
+
+    const remainingBlockSec = (() => {
+        if (!step) return 0;
+        return (
+            state.remainingSec +
+            (meta.remainingBlockAfterStepIndexSec[stepIndex] ?? 0)
+        );
+    })();
+
+    /* ---------------------------------------------------------------------- */
+    /* Stats snapshot                                                          */
+    /* ---------------------------------------------------------------------- */
+
+    const runStats = useMemo(() => {
+        const completedSetsByBlock = [...state.stats.completedSetsByBlock];
+        const completedExercisesByBlock = [
+            ...state.stats.completedExercisesByBlock,
+        ];
+
+        const completedSets = completedSetsByBlock.reduce((a, b) => a + b, 0);
+        const completedExercises = completedExercisesByBlock.reduce(
+            (a, b) => a + b,
+            0
+        );
+
+        return {
+            completedSets,
+            completedExercises,
+
+            completedSetsByBlock,
+            completedExercisesByBlock,
+
+            // Convert ms accounting into UI/session seconds using ceil to match countdown behavior.
+            totalWorkSec: msToSeconds(state.stats.totalWorkMs, 'floor'),
+            totalRestSec: msToSeconds(state.stats.totalRestMs, 'floor'),
+            totalPrepSec: msToSeconds(state.stats.totalPrepMs, 'floor'),
+
+            totalPausedSec: msToSeconds(state.stats.totalPausedMs, 'floor'),
+            totalBlockPauseSec: msToSeconds(
+                state.stats.totalBlockPauseMs,
+                'floor'
+            ),
+
+            workSecByBlock: msArrayToSecondsArray(
+                state.stats.workMsByBlock,
+                'floor'
+            ),
+            restSecByBlock: msArrayToSecondsArray(
+                state.stats.restMsByBlock,
+                'floor'
+            ),
+            prepSecByBlock: msArrayToSecondsArray(
+                state.stats.prepMsByBlock,
+                'floor'
+            ),
+        } satisfies WorkoutSessionStats;
+    }, [state.stats]);
+
+    /* ---------------------------------------------------------------------- */
+    /* Breathing                                                               */
+    /* ---------------------------------------------------------------------- */
+
+    const { breathingPhase } = useBreathingAnimation({
+        step: step ?? undefined,
+        isFinished: state.finished,
+        remaining: state.remainingSec,
+        running: state.running,
+    });
+
+    /* ---------------------------------------------------------------------- */
+    /* Controls                                                                */
+    /* ---------------------------------------------------------------------- */
+
+    const handleStart = useCallback(() => {
+        engineRef.current?.start();
+    }, []);
+
+    const handlePause = useCallback(() => {
+        engineRef.current?.pause();
+    }, []);
+
+    const handleResume = useCallback(() => {
+        engineRef.current?.resume();
+    }, []);
+
+    const handleSkip = useCallback(() => {
+        if (state.awaitingBlockContinue) return;
+        engineRef.current?.skip();
+    }, [state.awaitingBlockContinue]);
+
+    const handleForceFinish = useCallback(() => {
+        engineRef.current?.stop();
+    }, []);
+
+    const handlePrimary = useCallback(() => {
+        if (state.awaitingBlockContinue) {
+            dispatch({ type: 'EXIT_BLOCK_PAUSE', nowMs: Date.now() });
+            engineRef.current?.resume();
             return;
         }
 
-        if (stepIndex !== prevIndex) {
-            processCompletedStepIndex(prevIndex);
-            lastStepIndexRef.current = stepIndex;
-        }
-    }, [stepIndex, steps.length, processCompletedStepIndex]);
-
-    useEffect(() => {
-        if (!naturalFinished) return;
-        if (finalStepProcessedRef.current) return;
-
-        finalStepProcessedRef.current = true;
-        if (stepIndex >= 0 && stepIndex < steps.length)
-            processCompletedStepIndex(stepIndex);
-    }, [naturalFinished, stepIndex, steps.length, processCompletedStepIndex]);
-
-    // Breathing animation
-    const { breathingPhase } = useBreathingAnimation({
-        step,
-        isFinished,
-        remaining,
-        running,
-    });
-
-    // Fully completed flag
-    const totalPlannedSets = plan.plannedSetsByBlock.reduce(
-        (acc, val) => acc + (val ?? 0),
-        0
-    );
-    const totalCompletedSets = completedSetsByBlock.reduce(
-        (acc, val) => acc + (val ?? 0),
-        0
-    );
-
-    const isFullyCompleted =
-        !forceFinished &&
-        naturalFinished &&
-        totalPlannedSets > 0 &&
-        totalCompletedSets >= totalPlannedSets;
-
-    // Stable engine commands (now snapshot-driven)
-    const handleStart = useCallback(() => {
-        const snap = engineRef.current?.start();
-        if (snap) applySnapshot(snap);
-    }, [applySnapshot]);
-
-    const handlePause = useCallback(() => {
-        const snap = engineRef.current?.pause();
-        if (snap) applySnapshot(snap);
-    }, [applySnapshot]);
-
-    const handleResume = useCallback(() => {
-        const snap = engineRef.current?.resume();
-        if (snap) applySnapshot(snap);
-    }, [applySnapshot]);
-
-    const handleSkip = useCallback(() => {
-        if (awaitingBlockContinue) return;
-
-        const snap = engineRef.current?.skip();
-        if (snap) applySnapshot(snap);
-    }, [applySnapshot, awaitingBlockContinue]);
-
-    // User actions
-    const handleForceFinish = useCallback(() => {
-        const snap = engineRef.current?.stop();
-        if (snap) applySnapshot(snap);
-
-        setForceFinished(true);
-        clearBlockPause();
-
-        useWorkoutRunStore.getState().setEngineSnapshot({
-            running: false,
-            remainingMs: 0,
-            currentStep: steps[stepIndex] ?? null,
-        });
-    }, [applySnapshot, clearBlockPause, stepIndex, steps]);
-
-    const handlePrimary = useCallback(() => {
-        const engine = engineRef.current;
-        if (!engine) return;
-
-        if (awaitingBlockContinue) clearBlockPause();
-
-        const snap = engine.getSnapshot();
-
-        if (snap.running) {
+        if (state.running) {
             handlePause();
             return;
         }
 
-        if (isAtStepStart) {
+        if (!state.hasStarted) {
             handleStart();
-        } else {
-            handleResume();
+            return;
         }
+
+        handleResume();
     }, [
-        awaitingBlockContinue,
-        clearBlockPause,
         handlePause,
         handleResume,
         handleStart,
-        isAtStepStart,
+        state.awaitingBlockContinue,
+        state.running,
+        state.hasStarted,
     ]);
 
-    return {
-        // raw timer state
-        remaining,
-        running,
+    /* ---------------------------------------------------------------------- */
+    /* Return                                                                  */
+    /* ---------------------------------------------------------------------- */
 
-        // derived timer info
-        step,
-        phase,
-        isSetRest,
-        remainingBlockSec,
-        isFinished,
-        primaryLabel,
+    const timer = useMemo(
+        () => ({
+            stepIndex,
+            remainingSec: state.remainingSec,
+            running: state.running,
+            step,
+            phase,
+            isSetRest,
+            remainingBlockSec,
+            isFinished: state.finished,
+            primaryLabel,
+        }),
+        [
+            stepIndex,
+            state.remainingSec,
+            state.running,
+            state.finished,
+            step,
+            phase,
+            isSetRest,
+            remainingBlockSec,
+            primaryLabel,
+        ]
+    );
 
-        // workout structure / names
-        totalSetsInBlock,
-        currentBlockIndex,
-        currentExerciseName,
-        nextExerciseName,
-        currentExerciseIndexInBlock,
-        totalExercisesInBlock,
+    const runContext = useMemo(
+        () => ({
+            currentBlockIdx: step?.blockIdx ?? null,
+            currentExerciseName: step?.name ?? null,
+            nextExerciseName: step?.nextName ?? null,
+            currentExerciseIndexInBlock: step?.exIdx ?? null,
+        }),
+        [step]
+    );
 
-        // completion info
-        completedSetsByBlock,
-        elapsedCompletedSec,
-        isFullyCompleted,
-        awaitingBlockContinue,
+    const gates = useMemo(
+        () => ({ awaitingBlockContinue: state.awaitingBlockContinue }),
+        [state.awaitingBlockContinue]
+    );
 
-        // breathing scalar for UI (0..1)
-        breathingPhase,
+    const breathing = useMemo(() => ({ breathingPhase }), [breathingPhase]);
 
-        // controls
-        handlePrimary,
-        handleSkip,
-        handleForceFinish,
-    };
+    const controls = useMemo(
+        () => ({ handlePrimary, handleSkip, handleForceFinish }),
+        [handlePrimary, handleSkip, handleForceFinish]
+    );
+
+    return { timer, runContext, stats: runStats, gates, breathing, controls };
 };
 
 export default useWorkoutRun;

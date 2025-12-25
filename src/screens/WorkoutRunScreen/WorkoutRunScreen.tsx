@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Modal } from 'react-native';
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -18,12 +18,14 @@ import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 import useWorkoutRunStyles from './WorkoutRunScreen.styles';
 import { ShareWorkoutCard } from './components/ShareWorkoutCard/ShareWorkoutCard';
 import { useWorkoutRun } from './hooks/useWorkoutRun';
-import { colorFor, getSetStepsForCurrentStep, labelFor } from './helpers';
+import { colorFor, labelFor } from './helpers';
 import { RunTopSection } from './components/RunTopSection/RunTopSection';
 import { RunPhaseSection } from './components/RunPhaseSection/RunPhaseSection';
 import { RunFooter } from './components/RunFooter/RunFooter';
-import { useRunBuilder } from './hooks/useRunBuilder';
+
 import useStepBeeps from './hooks/useStepBeeps';
+import { useWorkoutHistory } from '@src/state/stores/useWorkoutHistory';
+import { prepareRunData } from '@src/core/timer';
 
 export const WorkoutRunScreen = () => {
     useKeepAwake();
@@ -35,10 +37,11 @@ export const WorkoutRunScreen = () => {
     const [endConfirmVisible, setEndConfirmVisible] = useState(false);
     const shareCardRef = useRef<View | null>(null);
 
-    const { id, autoStart, mode } = useLocalSearchParams<{
+    const { id, autoStart, mode, origin } = useLocalSearchParams<{
         id?: string;
         autoStart?: string;
         mode?: 'quick';
+        origin?: 'quick' | 'history';
     }>();
 
     const savedWorkout = useWorkout(id);
@@ -50,77 +53,99 @@ export const WorkoutRunScreen = () => {
 
     const clearDraft = useWorkouts((s) => s.clearDraft);
 
-    const plan = useRunBuilder({ workout, prepSec: 5 });
+    const plan = useMemo(() => prepareRunData(workout, 5), [workout]);
+
+    const meta = plan.meta;
 
     const {
-        // raw timer state
-        remaining,
-        running,
-
-        // derived timer info
-        step,
-        phase,
-        isSetRest,
-        remainingBlockSec,
-        isFinished,
-        primaryLabel,
-
-        // workout structure / names
-        totalSetsInBlock,
-        currentBlockIndex,
-        currentExerciseName,
-        nextExerciseName,
-        currentExerciseIndexInBlock,
-        totalExercisesInBlock,
-
-        // completion info
-        completedSetsByBlock,
-        elapsedCompletedSec,
-        isFullyCompleted,
-        awaitingBlockContinue,
-
-        // breathing scalar for UI (0..1)
-        breathingPhase,
-
-        // controls
-        handlePrimary,
-        handleSkip,
-        handleForceFinish,
+        timer: {
+            stepIndex,
+            remainingSec: remainingSec,
+            running,
+            step,
+            phase,
+            isSetRest,
+            remainingBlockSec,
+            isFinished,
+            primaryLabel,
+        },
+        runContext: workoutContext,
+        gates: { awaitingBlockContinue },
+        breathing: { breathingPhase },
+        controls: { handlePrimary, handleSkip, handleForceFinish },
+        stats: runStats,
     } = useWorkoutRun({ plan, shouldAutoStart });
 
     useStepBeeps({
-        stepKey: step?.id ?? `none-${plan.runKey}`,
+        stepKey: step?.id ?? `none-${meta.runKey}`,
         running,
-        remainingSec: remaining,
+        remainingSec,
         stepDurationSec: step?.durationSec,
         enabled: !!step,
     });
 
-    const currentBlock =
-        currentBlockIndex != null
-            ? (workout?.blocks[currentBlockIndex] ?? null)
-            : null;
+    // ----- Block info --------
 
-    const setSteps = useMemo(() => {
-        if (!step) return [];
-        return getSetStepsForCurrentStep(plan.steps, step).setSteps;
-    }, [plan.steps, step]);
+    const currentBlockIdx = workoutContext.currentBlockIdx;
+    const currentBlock = workout?.blocks[currentBlockIdx] ?? null;
 
-    // Planned total duration (excluding PREP, to match "time left" logic)
-    const totalWorkoutPlannedSec = useMemo(
-        () =>
-            plan.steps.reduce((acc, s) => {
-                if (s.label === 'PREP') return acc;
-                return acc + (s.durationSec ?? 0);
-            }, 0),
-        [plan.steps]
-    );
+    const currentBlockTitle = meta.blockTitles[currentBlockIdx];
 
-    const totalExercisesInWorkout = useMemo(() => {
-        return plan.exercisesCountByBlock.reduce((acc, n) => acc + (n ?? 0), 0);
-    }, [plan.exercisesCountByBlock]);
+    const totalExercisesInWorkout = meta.totalExercisesForRun ?? 0;
+    const totalSetsInWorkout = meta.totalSetsForRun ?? 0;
 
-    const totalSetsInWorkout = plan.totalSetsForRun;
+    const totalSetsInBlock = meta.plannedSetsByBlock[currentBlockIdx] ?? 0;
+
+    const totalExercisesInBlock =
+        meta.exercisesCountByBlock[currentBlockIdx] ?? 0;
+
+    // --------  Session History Logic ---------
+    const MIN_SESSION_SEC = 0;
+
+    const startedAtMsRef = useRef<number | null>(null);
+    const sessionSavedRef = useRef(false);
+
+    useEffect(() => {
+        startedAtMsRef.current = null;
+        sessionSavedRef.current = false;
+    }, [meta.runKey]);
+
+    useEffect(() => {
+        if (sessionSavedRef.current) return;
+
+        // first transition into running => stamp start
+        if (running && startedAtMsRef.current == null) {
+            startedAtMsRef.current = Date.now();
+            return;
+        }
+
+        // once finished => save (if we have a start)
+        if (!isFinished) return;
+
+        const startedAtMs = startedAtMsRef.current;
+        if (startedAtMs == null) return;
+
+        const endedAtMs = Date.now();
+        const totalSec = Math.round((endedAtMs - startedAtMs) / 1000);
+
+        if (totalSec < MIN_SESSION_SEC) return;
+        if (!workout) return;
+
+        const workoutId =
+            mode !== 'quick' && typeof id === 'string' && id.length > 0
+                ? id
+                : undefined;
+
+        useWorkoutHistory.getState().addSession({
+            workoutSnapshot: workout,
+            workoutId,
+            startedAtMs,
+            endedAtMs,
+            stats: runStats,
+        });
+
+        sessionSavedRef.current = true;
+    }, [running, isFinished, workout, runStats, mode, id]);
 
     // -------- empty / not found state --------
 
@@ -154,6 +179,8 @@ export const WorkoutRunScreen = () => {
     const phaseColor = colorFor(phase, !!isSetRest);
     const phaseLabel = labelFor(phase, !!isSetRest);
 
+    // ----- handlers --------
+
     const openSharePreview = () => {
         if (!isFinished) return;
         setShareVisible(true);
@@ -185,7 +212,7 @@ export const WorkoutRunScreen = () => {
     };
 
     const handleRequestEnd = () => {
-        if (running) handlePrimary();
+        if (running) handlePrimary(); // pause
         setEndConfirmVisible(true);
     };
 
@@ -195,14 +222,14 @@ export const WorkoutRunScreen = () => {
     };
 
     const handleCancelEnd = () => {
-        handlePrimary();
-        setEndConfirmVisible(false);
+        setEndConfirmVisible(false); // no auto-resume
     };
 
     const handleDone = () => {
         router.replace('/(drawer)');
 
-        if (mode === 'quick') {
+        const shouldClearDraft = mode === 'quick' && origin === 'quick';
+        if (shouldClearDraft) {
             requestAnimationFrame(() => {
                 clearDraft();
             });
@@ -218,15 +245,18 @@ export const WorkoutRunScreen = () => {
                     isFinished={isFinished}
                     remainingBlockSec={remainingBlockSec}
                     phaseColor={phaseColor}
-                    currentBlockIndex={currentBlockIndex}
-                    totalBlocks={plan.totalBlocks}
-                    currentBlockTitle={currentBlock?.title}
+                    currentBlockIndex={workoutContext.currentBlockIdx}
+                    totalBlocks={meta.totalBlocks}
+                    currentBlockTitle={currentBlockTitle}
                     totalExercisesInBlock={totalExercisesInBlock}
-                    currentExerciseIndexInBlock={currentExerciseIndexInBlock}
+                    currentExerciseIndexInBlock={
+                        workoutContext.currentExerciseIndexInBlock
+                    }
                     isBlockPause={awaitingBlockContinue}
                     isRunning={running}
-                    setSteps={setSteps}
                     currentStep={step}
+                    stepIndex={stepIndex}
+                    meta={meta}
                     totalSetsInBlock={totalSetsInBlock}
                     totalSetsInWorkout={totalSetsInWorkout}
                     totalExercisesInWorkout={totalExercisesInWorkout}
@@ -242,11 +272,11 @@ export const WorkoutRunScreen = () => {
                     isFinished={isFinished}
                     awaitingBlockContinue={awaitingBlockContinue}
                     currentBlock={currentBlock}
-                    currentBlockIndex={currentBlockIndex}
-                    remaining={remaining}
+                    currentBlockIndex={workoutContext.currentBlockIdx}
+                    remainingSec={remainingSec}
                     breathingPhase={breathingPhase}
-                    currentExerciseName={currentExerciseName}
-                    nextExerciseName={nextExerciseName}
+                    currentExerciseName={workoutContext.currentExerciseName}
+                    nextExerciseName={workoutContext.nextExerciseName}
                     openSharePreview={openSharePreview}
                 />
 
@@ -265,16 +295,6 @@ export const WorkoutRunScreen = () => {
                                         workout={workout}
                                         phaseColor={phaseColor}
                                         shareRef={shareCardRef}
-                                        completedSetsByBlock={
-                                            completedSetsByBlock
-                                        }
-                                        elapsedCompletedSec={
-                                            elapsedCompletedSec
-                                        }
-                                        totalWorkoutPlannedSec={
-                                            totalWorkoutPlannedSec
-                                        }
-                                        isFullyCompleted={isFullyCompleted}
                                     />
                                 </View>
 
