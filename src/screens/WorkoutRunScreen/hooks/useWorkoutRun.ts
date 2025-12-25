@@ -19,7 +19,7 @@ import { createInitialRunState, runReducer } from './useWorkoutRun.reducer';
 import type { WorkoutSessionStats } from '@src/core/entities/workoutSession.interfaces';
 import { msToSeconds } from '@src/helpers/time.helpers';
 import { msArrayToSecondsArray } from '../helpers';
-import { setKey } from '@src/core/timer/utils';
+import { setKey } from '@src/core/timer/timer.utils';
 
 /* -------------------------------------------------------------------------- */
 /* Types                                                                      */

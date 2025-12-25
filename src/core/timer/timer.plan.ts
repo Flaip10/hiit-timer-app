@@ -5,9 +5,9 @@ import {
     normalizeName,
     normalizeTitle,
     setKey,
-} from './utils';
+} from './timer.utils';
 
-import type { RunMeta, RunPlan, Step } from './types';
+import type { RunMeta, RunPlan, Step } from './timer.types';
 
 /**
  * Creates a stable hash for a string.

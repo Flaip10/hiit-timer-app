@@ -4,7 +4,7 @@ import type {
     StepEndReason,
     TimerCallbacks,
     TimerSnapshot,
-} from './types';
+} from './timer.types';
 
 // --------- timer engine ------------------------------
 

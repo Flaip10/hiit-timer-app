@@ -1,3 +1,3 @@
-export * from './types';
-export { prepareRunData } from './plan';
-export { createTimer } from './engine';
+export * from './timer.types';
+export { prepareRunData } from './timer.plan';
+export { createTimer } from './timer.engine';
