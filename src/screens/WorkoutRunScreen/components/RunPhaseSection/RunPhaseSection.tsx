@@ -35,15 +35,11 @@ type RunPhaseSectionProps = {
     // Block pause state
     awaitingBlockContinue: boolean;
     currentBlock: WorkoutBlock | null;
-    currentBlockIndex: number | null;
+    currentBlockIndex: number;
 
     // Arc/timer
     remainingSec: number;
     breathingPhase: SharedValue<number>;
-
-    // Exercise info
-    currentExerciseName: string | null;
-    nextExerciseName: string | null;
 
     // Finishing Zone
     openSharePreview: () => void;
@@ -61,8 +57,6 @@ export const RunPhaseSection = ({
     currentStep,
     isRunning,
     breathingPhase,
-    currentExerciseName,
-    nextExerciseName,
     openSharePreview,
 }: RunPhaseSectionProps) => {
     const st = useRunPhaseSectionStyles();
@@ -70,14 +64,15 @@ export const RunPhaseSection = ({
 
     const isBlockPause = awaitingBlockContinue && !!currentBlock;
 
+    const currentExerciseName = currentStep.name;
+    const nextExerciseName = currentStep.nextName;
+
     const timerAnimatedStyle = useAnimatedStyle(() => {
         const t = isFinished ? 0 : breathingPhase.value;
         return { transform: [{ scale: 1 + t * 0.08 }] };
     }, [isFinished]);
 
     const pillLabel = isFinished ? 'Done' : phaseLabel;
-
-    const safeBlockIndex = currentBlockIndex ?? 0;
 
     return (
         <View style={st.mainContainer}>
@@ -96,7 +91,7 @@ export const RunPhaseSection = ({
                 </AppText>
                 {currentBlock && (
                     <WorkoutBlockItem
-                        index={safeBlockIndex}
+                        index={currentBlockIndex}
                         block={currentBlock}
                         expanded
                     />
