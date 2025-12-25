@@ -4,7 +4,7 @@ import { useDotIndicatorStyles } from './DotIndicator.styles';
 
 type DotIndicatorProps = {
     total: number;
-    current: number; // 0-based logical index
+    current: number;
     color?: string;
     backwards?: boolean;
 };

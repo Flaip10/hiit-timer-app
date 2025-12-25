@@ -77,10 +77,10 @@ export const WorkoutRunScreen = () => {
     } = useWorkoutRun({ plan, shouldAutoStart });
 
     useStepBeeps({
-        stepKey: step?.id ?? `none-${meta.runKey}`,
+        stepKey: step.id,
         running,
         remainingSec,
-        stepDurationSec: step?.durationSec,
+        stepDurationSec: step.durationSec,
         enabled: !!step,
     });
 
@@ -88,16 +88,6 @@ export const WorkoutRunScreen = () => {
 
     const currentBlockIdx = workoutContext.currentBlockIdx;
     const currentBlock = workout?.blocks[currentBlockIdx] ?? null;
-
-    const currentBlockTitle = meta.blockTitles[currentBlockIdx];
-
-    const totalExercisesInWorkout = meta.totalExercisesForRun ?? 0;
-    const totalSetsInWorkout = meta.totalSetsForRun ?? 0;
-
-    const totalSetsInBlock = meta.plannedSetsByBlock[currentBlockIdx] ?? 0;
-
-    const totalExercisesInBlock =
-        meta.exercisesCountByBlock[currentBlockIdx] ?? 0;
 
     // --------  Session History Logic ---------
     const MIN_SESSION_SEC = 0;
@@ -149,7 +139,7 @@ export const WorkoutRunScreen = () => {
 
     // -------- empty / not found state --------
 
-    if (!workout || plan.steps.length === 0 || !step) {
+    if (!workout || plan.steps.length === 0) {
         return (
             <>
                 <MainContainer title="Run workout" scroll={false}>
@@ -245,10 +235,7 @@ export const WorkoutRunScreen = () => {
                     isFinished={isFinished}
                     remainingBlockSec={remainingBlockSec}
                     phaseColor={phaseColor}
-                    currentBlockIndex={workoutContext.currentBlockIdx}
-                    totalBlocks={meta.totalBlocks}
-                    currentBlockTitle={currentBlockTitle}
-                    totalExercisesInBlock={totalExercisesInBlock}
+                    currentBlockIdx={workoutContext.currentBlockIdx}
                     currentExerciseIndexInBlock={
                         workoutContext.currentExerciseIndexInBlock
                     }
@@ -257,9 +244,6 @@ export const WorkoutRunScreen = () => {
                     currentStep={step}
                     stepIndex={stepIndex}
                     meta={meta}
-                    totalSetsInBlock={totalSetsInBlock}
-                    totalSetsInWorkout={totalSetsInWorkout}
-                    totalExercisesInWorkout={totalExercisesInWorkout}
                 />
 
                 {/* PHASE / ARC / EXERCISES / FINISHED CARD */}
