@@ -166,3 +166,8 @@ export const getSetStepsForCurrentStep = (
 
     return { setSteps, blockIdx, setIdx };
 };
+
+export const msArrayToSecondsArray = (
+    millisecondsByBlock: number[],
+    roundingMode: Parameters<typeof msToSeconds>[1] = 'round'
+): number[] => millisecondsByBlock.map((ms) => msToSeconds(ms, roundingMode));
