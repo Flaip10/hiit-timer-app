@@ -7,7 +7,7 @@ import {
     setKey,
 } from './utils';
 
-import { RunMeta, RunPlan, Step } from './types';
+import type { RunMeta, RunPlan, Step } from './types';
 
 /**
  * Creates a stable hash for a string.
@@ -84,7 +84,6 @@ export const prepareRunData = (
         if (s.label === 'WORK' && s.name) {
             for (let j = steps.length - 1; j >= 0; j -= 1) {
                 const prev = steps[j];
-                if (!prev) continue;
 
                 // Stop at block boundary
                 if (prev.blockIdx !== s.blockIdx) break;
@@ -106,7 +105,7 @@ export const prepareRunData = (
 
         // Total block seconds
         if (s.blockIdx >= 0 && s.blockIdx < totalBlocks) {
-            blockTotalSecByBlock[s.blockIdx] += s.durationSec ?? 0;
+            blockTotalSecByBlock[s.blockIdx] += s.durationSec;
         }
 
         // Set progress precompute for set progress pills component
@@ -121,10 +120,7 @@ export const prepareRunData = (
                 elapsedCountedMsBeforeStep;
 
             if (isCountedSetStep(s)) {
-                const stepCountedDurationMs = Math.max(
-                    0,
-                    (s.durationSec ?? 0) * 1000
-                );
+                const stepCountedDurationMs = Math.max(0, s.durationSec * 1000);
 
                 setStepMsByStepIndex[stepIndex] = stepCountedDurationMs;
 
@@ -156,20 +152,20 @@ export const prepareRunData = (
     // ---------- meta from workout structure ----------
     for (let bi = 0; bi < totalBlocks; bi += 1) {
         const block = blocks[bi];
-        const exs = block?.exercises ?? [];
+        const exs = block.exercises;
 
-        blockTitles[bi] = normalizeTitle(block?.title);
+        blockTitles[bi] = normalizeTitle(block.title);
         exerciseNamesByBlock[bi] = exs.map((ex, exIdx) =>
-            normalizeName(ex?.name, `Exercise ${exIdx + 1}`)
+            normalizeName(ex.name, `Exercise ${exIdx + 1}`)
         );
 
         const timedExercises = exs
             .map((ex, exIdx) => ({ ex, exIdx }))
             .filter(
-                ({ ex }) => ex?.mode === 'time' && clampInt(ex?.value, 0) > 0
+                ({ ex }) => ex.mode === 'time' && clampInt(ex.value, 0) > 0
             );
         const exercisesCount = timedExercises.length;
-        const setsCount = Math.max(0, clampInt(block?.sets, 0));
+        const setsCount = Math.max(0, clampInt(block.sets, 0));
 
         exercisesCountByBlock[bi] = exercisesCount;
         plannedSetsByBlock[bi] = setsCount;
@@ -192,7 +188,7 @@ export const prepareRunData = (
 
             for (let wi = 0; wi < exercisesCount; wi += 1) {
                 const { ex, exIdx } = timedExercises[wi];
-                const workSec = Math.max(0, clampInt(ex?.value, 0));
+                const workSec = Math.max(0, clampInt(ex.value, 0));
 
                 // Block-level PREP once, before first WORK of block
                 if (!isBlockPrepAdded) {
@@ -204,13 +200,13 @@ export const prepareRunData = (
 
                         const firstName = exDisplayName(
                             bi,
-                            first?.exIdx ?? 0,
-                            first?.ex?.name
+                            first.exIdx,
+                            first.ex.name
                         );
                         const secondName = exDisplayName(
                             bi,
-                            second?.exIdx ?? first?.exIdx ?? 0,
-                            second?.ex?.name
+                            second.exIdx,
+                            second.ex.name
                         );
 
                         pushStep({
@@ -234,7 +230,7 @@ export const prepareRunData = (
                     blockIdx: bi,
                     exIdx,
                     setIdx: si,
-                    name: exDisplayName(bi, exIdx, ex?.name),
+                    name: exDisplayName(bi, exIdx, ex.name),
                 });
 
                 // Update WORK meta values
@@ -250,7 +246,7 @@ export const prepareRunData = (
                 const isLastExerciseInSet = wi === exercisesCount - 1;
                 const restBetweenExercisesSec = Math.max(
                     0,
-                    clampInt(block?.restBetweenExercisesSec, 0)
+                    clampInt(block.restBetweenExercisesSec, 0)
                 );
 
                 if (!isLastExerciseInSet && restBetweenExercisesSec > 0) {
@@ -261,7 +257,7 @@ export const prepareRunData = (
                         blockIdx: bi,
                         exIdx,
                         setIdx: si,
-                        name: exDisplayName(bi, exIdx, ex?.name),
+                        name: exDisplayName(bi, exIdx, ex.name),
                     });
                 }
             }
@@ -270,22 +266,18 @@ export const prepareRunData = (
             const isLastSet = si === setsCount - 1;
             const restBetweenSetsSec = Math.max(
                 0,
-                clampInt(block?.restBetweenSetsSec, 0)
+                clampInt(block.restBetweenSetsSec, 0)
             );
 
             if (!isLastSet && restBetweenSetsSec > 0) {
                 const last = timedExercises[timedExercises.length - 1];
                 const nextFirst = timedExercises[0];
 
-                const firstName = exDisplayName(
-                    bi,
-                    last?.exIdx ?? 0,
-                    last?.ex?.name
-                );
+                const firstName = exDisplayName(bi, last.exIdx, last.ex.name);
                 const secondName = exDisplayName(
                     bi,
-                    nextFirst?.exIdx ?? 0,
-                    nextFirst?.ex?.name
+                    nextFirst.exIdx,
+                    nextFirst.ex.name
                 );
 
                 pushStep({
@@ -293,7 +285,7 @@ export const prepareRunData = (
                     label: 'REST',
                     durationSec: restBetweenSetsSec,
                     blockIdx: bi,
-                    exIdx: last?.exIdx ?? 0,
+                    exIdx: last.exIdx,
                     setIdx: si, // keep if your UI uses this as “rest after set si”
                     name: firstName,
                     nextName: secondName,
@@ -310,27 +302,34 @@ export const prepareRunData = (
         0
     );
 
-    let i = steps.length - 1;
-    while (i >= 0) {
-        const blockIndex = steps[i]?.blockIdx;
-        if (blockIndex == null) {
-            remainingBlockAfterStepIndexSec[i] = 0;
-            i -= 1;
-            continue;
+    let blockEndIndex = steps.length - 1;
+
+    while (blockEndIndex >= 0) {
+        const blockIdx = steps[blockEndIndex].blockIdx;
+
+        // Find start of this contiguous block segment
+        let blockStartIndex = blockEndIndex;
+        while (
+            blockStartIndex >= 0 &&
+            steps[blockStartIndex].blockIdx === blockIdx
+        ) {
+            blockStartIndex -= 1;
         }
 
-        // Find start of this block segment
-        let j = i;
-        while (j >= 0 && steps[j]?.blockIdx === blockIndex) j -= 1;
+        // Block segment is (blockStartIndex .. blockEndIndex]
+        let remainingSecAfterStep = 0;
 
-        // Block segment is [j + 1 .. i]
-        let secondsAfterCurrentStep = 0;
-        for (let k = i; k >= j + 1; k -= 1) {
-            remainingBlockAfterStepIndexSec[k] = secondsAfterCurrentStep;
-            secondsAfterCurrentStep += steps[k]?.durationSec ?? 0;
+        for (
+            let stepIndex = blockEndIndex;
+            stepIndex > blockStartIndex;
+            stepIndex -= 1
+        ) {
+            remainingBlockAfterStepIndexSec[stepIndex] = remainingSecAfterStep;
+
+            remainingSecAfterStep += steps[stepIndex].durationSec;
         }
 
-        i = j;
+        blockEndIndex = blockStartIndex;
     }
 
     // Stable identity key:
@@ -345,7 +344,7 @@ export const prepareRunData = (
             sets: plannedSetsByBlock[bi],
             restSets: clampInt(b.restBetweenSetsSec, 0),
             restExercises: clampInt(b.restBetweenExercisesSec, 0),
-            exercises: (b.exercises ?? []).map((ex, exIdx) => ({
+            exercises: b.exercises.map((ex, exIdx) => ({
                 i: exIdx,
                 id: ex.id,
                 mode: ex.mode,

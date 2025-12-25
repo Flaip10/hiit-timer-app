@@ -16,7 +16,7 @@ import { useWorkoutRunStore } from '@src/state/stores/useWorkoutRunStore';
 import { useBreathingAnimation } from './useBreathingAnimation';
 
 import { createInitialRunState, runReducer } from './useWorkoutRun.reducer';
-import { WorkoutSessionStats } from '@src/core/entities/workoutSession.interfaces';
+import type { WorkoutSessionStats } from '@src/core/entities/workoutSession.interfaces';
 import { msToSeconds } from '@src/helpers/time.helpers';
 import { msArrayToSecondsArray } from '../helpers';
 import { setKey } from '@src/core/timer/utils';
@@ -176,7 +176,7 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
 
         // Seed Zustand store with the initial snapshot (before engine exists) so UI has something to render.
         const first = steps[0] ?? null;
-        const firstMs = Math.max(0, (first?.durationSec ?? 0) * 1000);
+        const firstMs = Math.max(0, first.durationSec * 1000);
 
         useWorkoutRunStore.getState().startRun({
             steps,
@@ -246,10 +246,10 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
     const stepIndex = state.stepIndex;
     const step = steps[stepIndex] ?? null;
 
-    const phase: Phase = step?.label ?? 'PREP';
+    const phase: Phase = step.label;
 
     const isSetRest =
-        step?.label === 'REST' &&
+        step.label === 'REST' &&
         typeof step.id === 'string' &&
         step.id.startsWith('rest-set-');
 
@@ -265,7 +265,6 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
                   : 'Start';
 
     const remainingBlockSec = (() => {
-        if (!step) return 0;
         return (
             state.remainingSec +
             (meta.remainingBlockAfterStepIndexSec[stepIndex] ?? 0)
@@ -326,7 +325,7 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
     /* ---------------------------------------------------------------------- */
 
     const { breathingPhase } = useBreathingAnimation({
-        step: step ?? undefined,
+        step,
         isFinished: state.finished,
         remaining: state.remainingSec,
         running: state.running,
@@ -415,10 +414,10 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
 
     const runContext = useMemo(
         () => ({
-            currentBlockIdx: step?.blockIdx ?? null,
-            currentExerciseName: step?.name ?? null,
-            nextExerciseName: step?.nextName ?? null,
-            currentExerciseIndexInBlock: step?.exIdx ?? null,
+            currentBlockIdx: step.blockIdx,
+            currentExerciseName: step.name ?? null,
+            nextExerciseName: step.nextName ?? null,
+            currentExerciseIndexInBlock: step.exIdx,
         }),
         [step]
     );

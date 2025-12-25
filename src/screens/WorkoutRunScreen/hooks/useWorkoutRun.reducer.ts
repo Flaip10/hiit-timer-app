@@ -1,4 +1,4 @@
-import {
+import type {
     CountdownUiTick,
     RunFinishReason,
     RunMeta,
@@ -340,6 +340,7 @@ export const runReducer = (state: RunState, action: RunAction): RunState => {
                 );
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             if (event.type === 'RUN_FINISHED') {
                 // On finish, flush any open accumulators so stats are closed at nowMs.
                 const flushed = flushAllTimers(state, event.nowMs, event.step);

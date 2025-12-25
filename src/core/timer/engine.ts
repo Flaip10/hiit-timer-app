@@ -1,4 +1,4 @@
-import {
+import type {
     RunFinishReason,
     Step,
     StepEndReason,
@@ -9,7 +9,7 @@ import {
 // --------- timer engine ------------------------------
 
 // Prefer monotonic time (performance.now) to avoid Date.now() jumps; fallback for environments without it.
-const hasPerformanceNow = typeof globalThis.performance?.now === 'function';
+const hasPerformanceNow = typeof globalThis.performance.now === 'function';
 
 const startWallMs = Date.now();
 const startPerf = hasPerformanceNow ? performance.now() : 0;
@@ -40,6 +40,7 @@ export const createTimer = (steps: Step[], cb: TimerCallbacks = {}) => {
     let uiAlignTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const currentStep = (): Step | undefined => steps[index];
+    const isRunning = (): boolean => running;
 
     const clearBoundary = () => {
         if (boundaryTimeoutId != null) {
@@ -70,7 +71,7 @@ export const createTimer = (steps: Step[], cb: TimerCallbacks = {}) => {
         if (!step) return 0;
 
         if (!running) {
-            const fallback = (step.durationSec ?? 0) * 1000;
+            const fallback = step.durationSec * 1000;
             return pausedRemainMs ?? fallback;
         }
 
@@ -105,7 +106,7 @@ export const createTimer = (steps: Step[], cb: TimerCallbacks = {}) => {
 
     const emitStepStarted = (stepIndex: number) => {
         const step = steps[stepIndex];
-        if (!step) return;
+
         onTimerEvent?.({
             type: 'STEP_STARTED',
             nowMs: nowMs(),
@@ -116,7 +117,7 @@ export const createTimer = (steps: Step[], cb: TimerCallbacks = {}) => {
 
     const emitStepEnded = (stepIndex: number, reason: StepEndReason) => {
         const step = steps[stepIndex];
-        if (!step) return;
+
         onTimerEvent?.({
             type: 'STEP_ENDED',
             nowMs: nowMs(),
@@ -194,7 +195,7 @@ export const createTimer = (steps: Step[], cb: TimerCallbacks = {}) => {
     // Establish endAt for the given step index (and clear pausedRemainMs).
     const startStepTiming = (stepIdx: number) => {
         const step = steps[stepIdx];
-        const durMs = (step?.durationSec ?? 0) * 1000;
+        const durMs = step.durationSec * 1000;
         endAt = nowMs() + durMs;
         pausedRemainMs = null;
     };
@@ -222,7 +223,7 @@ export const createTimer = (steps: Step[], cb: TimerCallbacks = {}) => {
             if (!running) return;
 
             // Catch-up loop in case timers were delayed.
-            while (running && currentStep()) {
+            while (isRunning() && currentStep()) {
                 const remain = currentRemainMs();
 
                 if (remain > 0) {
@@ -236,7 +237,7 @@ export const createTimer = (steps: Step[], cb: TimerCallbacks = {}) => {
                 emitStepEnded(endedIdx, 'natural');
 
                 // If callbacks paused/stopped the engine, just exit.
-                if (!running) return;
+                if (!isRunning()) return;
 
                 if (index < steps.length - 1) {
                     index += 1;
@@ -247,7 +248,7 @@ export const createTimer = (steps: Step[], cb: TimerCallbacks = {}) => {
                     emitSnapshot();
 
                     // If callbacks paused/stopped during STEP_STARTED/SYNC, exit.
-                    if (!running) return;
+                    if (!isRunning()) return;
 
                     scheduleCountdownUiTicks();
                     continue;
@@ -258,7 +259,7 @@ export const createTimer = (steps: Step[], cb: TimerCallbacks = {}) => {
             }
 
             // Only stop if we're still running. If we got paused during callbacks, do nothing.
-            if (!running) return;
+            if (!isRunning()) return;
 
             stopInternal('stop');
         }, msLeft);
@@ -401,7 +402,7 @@ export const createTimer = (steps: Step[], cb: TimerCallbacks = {}) => {
         rebase,
 
         getIndex: () => index,
-        isRunning: () => running,
+        isRunning,
         getSnapshot: () => snapshot(),
     };
 };
