@@ -2,15 +2,18 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 
 import useWorkoutMetaStripStyles from './SetProgressPills.styles';
-import type { Step } from '@src/core/timer';
+
 import { ProgressPill } from './ProgressPill/ProgressPill';
+
+import type { RunMeta, Step } from '@src/core/timer';
 
 interface SetProgressPillsProps {
     totalSets: number;
     phaseColor: string;
     isRunning: boolean;
     currentStep: Step;
-    setSteps: Step[];
+    stepIndex: number;
+    meta: RunMeta;
 }
 
 export const SetProgressPills: React.FC<SetProgressPillsProps> = ({
@@ -18,7 +21,8 @@ export const SetProgressPills: React.FC<SetProgressPillsProps> = ({
     phaseColor,
     isRunning,
     currentStep,
-    setSteps,
+    stepIndex,
+    meta,
 }) => {
     const st = useWorkoutMetaStripStyles();
 
@@ -54,7 +58,8 @@ export const SetProgressPills: React.FC<SetProgressPillsProps> = ({
                     phaseColor={phaseColor}
                     isRunning={isRunning}
                     currentStep={currentStep}
-                    setSteps={setSteps}
+                    stepIndex={stepIndex}
+                    meta={meta}
                 />
             ))}
         </View>
