@@ -84,12 +84,12 @@ export const RunFooter = ({
                     title="Hold to start Block"
                     variant="primary"
                     holdDurationMs={holdToContinueMs}
-                    onConfirmed={isFinished ? onDone : onPrimary}
+                    onConfirmed={onPrimary}
                 />
             </AppearingView>
 
             <AppearingView
-                visible={!isFinished && !isBlockPause}
+                visible={!isBlockPause}
                 style={st.footerIconRow}
                 delay={260}
             >

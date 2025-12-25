@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import Svg, { Path } from 'react-native-svg';
+import type { SharedValue } from 'react-native-reanimated';
 import Reanimated, {
     useSharedValue,
     useAnimatedProps,
@@ -7,7 +8,6 @@ import Reanimated, {
     withSequence,
     withDelay,
     Easing,
-    SharedValue,
     cancelAnimation,
     clamp,
 } from 'react-native-reanimated';
