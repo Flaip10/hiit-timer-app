@@ -15,7 +15,7 @@ type RunFooterProps = {
 
     // Timer state
     running: boolean;
-    primaryLabel: string;
+    primaryLabel: 'Start' | 'Pause' | 'Resume' | 'Continue' | 'Done';
 
     // UI
     phaseColor: string;
@@ -46,22 +46,6 @@ export const RunFooter = ({
     const st = useRunFooterStyles();
     const { theme } = useTheme();
 
-    if (isFinished) {
-        return (
-            <AppearingView
-                visible={isFinished}
-                style={st.footerFinishedWrapper}
-                delay={260}
-            >
-                <Button
-                    title="Back to summary"
-                    onPress={onDone}
-                    variant="primary"
-                />
-            </AppearingView>
-        );
-    }
-
     return (
         <>
             <AppearingView
@@ -76,7 +60,7 @@ export const RunFooter = ({
                 />
             </AppearingView>
             <AppearingView
-                visible={isBlockPause}
+                visible={!isFinished && isBlockPause}
                 delay={260}
                 style={st.footerHoldWrapper}
             >
@@ -89,7 +73,7 @@ export const RunFooter = ({
             </AppearingView>
 
             <AppearingView
-                visible={!isBlockPause}
+                visible={!isFinished && !isBlockPause}
                 style={st.footerIconRow}
                 delay={260}
             >
