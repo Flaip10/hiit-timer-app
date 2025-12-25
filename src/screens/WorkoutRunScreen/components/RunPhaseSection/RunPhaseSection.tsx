@@ -6,7 +6,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
-import type { Phase, Step } from '@core/timer';
+import type { Phase, Step } from '@src/core/timer';
 import type { WorkoutBlock } from '@src/core/entities/entities';
 
 import { AppText } from '@src/components/ui/Typography/AppText';
@@ -38,7 +38,7 @@ type RunPhaseSectionProps = {
     currentBlockIndex: number | null;
 
     // Arc/timer
-    remaining: number;
+    remainingSec: number;
     breathingPhase: SharedValue<number>;
 
     // Exercise info
@@ -57,7 +57,7 @@ export const RunPhaseSection = ({
     awaitingBlockContinue,
     currentBlock,
     currentBlockIndex,
-    remaining,
+    remainingSec,
     currentStep,
     isRunning,
     breathingPhase,
@@ -123,7 +123,7 @@ export const RunPhaseSection = ({
                         variant="title1"
                         style={[st.timer, timerAnimatedStyle]}
                     >
-                        {isFinished ? 0 : Math.max(0, remaining)}
+                        {isFinished ? 0 : Math.max(0, remainingSec)}
                     </AnimatedAppText>
                 </View>
 

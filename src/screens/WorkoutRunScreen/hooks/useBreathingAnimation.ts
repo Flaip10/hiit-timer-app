@@ -8,7 +8,7 @@ import {
     withTiming,
 } from 'react-native-reanimated';
 
-import type { Step } from '@core/timer';
+import type { Step } from '@src/core/timer';
 
 type UseBreathingAnimationArgs = {
     step: Step | undefined;

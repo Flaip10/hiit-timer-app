@@ -7,9 +7,9 @@ import {
     type TimerEvent,
     type TimerSnapshot,
     type CountdownUiTick,
-} from '@core/timer.interfaces';
+} from '@src/core/timer';
 
-import { createTimer } from '@core/timer';
+import { createTimer } from '@src/core/timer';
 
 import { useWorkoutRunStore } from '@src/state/stores/useWorkoutRunStore';
 
@@ -19,7 +19,7 @@ import { createInitialRunState, runReducer } from './useWorkoutRun.reducer';
 import { WorkoutSessionStats } from '@src/core/entities/workoutSession.interfaces';
 import { msToSeconds } from '@src/helpers/time.helpers';
 import { msArrayToSecondsArray } from '../helpers';
-import { setKey } from '@src/core/timer.helpers';
+import { setKey } from '@src/core/timer/utils';
 
 /* -------------------------------------------------------------------------- */
 /* Types                                                                      */
@@ -47,7 +47,7 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
 
     const [state, dispatch] = useReducer(
         runReducer,
-        createInitialRunState({ nowMs: Date.now(), meta })
+        createInitialRunState({ meta })
     );
 
     /* ---------------------------------------------------------------------- */
@@ -189,11 +189,10 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
         });
 
         // Reset reducer + completion dedupe refs for the new run.
-        const now = Date.now();
         completedWorkStepIndexRef.current = new Set();
         completedSetKeyRef.current = new Set();
         workCompletedCountBySetRef.current = new Map();
-        dispatch({ type: 'RESET', nowMs: now, meta });
+        dispatch({ type: 'RESET', meta });
 
         // Create a fresh timer engine bound to this plan.
         engineRef.current = createTimer(steps, {

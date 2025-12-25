@@ -4,7 +4,7 @@ import {
     RunMeta,
     Step,
     TimerEvent,
-} from '@src/core/timer.interfaces';
+} from '@src/core/timer';
 
 export type RunStats = {
     // completion

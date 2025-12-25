@@ -9,7 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
-import type { Phase } from '@core/timer';
+import type { Phase } from '@src/core/timer';
 import useExerciseInfoCardStyles from './ExerciseInfoCard.styles';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
