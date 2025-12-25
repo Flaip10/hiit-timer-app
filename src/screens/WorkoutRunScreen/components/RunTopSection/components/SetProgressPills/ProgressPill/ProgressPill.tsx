@@ -11,8 +11,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import useWorkoutMetaStripStyles from './ProgressPill.styles';
-import type { Step } from '@src/core/timer';
-import { computeStepProgressRangeInSet } from '@src/screens/WorkoutRunScreen/helpers';
+import type { RunMeta, Step } from '@src/core/timer';
+import { getProgressRangeFromMeta } from '@src/screens/WorkoutRunScreen/helpers';
 
 interface ProgressPillProps {
     index: number;
@@ -20,7 +20,8 @@ interface ProgressPillProps {
     phaseColor: string;
     isRunning: boolean;
     currentStep: Step;
-    setSteps: Step[];
+    stepIndex: number;
+    meta: RunMeta;
 }
 
 export const ProgressPill: React.FC<ProgressPillProps> = ({
@@ -29,7 +30,8 @@ export const ProgressPill: React.FC<ProgressPillProps> = ({
     phaseColor,
     isRunning,
     currentStep,
-    setSteps,
+    stepIndex,
+    meta,
 }) => {
     const st = useWorkoutMetaStripStyles();
 
@@ -80,7 +82,7 @@ export const ProgressPill: React.FC<ProgressPillProps> = ({
         lastStepId.current = stepId;
 
         const { stepDurationMs, startProgress, endProgress } =
-            computeStepProgressRangeInSet(setSteps, currentStep);
+            getProgressRangeFromMeta(meta, stepIndex, currentStep);
 
         // freeze steps (PREP excluded / rest-set special-case should return 1..1)
         if (stepDurationMs === 0) {
@@ -155,13 +157,7 @@ export const ProgressPill: React.FC<ProgressPillProps> = ({
         });
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        isRunning,
-        currentStep.id,
-        currentStep.setIdx,
-        setSteps,
-        isProgressOwner,
-    ]);
+    }, [meta, isRunning, currentStep.id, currentStep.setIdx, isProgressOwner]);
 
     const fillStyle = useAnimatedStyle(() => {
         const p = clamp(pillProgress.value, 0, 1);

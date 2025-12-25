@@ -1,5 +1,6 @@
-import type { Phase, Step } from '@core/timer';
+import type { Phase, RunMeta, Step } from '@src/core/timer';
 import { clamp } from 'react-native-reanimated';
+import { msToSeconds } from '@src/helpers/time.helpers';
 
 export const colorFor = (phase: Phase, isSetRest: boolean): string => {
     if (phase === 'WORK') return '#22C55E';
@@ -72,99 +73,43 @@ export const isCountedSetStep = (
     return true;
 };
 
-export interface StepProgressRange {
-    setDurationMs: number;
-    stepDurationMs: number;
-    startProgress: number; // 0..1
-    endProgress: number; // 0..1
-}
-
-export const computeStepProgressRangeInSet = (
-    setSteps: Step[], // already filtered to current block+set, order preserved
-    currentStep: Step,
-    rules: SetProgressRules = defaultSetProgressRules
-): StepProgressRange => {
-    const currentId = currentStep.id;
-
-    // Special-case: rest between sets should NOT reset progress.
-    // It visually belongs to the *end* of the set, so freeze at 100%.
-    const isRestBetweenSets =
-        currentStep.label === 'REST' && currentId.startsWith('rest-set-');
-
-    // Build counted timeline inside the set
-    const countedSteps = setSteps.filter((s) => isCountedSetStep(s, rules));
-
-    const durations = countedSteps.map((s) =>
-        Math.max(0, (s.durationSec ?? 0) * 1000)
-    );
-
-    const setDurationMs = durations.reduce((a, b) => a + b, 0);
-
-    if (setDurationMs <= 0) {
-        return {
-            setDurationMs: 0,
-            stepDurationMs: 0,
-            startProgress: 0,
-            endProgress: 0,
-        };
+export const getProgressRangeFromMeta = (
+    meta: RunMeta,
+    stepIndex: number,
+    currentStep: Step
+) => {
+    // rest between sets freezes at 100%
+    if (
+        currentStep.label === 'REST' &&
+        currentStep.id.startsWith('rest-set-')
+    ) {
+        return { stepDurationMs: 0, startProgress: 1, endProgress: 1 };
     }
 
-    if (isRestBetweenSets) {
-        return {
-            setDurationMs,
-            stepDurationMs: 0, // freeze
-            startProgress: 1,
-            endProgress: 1,
-        };
+    const b = currentStep.blockIdx;
+    const s = currentStep.setIdx;
+    if (b < 0 || s < 0) {
+        return { stepDurationMs: 0, startProgress: 0, endProgress: 0 };
     }
 
-    const idx = countedSteps.findIndex((s) => s.id === currentId);
-
-    // If current step is not part of the counted timeline (e.g., PREP),
-    // return 0..0 so UI can freeze/reset as needed.
-    if (idx === -1) {
-        return {
-            setDurationMs,
-            stepDurationMs: 0,
-            startProgress: 0,
-            endProgress: 0,
-        };
+    const kSet = `${b}:${s}`;
+    const setTotalMs = meta.setTotalMsByKey.get(kSet) ?? 0;
+    if (setTotalMs <= 0) {
+        return { stepDurationMs: 0, startProgress: 0, endProgress: 0 };
     }
 
-    const stepDurationMs = durations[idx];
+    const beforeMs = meta.setElapsedBeforeMsByStepIndex[stepIndex] ?? 0;
+    const stepMs = meta.setStepMsByStepIndex[stepIndex] ?? 0;
 
-    let elapsedBeforeMs = 0;
-    for (let i = 0; i < idx; i += 1) elapsedBeforeMs += durations[i];
-
-    const startProgress = elapsedBeforeMs / setDurationMs;
-    const endProgress = (elapsedBeforeMs + stepDurationMs) / setDurationMs;
+    // stepMs === 0 means “not counted” (e.g., PREP) → freeze to startProgress
+    const startProgress = beforeMs / setTotalMs;
+    const endProgress = (beforeMs + stepMs) / setTotalMs;
 
     return {
-        setDurationMs,
-        stepDurationMs,
+        stepDurationMs: stepMs,
         startProgress: clamp(startProgress, 0, 1),
         endProgress: clamp(endProgress, 0, 1),
     };
-};
-
-export interface SetStepsResult {
-    setSteps: Step[];
-    blockIdx: number;
-    setIdx: number;
-}
-
-export const getSetStepsForCurrentStep = (
-    steps: Step[],
-    currentStep: Step
-): SetStepsResult => {
-    const { blockIdx, setIdx } = currentStep;
-
-    // Keep original order by filtering in-place order (no sort!)
-    const setSteps = steps.filter(
-        (s) => s.blockIdx === blockIdx && s.setIdx === setIdx
-    );
-
-    return { setSteps, blockIdx, setIdx };
 };
 
 export const msArrayToSecondsArray = (
