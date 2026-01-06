@@ -6,6 +6,7 @@ import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useSettingsStyles } from './SettingsScreen.styles';
 import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
+import { AppLogo } from '@src/components/ui/AppLogo/AppLogo';
 
 const SettingsScreen = () => {
     const { theme, preference, themeName, setPreference } = useTheme();
@@ -48,6 +49,26 @@ const SettingsScreen = () => {
                         );
                     })}
                 </View>
+            </View>
+
+            <View style={{ flexDirection: 'row' }}>
+                <AppLogo size={96} withBackground />
+
+                <AppLogo size={96} useOppositeTheme withBackground />
+
+                <AppLogo size={96} />
+
+                <AppLogo size={96} useOppositeTheme />
+            </View>
+
+            <View style={{ flexDirection: 'row' }}>
+                <AppLogo size={96} logoMode="neutral-dark" withBackground />
+
+                <AppLogo size={96} logoMode="neutral-light" withBackground />
+
+                <AppLogo size={96} logoMode="neutral-dark" />
+
+                <AppLogo size={96} logoMode="neutral-light" />
             </View>
         </MainContainer>
     );
