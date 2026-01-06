@@ -5,7 +5,7 @@ export const useStyles = createStyles((theme) =>
     StyleSheet.create({
         root: {
             flex: 1,
-            backgroundColor: theme.palette.background.card,
+            backgroundColor: theme.palette.background.primary,
         },
 
         header: {
