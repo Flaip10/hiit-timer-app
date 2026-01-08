@@ -1,5 +1,5 @@
 import { createStyles } from '@src/theme/createStyles';
-import { AppTheme } from '@src/theme/theme';
+import type { AppTheme } from '@src/theme/theme';
 import { StyleSheet } from 'react-native';
 
 type StyleProps = {
@@ -19,7 +19,6 @@ export const useMainContainerStyles = createStyles(
                     ? 0
                     : theme.layout.screen.paddingHorizontal,
                 gap: props.gap,
-                backgroundColor: theme.palette.background.primary,
             },
             kav: {
                 flex: 1,

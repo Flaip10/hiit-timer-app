@@ -275,8 +275,8 @@ export const WorkoutRunScreen = () => {
                                 <View style={st.shareModalCardWrapper}>
                                     <ShareWorkoutCard
                                         workout={workout}
-                                        phaseColor={phaseColor}
                                         shareRef={shareCardRef}
+                                        runStats={runStats}
                                     />
                                 </View>
 

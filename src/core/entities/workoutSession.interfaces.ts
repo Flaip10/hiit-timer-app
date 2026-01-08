@@ -1,4 +1,4 @@
-import { Workout } from './entities';
+import type { Workout } from './entities';
 
 export interface WorkoutSessionStats {
     completedSets: number;
@@ -6,6 +6,7 @@ export interface WorkoutSessionStats {
 
     totalWorkSec: number;
     totalRestSec: number;
+    totalPrepSec?: number;
 
     totalPausedSec?: number;
     totalBlockPauseSec?: number;
@@ -14,6 +15,7 @@ export interface WorkoutSessionStats {
     completedExercisesByBlock?: number[];
     workSecByBlock?: number[];
     restSecByBlock?: number[];
+    prepSecByBlock?: number[];
 }
 
 export interface WorkoutSession {
