@@ -6,18 +6,12 @@ import React, {
     useState,
 } from 'react';
 import { Appearance, type ColorSchemeName } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import {
-    AppTheme,
-    ThemeName,
-    ThemePreference,
-    buildTheme,
-    DEFAULT_UI_SCALE,
-} from './theme';
+import type { AppTheme, ThemeName, ThemePreference } from './theme';
+import { buildTheme, DEFAULT_UI_SCALE } from './theme';
 
-const THEME_KEY = 'app-theme-v1';
+import { useSettingsStore } from '@src/state/useSettingsStore';
 
 type ThemeContextValue = {
     theme: AppTheme;
@@ -34,39 +28,20 @@ const normalize = (scheme: ColorSchemeName): ThemeName =>
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     const insets = useSafeAreaInsets();
 
-    const [systemTheme, setSystemTheme] = useState<ThemeName>('light');
-    const [preference, setPreferenceState] =
-        useState<ThemePreference>('system');
+    const preference = useSettingsStore((s) => s.themePreference);
+    const setPreference = useSettingsStore((s) => s.setThemePreference);
 
-    // Track OS theme
+    const [systemTheme, setSystemTheme] = useState<ThemeName>('light');
+
     useEffect(() => {
         setSystemTheme(normalize(Appearance.getColorScheme()));
 
-        const sub = Appearance.addChangeListener(({ colorScheme }) =>
-            setSystemTheme(normalize(colorScheme))
-        );
+        const sub = Appearance.addChangeListener(({ colorScheme }) => {
+            setSystemTheme(normalize(colorScheme));
+        });
 
         return () => sub.remove();
     }, []);
-
-    // Load user preference
-    useEffect(() => {
-        AsyncStorage.getItem(THEME_KEY).then((stored) => {
-            if (!stored) return;
-            if (
-                stored === 'light' ||
-                stored === 'dark' ||
-                stored === 'system'
-            ) {
-                setPreferenceState(stored);
-            }
-        });
-    }, []);
-
-    const setPreference = (p: ThemePreference) => {
-        setPreferenceState(p);
-        AsyncStorage.setItem(THEME_KEY, p).catch(() => {});
-    };
 
     const themeName: ThemeName =
         preference === 'system' ? systemTheme : preference;
