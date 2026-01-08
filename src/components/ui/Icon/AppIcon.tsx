@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ComponentProps } from 'react';
-import { StyleProp, TextStyle } from 'react-native';
+import type { StyleProp, TextStyle } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
@@ -68,6 +68,26 @@ const ICON_MAP = {
         lib: 'ion',
         name: 'play-skip-forward',
         defaultSize: 18,
+    },
+    calendar: {
+        lib: 'ion',
+        name: 'calendar-outline',
+        defaultSize: 14,
+    },
+    checkmark: {
+        lib: 'ion',
+        name: 'checkmark-circle-outline',
+        defaultSize: 14,
+    },
+    stats: {
+        lib: 'ion',
+        name: 'stats-chart-outline',
+        defaultSize: 14,
+    },
+    share: {
+        lib: 'ion',
+        name: 'share-outline',
+        defaultSize: 20,
     },
 } satisfies Record<string, IconDefinition>;
 
