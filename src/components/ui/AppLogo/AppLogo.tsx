@@ -31,11 +31,29 @@ interface AppLogoProps {
 
     useOppositeTheme?: boolean;
 
+    watermarkMode?: 'none' | 'subtle' | 'medium';
+
     // Manual overrides (optional)
     darkColor?: string;
     progressColor?: string;
 }
 
+/**
+ * Empty insets between the 512×512 SVG viewBox and the painted logo geometry.
+ *
+ * The logo paths do not fill the viewBox:
+ * - Horizontal margins are equal (outer radius = 200)
+ * - Vertical margins differ due to the downward center shift (cy = 300)
+ *
+ * Used to derive proportional visual offsets (e.g. for watermarks).
+ * Must be updated if the SVG geometry changes.
+ */
+export const LOGO_CONTENT_INSETS_512 = {
+    top: 100,
+    right: 56,
+    bottom: 112,
+    left: 56,
+} as const;
 const VIEWBOX_SIZE = 512;
 
 // Fixed geometry (final SVG geometry)
@@ -94,12 +112,33 @@ export const AppLogo: React.FC<AppLogoProps> = ({
 
     useOppositeTheme = false,
 
+    watermarkMode = 'none',
+
     darkColor,
     progressColor,
 }: AppLogoProps) => {
     const { theme } = useTheme();
 
-    const resolvedLogoMode: LogoMode = logoMode ?? 'theme';
+    const isWatermark = watermarkMode !== 'none';
+
+    const resolvedWithBackground = isWatermark ? false : withBackground;
+
+    const watermarkOpacity =
+        watermarkMode === 'subtle'
+            ? theme.name === 'dark'
+                ? 0.15
+                : 0.12
+            : watermarkMode === 'medium'
+              ? theme.name === 'dark'
+                  ? 0.2
+                  : 0.17
+              : 1;
+
+    const resolvedLogoMode: LogoMode = isWatermark
+        ? theme.name === 'dark'
+            ? 'neutral-light'
+            : 'neutral-dark'
+        : (logoMode ?? 'theme');
 
     const { ink, accent, base } = resolveLogoColors({
         theme,
@@ -161,12 +200,18 @@ export const AppLogo: React.FC<AppLogoProps> = ({
             viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}
             // Only clip/round when we actually render a rounded background.
             style={
-                withBackground
-                    ? { borderRadius: resolvedBgRadius, overflow: 'hidden' }
-                    : undefined
+                resolvedWithBackground
+                    ? {
+                          borderRadius: resolvedBgRadius,
+                          overflow: 'hidden',
+                          opacity: watermarkOpacity,
+                      }
+                    : watermarkOpacity !== 1
+                      ? { opacity: watermarkOpacity }
+                      : undefined
             }
         >
-            {withBackground && (
+            {resolvedWithBackground && (
                 <Rect
                     width={VIEWBOX_SIZE}
                     height={VIEWBOX_SIZE}
