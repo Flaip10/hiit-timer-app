@@ -18,28 +18,44 @@ export const labelFor = (phase: Phase, isSetRest: boolean): string => {
 
 export const formatDuration = (sec: number): string => {
     const total = Math.max(0, Math.floor(sec));
-    const m = Math.floor(total / 60)
-        .toString()
-        .padStart(2, '0');
-    const s = (total % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
+
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+
+    const mm = m.toString().padStart(2, '0');
+    const ss = s.toString().padStart(2, '0');
+
+    if (h > 0) {
+        const hh = h.toString().padStart(2, '0');
+        return `${hh}:${mm}:${ss}`;
+    }
+
+    return `${mm}:${ss}`;
 };
 
 export const formatDurationVerbose = (sec: number): string => {
     const total = Math.max(0, Math.floor(sec));
-    const minutes = Math.floor(total / 60);
-    const seconds = total % 60;
 
-    if (minutes === 0) {
-        return `${seconds} sec`;
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+
+    // ≥ 1 hour → hours + minutes (no seconds)
+    if (h > 0) {
+        if (m > 0) {
+            return `${h} hr ${m} min`;
+        }
+        return `${h} hr`;
     }
 
-    if (seconds === 0) {
-        return `${minutes} min`;
+    // < 1 hour → minutes + seconds
+    if (m > 0) {
+        return s > 0 ? `${m} min ${s} sec` : `${m} min`;
     }
 
-    const paddedSeconds = seconds.toString().padStart(2, '0');
-    return `${minutes} min ${paddedSeconds} sec`;
+    // < 1 minute → seconds only
+    return `${s} sec`;
 };
 
 export interface SetProgressRules {
