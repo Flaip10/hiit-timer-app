@@ -1,5 +1,13 @@
 import type { TextStyle } from 'react-native';
 import type { AppTheme } from './theme';
+import { useFonts } from 'expo-font';
+import { DaysOne_400Regular } from '@expo-google-fonts/days-one';
+
+export const useAppFonts = () => {
+    return useFonts({
+        'DaysOne-Regular': DaysOne_400Regular,
+    });
+};
 
 export type TextVariant =
     | 'title1'

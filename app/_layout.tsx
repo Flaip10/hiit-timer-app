@@ -1,8 +1,12 @@
 import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '@src/theme/ThemeProvider';
+import { useAppFonts } from '@src/theme/typography';
 
 const RootLayout = () => {
+    const [fontsLoaded] = useAppFonts();
+    if (!fontsLoaded) return null;
+
     return (
         <ThemeProvider>
             <SafeAreaProvider>
