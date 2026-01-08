@@ -1,26 +1,42 @@
-import React, { RefObject, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 
 import type { Workout } from '@src/core/entities/entities';
-import {
-    summarizeWorkout,
-    formatWorkoutDuration,
-} from '@core/workouts/summarizeWorkout';
+import { formatWorkoutDuration } from '@core/workouts/summarizeWorkout';
 
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
+import { AppLogo } from '@src/components/ui/AppLogo/AppLogo';
+import { Watermark } from '@src/components/ui/Watermark/Watermark';
+import { AppIcon } from '@src/components/ui/Icon/AppIcon';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useShareWorkoutCardStyles } from './ShareWorkoutCard.styles';
 
+export type ShareRunStats = {
+    totalWorkSec: number;
+    totalRestSec: number;
+    totalPrepSec: number;
+    totalPausedSec: number;
+    totalBlockPauseSec: number;
+
+    completedSets: number;
+    completedExercises: number;
+
+    completedSetsByBlock: number[];
+};
+
 type ShareWorkoutCardProps = {
     workout: Workout;
-    phaseColor: string;
-    shareRef: RefObject<View | null>;
-    completedSetsByBlock: number[]; // per-block completed sets
-    elapsedCompletedSec: number; // time of completed sets only
-    totalWorkoutPlannedSec: number; // full planned time for the workout
-    isFullyCompleted: boolean; // true only when all planned sets are done
+    shareRef: React.RefObject<View | null>;
+    runStats: ShareRunStats;
+};
+
+type ShareBlockLine = {
+    id: string;
+    title: string;
+    exercisesLine: string;
+    setsLabel: string;
 };
 
 const buildCompletedLabel = (): string => {
@@ -42,51 +58,32 @@ const buildCompletedLabel = (): string => {
 
 export const ShareWorkoutCard = ({
     workout,
-    phaseColor,
     shareRef,
-    completedSetsByBlock,
-    elapsedCompletedSec,
-    totalWorkoutPlannedSec,
-    isFullyCompleted,
+    runStats,
 }: ShareWorkoutCardProps) => {
     const { theme } = useTheme();
     const st = useShareWorkoutCardStyles();
 
-    const summary = useMemo(() => summarizeWorkout(workout), [workout]);
+    const completedLabel = buildCompletedLabel();
 
-    // Planned time as fallback (from summary or from screen)
-    const plannedDurationSec =
-        summary.approxSec && summary.approxSec > 0
-            ? summary.approxSec
-            : totalWorkoutPlannedSec;
+    const elapsedSec =
+        runStats.totalWorkSec +
+        runStats.totalRestSec +
+        runStats.totalPrepSec +
+        runStats.totalPausedSec +
+        runStats.totalBlockPauseSec;
 
-    // If fully completed, show planned time.
-    // If ended early, show time of completed sets only (if > 0), otherwise planned.
-    const effectiveDurationSec = isFullyCompleted
-        ? plannedDurationSec
-        : elapsedCompletedSec > 0
-          ? elapsedCompletedSec
-          : plannedDurationSec;
+    const durationText = formatWorkoutDuration(elapsedSec);
 
-    const timeLabel =
-        effectiveDurationSec > 0
-            ? formatWorkoutDuration(effectiveDurationSec)
-            : summary.hasReps
-              ? 'Mixed (time + reps)'
-              : 'No time estimate';
-
-    const completedLabel = useMemo(buildCompletedLabel, []);
-
-    const blocksForCard = useMemo(
+    const blocksForCard = useMemo<ShareBlockLine[]>(
         () =>
             workout.blocks
                 .map((block, index) => {
-                    const completedSets = completedSetsByBlock[index] ?? 0;
+                    const completedSets =
+                        runStats.completedSetsByBlock[index] ?? 0;
 
                     // Only show blocks where at least one set was completed
-                    if (completedSets <= 0) {
-                        return null;
-                    }
+                    if (completedSets <= 0) return null;
 
                     const title =
                         block.title && block.title.trim().length > 0
@@ -94,23 +91,17 @@ export const ShareWorkoutCard = ({
                             : `Block ${index + 1}`;
 
                     const exerciseNames = block.exercises.map(
-                        (exercise, exerciseIndex) => {
+                        (exercise, exIdx) => {
                             const trimmedName = exercise.name?.trim();
-
-                            if (trimmedName && trimmedName.length > 0) {
-                                return trimmedName;
-                            }
-
-                            // Fallback for unnamed exercises
-                            return `Exercise ${exerciseIndex + 1}`;
+                            return trimmedName && trimmedName.length > 0
+                                ? trimmedName
+                                : `Exercise ${exIdx + 1}`;
                         }
                     );
 
                     const exercisesLine = exerciseNames.join(' • ');
 
-                    const setsLabel = `${completedSets}/${block.sets} set${
-                        block.sets === 1 ? '' : 's'
-                    }`;
+                    const setsLabel = `${completedSets} set${completedSets === 1 ? '' : 's'}`;
 
                     return {
                         id: block.id,
@@ -119,32 +110,31 @@ export const ShareWorkoutCard = ({
                         setsLabel,
                     };
                 })
-                .filter(
-                    (
-                        block
-                    ): block is {
-                        id: string;
-                        title: string;
-                        exercisesLine: string;
-                        setsLabel: string;
-                    } => block !== null
-                ),
-        [workout.blocks, completedSetsByBlock]
+                .filter((b): b is ShareBlockLine => b !== null),
+        [workout.blocks, runStats.completedSetsByBlock]
     );
 
     return (
         <View style={st.mainWrapper}>
             <View style={st.cardContainer} ref={shareRef} collapsable={false}>
+                <Watermark
+                    watermarkMode="medium"
+                    watermarkPosition="center"
+                    sizeScale={1.2}
+                />
                 {/* Header */}
                 <View style={st.cardHeaderRow}>
-                    <AppText
-                        variant="captionSmall"
-                        style={st.cardAppName}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                    >
-                        HIIT Timer
-                    </AppText>
+                    <View style={st.cardHeaderLeft}>
+                        <AppLogo size={20} logoMode="theme" />
+                        <AppText
+                            variant="captionSmall"
+                            style={st.cardAppName}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                        >
+                            ARC TIMER
+                        </AppText>
+                    </View>
 
                     <View style={st.cardDurationPill}>
                         <Feather
@@ -159,7 +149,7 @@ export const ShareWorkoutCard = ({
                             numberOfLines={1}
                             ellipsizeMode="tail"
                         >
-                            {timeLabel}
+                            {durationText}
                         </AppText>
                     </View>
                 </View>
@@ -188,7 +178,7 @@ export const ShareWorkoutCard = ({
 
                 {/* Center section: blocks list + circle + overview MetaCard */}
                 <View style={st.centerSection}>
-                    {/* Blocks & exercises – outside MetaCard, with bullet + sets pill */}
+                    {/* Blocks & exercises – show only what was actually done */}
                     {blocksForCard.length > 0 && (
                         <View style={st.blocksList}>
                             {blocksForCard.map((block) => (
@@ -196,7 +186,11 @@ export const ShareWorkoutCard = ({
                                     <View
                                         style={[
                                             st.blockBullet,
-                                            { backgroundColor: phaseColor },
+                                            {
+                                                backgroundColor:
+                                                    theme.palette.accent
+                                                        .primary,
+                                            },
                                         ]}
                                     />
                                     <View style={st.blockContent}>
@@ -224,7 +218,7 @@ export const ShareWorkoutCard = ({
                                             variant="bodySmall"
                                             tone="muted"
                                             style={st.blockExercises}
-                                            numberOfLines={0} // allow wrapping over multiple lines
+                                            numberOfLines={0}
                                         >
                                             {block.exercisesLine}
                                         </AppText>
@@ -234,32 +228,14 @@ export const ShareWorkoutCard = ({
                         </View>
                     )}
 
-                    {/* Circle */}
-                    <View style={st.cardArcWrapper}>
-                        <View
-                            style={[
-                                st.cardArcCircleOuter,
-                                { borderColor: phaseColor },
-                            ]}
-                        >
-                            <AppText
-                                variant="label"
-                                style={st.cardArcInnerText}
-                                numberOfLines={1}
-                            >
-                                DONE
-                            </AppText>
-                        </View>
-                    </View>
-
                     {/* Overview MetaCard */}
                     <MetaCard
                         expandable={false}
                         topLeftContent={{
-                            text: 'Workout summary',
+                            text: 'Session stats',
                             icon: (
-                                <Ionicons
-                                    name="barbell-outline"
+                                <AppIcon
+                                    id="stats"
                                     size={14}
                                     color={
                                         theme.palette.metaCard.topLeftContent
@@ -283,13 +259,29 @@ export const ShareWorkoutCard = ({
                                             tone="muted"
                                             style={st.metaMetricLabel}
                                         >
-                                            Blocks
+                                            Duration
                                         </AppText>
                                         <AppText
                                             variant="bodySmall"
                                             style={st.metaMetricValue}
                                         >
-                                            {summary.blocks}
+                                            {durationText}
+                                        </AppText>
+                                    </View>
+
+                                    <View style={st.metaMetric}>
+                                        <AppText
+                                            variant="captionSmall"
+                                            tone="muted"
+                                            style={st.metaMetricLabel}
+                                        >
+                                            Sets
+                                        </AppText>
+                                        <AppText
+                                            variant="bodySmall"
+                                            style={st.metaMetricValue}
+                                        >
+                                            {runStats.completedSets}
                                         </AppText>
                                     </View>
 
@@ -305,24 +297,7 @@ export const ShareWorkoutCard = ({
                                             variant="bodySmall"
                                             style={st.metaMetricValue}
                                         >
-                                            {summary.exercises}
-                                        </AppText>
-                                    </View>
-
-                                    <View style={st.metaMetricWide}>
-                                        <AppText
-                                            variant="captionSmall"
-                                            tone="muted"
-                                            style={st.metaMetricLabel}
-                                        >
-                                            Duration
-                                        </AppText>
-                                        <AppText
-                                            variant="captionSmall"
-                                            style={st.metaMetricValue}
-                                            numberOfLines={2}
-                                        >
-                                            {timeLabel}
+                                            {runStats.completedExercises}
                                         </AppText>
                                     </View>
                                 </View>

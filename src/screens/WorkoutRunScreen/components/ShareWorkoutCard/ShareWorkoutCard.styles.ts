@@ -13,10 +13,11 @@ export const useShareWorkoutCardStyles = createStyles((theme: AppTheme) =>
         cardContainer: {
             aspectRatio: 0.56, // share-friendly 9/16
             padding: 20,
-            paddingTop: 60,
-            gap: 8,
+            paddingTop: 80,
+            gap: 14,
             backgroundColor: theme.palette.background.primary,
             justifyContent: 'space-between',
+            position: 'relative',
         },
 
         // HEADER
@@ -24,6 +25,11 @@ export const useShareWorkoutCardStyles = createStyles((theme: AppTheme) =>
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
+        },
+        cardHeaderLeft: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
         },
         cardAppName: {
             color: theme.palette.text.muted,
@@ -37,7 +43,7 @@ export const useShareWorkoutCardStyles = createStyles((theme: AppTheme) =>
             borderRadius: 999,
             paddingHorizontal: 10,
             paddingVertical: 4,
-            backgroundColor: theme.palette.surface.navigation,
+            backgroundColor: theme.palette.background.card,
         },
         cardDurationIcon: {
             marginRight: 4,
@@ -51,6 +57,7 @@ export const useShareWorkoutCardStyles = createStyles((theme: AppTheme) =>
         centerSection: {
             flex: 1,
             gap: 16,
+            justifyContent: 'space-between',
         },
 
         cardTitleBlock: {
@@ -70,26 +77,6 @@ export const useShareWorkoutCardStyles = createStyles((theme: AppTheme) =>
         },
         cardSubtitle: {
             color: theme.palette.text.muted,
-        },
-
-        cardArcWrapper: {
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
-        cardArcCircleOuter: {
-            width: '60%',
-            aspectRatio: 1,
-            borderRadius: 999,
-            borderWidth: 10,
-            justifyContent: 'center',
-            alignItems: 'center',
-        },
-        cardArcInnerText: {
-            color: theme.palette.text.primary,
-            textTransform: 'uppercase',
-            letterSpacing: 1,
-            fontWeight: '700',
         },
 
         // Overview MetaCard
@@ -118,7 +105,7 @@ export const useShareWorkoutCardStyles = createStyles((theme: AppTheme) =>
         // Blocks list (outside MetaCard)
         blocksList: {
             marginTop: 10,
-            gap: 10,
+            gap: 14,
         },
         blockRow: {
             flexDirection: 'row',
