@@ -25,6 +25,7 @@ import { RunFooter } from './components/RunFooter/RunFooter';
 
 import useStepBeeps from './hooks/useStepBeeps';
 import { useWorkoutHistory } from '@src/state/stores/useWorkoutHistory';
+import { useSettingsStore } from '@src/state/useSettingsStore';
 import { prepareRunData } from '@src/core/timer';
 
 export const WorkoutRunScreen = () => {
@@ -76,12 +77,14 @@ export const WorkoutRunScreen = () => {
         stats: runStats,
     } = useWorkoutRun({ plan, shouldAutoStart });
 
+    const isSoundEnabled = useSettingsStore((s) => s.isSoundEnabled);
+
     useStepBeeps({
         stepKey: step.id,
         running,
         remainingSec,
         stepDurationSec: step.durationSec,
-        enabled: !!step,
+        enabled: isSoundEnabled,
     });
 
     // ----- Block info --------

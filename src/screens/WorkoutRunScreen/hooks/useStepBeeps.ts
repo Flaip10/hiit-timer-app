@@ -9,7 +9,7 @@ export interface UseStepBeepsArgs {
     stepDurationSec?: number; // needed for halfway beep
     enabled?: boolean;
 
-    // Local asset via require(...) or remote URL string
+    // Local asset
     beepSource?: AudioSource;
     finalBeepSource?: AudioSource;
     middleBeepSource?: AudioSource;
