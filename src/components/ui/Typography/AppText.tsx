@@ -1,5 +1,6 @@
 import React, { type FC, useMemo } from 'react';
-import { StyleProp, Text, type TextProps, type TextStyle } from 'react-native';
+import type { StyleProp } from 'react-native';
+import { Text, type TextProps, type TextStyle } from 'react-native';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { createTypography, type TextVariant } from '@src/theme/typography';
 
@@ -32,7 +33,7 @@ export const AppText: FC<AppTextProps> = ({
     const typography = useMemo(() => createTypography(theme), [theme]);
     const variantStyle = typography[variant];
 
-    const color = theme.palette.text[tone] ?? theme.palette.text.primary;
+    const color = theme.palette.text[tone];
 
     const base: TextStyle = {
         color,
