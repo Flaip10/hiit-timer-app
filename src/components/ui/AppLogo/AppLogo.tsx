@@ -54,7 +54,8 @@ export const LOGO_CONTENT_INSETS_512 = {
     bottom: 112,
     left: 56,
 } as const;
-const VIEWBOX_SIZE = 512;
+
+export const LOGO_VIEWBOX_SIZE = 512;
 
 // Fixed geometry (final SVG geometry)
 const OUTER_CX = 256;
@@ -126,12 +127,12 @@ export const AppLogo: React.FC<AppLogoProps> = ({
     const watermarkOpacity =
         watermarkMode === 'subtle'
             ? theme.name === 'dark'
-                ? 0.15
-                : 0.12
+                ? 0.2
+                : 0.17
             : watermarkMode === 'medium'
               ? theme.name === 'dark'
-                  ? 0.2
-                  : 0.17
+                  ? 0.23
+                  : 0.2
               : 1;
 
     const resolvedLogoMode: LogoMode = isWatermark
@@ -197,13 +198,12 @@ export const AppLogo: React.FC<AppLogoProps> = ({
         <Svg
             width={size}
             height={size}
-            viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}
+            viewBox={`0 0 ${LOGO_VIEWBOX_SIZE} ${LOGO_VIEWBOX_SIZE}`}
             // Only clip/round when we actually render a rounded background.
             style={
                 resolvedWithBackground
                     ? {
                           borderRadius: resolvedBgRadius,
-                          overflow: 'hidden',
                           opacity: watermarkOpacity,
                       }
                     : watermarkOpacity !== 1
@@ -213,9 +213,10 @@ export const AppLogo: React.FC<AppLogoProps> = ({
         >
             {resolvedWithBackground && (
                 <Rect
-                    width={VIEWBOX_SIZE}
-                    height={VIEWBOX_SIZE}
-                    rx={resolvedBgRadius}
+                    width={LOGO_VIEWBOX_SIZE}
+                    height={LOGO_VIEWBOX_SIZE}
+                    rx={LOGO_VIEWBOX_SIZE * DEFAULT_BG_RADIUS_RATIO}
+                    ry={LOGO_VIEWBOX_SIZE * DEFAULT_BG_RADIUS_RATIO}
                     fill={resolvedBgColor}
                 />
             )}
