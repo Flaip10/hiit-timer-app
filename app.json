@@ -1,46 +1,49 @@
 {
-  "expo": {
-    "name": "arc-timer",
-    "slug": "arc-timer-app",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "scheme": "hiittimer",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.mendesfilipedev.arctimerapp",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.mendesfilipedev.arctimerapp"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "74c08607-8e9d-40e7-8564-9a0ea37c5001"
-      }
-    },
-    "plugins": [
-      "expo-router",
-      "expo-audio",
-      "expo-font"
-    ]
-  }
+    "expo": {
+        "name": "ARC Timer",
+        "slug": "arc-timer",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/icon.png",
+        "userInterfaceStyle": "automatic",
+        "newArchEnabled": true,
+        "scheme": "arctimer",
+        "splash": {
+            "image": "./assets/splash-icon.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#ffffff"
+        },
+        "ios": {
+            "bundleIdentifier": "com.mendesfilipedev.arctimerapp",
+            "buildNumber": "1",
+            "supportsTablet": true,
+            "infoPlist": {
+                "ITSAppUsesNonExemptEncryption": false
+            }
+        },
+        "android": {
+            "package": "com.mendesfilipedev.arctimerapp",
+            "versionCode": 1,
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/adaptive-icon.png",
+                "backgroundColor": "#ffffff"
+            },
+            "edgeToEdgeEnabled": true,
+            "predictiveBackGestureEnabled": false
+        },
+        "web": {
+            "favicon": "./assets/favicon.png"
+        },
+        "extra": {
+            "eas": {
+                "projectId": "74c08607-8e9d-40e7-8564-9a0ea37c5001"
+            }
+        },
+        "plugins": [
+            "expo-router",
+            "expo-audio",
+            "expo-font",
+            "expo-localization"
+        ]
+    }
 }
