@@ -10,15 +10,26 @@ export const useStyles = createStyles((theme) =>
 
         header: {
             backgroundColor: theme.palette.accent.primary,
-            paddingTop: theme.insets.top,
+            paddingTop: theme.insets.top + 20,
             paddingHorizontal: 16,
             paddingBottom: 16,
             marginBottom: 14,
             borderBottomRightRadius: 56,
         },
 
+        headerContent: {
+            flexDirection: 'row',
+            gap: 10,
+            alignItems: 'center',
+        },
+
+        headerTitleContainer: {
+            justifyContent: 'center',
+        },
+
         headerTitle: {
             color: theme.palette.text.inverted,
+            fontFamily: 'DaysOne-Regular',
         },
 
         headerSubtitle: {

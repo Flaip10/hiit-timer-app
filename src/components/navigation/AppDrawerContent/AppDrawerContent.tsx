@@ -1,10 +1,12 @@
 import React from 'react';
 import { ScrollView, View } from 'react-native';
 import type { DrawerContentComponentProps } from '@react-navigation/drawer';
+import type { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
 import DrawerItemRow from './DrawerItemRow/DrawerItemRow';
 import { useStyles } from './AppDrawerContent.styles';
+import { AppLogo } from '@src/components/ui/AppLogo/AppLogo';
 
 const resolveLabel = (
     routeName: string,
@@ -17,7 +19,7 @@ const resolveLabel = (
 
 const ICONS_BY_ROUTE: Record<
     string,
-    React.ComponentProps<typeof import('@expo/vector-icons').Ionicons>['name']
+    React.ComponentProps<typeof Ionicons>['name']
 > = {
     index: 'home-outline',
     'workouts/index': 'barbell-outline',
@@ -30,16 +32,27 @@ const DrawerHeader = () => {
 
     return (
         <View style={st.header}>
-            <AppText variant="title1" style={st.headerTitle}>
-                ARC Timer
-            </AppText>
-            <AppText
-                variant="bodySmall"
-                style={st.headerSubtitle}
-                numberOfLines={1}
-            >
-                Quick access
-            </AppText>
+            <View style={st.headerContent}>
+                <AppLogo
+                    size={44}
+                    withBackground
+                    // darkColor="#23272A"
+                    // progressColor="#D7C19A"
+                    // bgColor="#F6F3EB"
+                />
+                <View style={st.headerTitleContainer}>
+                    <AppText variant="title2" style={st.headerTitle}>
+                        ARC Timer
+                    </AppText>
+                    <AppText
+                        variant="bodySmall"
+                        style={st.headerSubtitle}
+                        numberOfLines={1}
+                    >
+                        Quick access
+                    </AppText>
+                </View>
+            </View>
         </View>
     );
 };
@@ -66,11 +79,11 @@ const AppDrawerContent = ({
             >
                 {state.routes.map((route, index) => {
                     const focused = state.index === index;
-                    const options = descriptors[route.key]?.options;
+                    const options = descriptors[route.key].options;
 
                     const label = resolveLabel(route.name, {
-                        title: options?.title,
-                        drawerLabel: options?.drawerLabel,
+                        title: options.title,
+                        drawerLabel: options.drawerLabel,
                     });
 
                     const iconName = ICONS_BY_ROUTE[route.name];
