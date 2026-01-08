@@ -3,21 +3,28 @@ import { createStyles } from '@src/theme/createStyles';
 
 export const useSettingsStyles = createStyles((theme) =>
     StyleSheet.create({
-        section: {
-            gap: 16,
+        separator: {
+            height: 1,
+            backgroundColor: theme.palette.border.subtle,
         },
-        switchRow: {
+        aboutContent: {
             flexDirection: 'row',
-            gap: 8,
+            alignItems: 'center',
+            gap: 16,
             marginTop: 8,
         },
-        pill: {
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            borderRadius: 999,
-            borderWidth: 1,
-            borderColor: theme.palette.border.subtle,
-            backgroundColor: 'transparent',
+        aboutInfo: {
+            flex: 1,
+            gap: 4,
+        },
+        appName: {
+            color: theme.palette.text.primary,
+        },
+        copyright: {
+            marginTop: 4,
+        },
+        flagEmoji: {
+            fontSize: 16,
         },
     })
 );

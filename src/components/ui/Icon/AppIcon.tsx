@@ -89,6 +89,26 @@ const ICON_MAP = {
         name: 'share-outline',
         defaultSize: 20,
     },
+    appearance: {
+        lib: 'ion',
+        name: 'color-palette-outline',
+        defaultSize: 20,
+    },
+    sound: {
+        lib: 'ion',
+        name: 'volume-high-outline',
+        defaultSize: 20,
+    },
+    language: {
+        lib: 'ion',
+        name: 'language-outline',
+        defaultSize: 20,
+    },
+    info: {
+        lib: 'ion',
+        name: 'information-circle-outline',
+        defaultSize: 20,
+    },
 } satisfies Record<string, IconDefinition>;
 
 export type IconId = keyof typeof ICON_MAP;

@@ -18,7 +18,11 @@ export const SettingsSubSection: React.FC<SettingsSubSectionProps> = ({
     return (
         <View style={st.subSection}>
             {description && (
-                <AppText variant="bodySmall" tone="muted" style={st.description}>
+                <AppText
+                    variant="bodySmall"
+                    tone="muted"
+                    style={st.description}
+                >
                     {description}
                 </AppText>
             )}
@@ -26,4 +30,3 @@ export const SettingsSubSection: React.FC<SettingsSubSectionProps> = ({
         </View>
     );
 };
-

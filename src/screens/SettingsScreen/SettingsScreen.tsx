@@ -1,75 +1,121 @@
 import React from 'react';
 import { View } from 'react-native';
+import * as Application from 'expo-application';
 
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useSettingsStyles } from './SettingsScreen.styles';
-import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
+import {
+    useSettingsStore,
+    type LanguageCode,
+} from '@src/state/useSettingsStore';
 import { AppLogo } from '@src/components/ui/AppLogo/AppLogo';
+import { SettingsSection } from './components/SettingsSection';
+import { SettingsSubSection } from './components/SettingsSubSection';
+import { OptionPills } from './components/OptionPills';
+
+const LANGUAGE_OPTIONS: { value: LanguageCode; label: string; flag: string }[] =
+    [
+        { value: 'en', label: 'English', flag: '🇬🇧' },
+        { value: 'pt', label: 'Português', flag: '🇵🇹' },
+    ];
+
+const APP_VERSION = Application.nativeApplicationVersion ?? '1.0.0';
+const APP_NAME = Application.applicationName ?? 'ARC Timer';
 
 const SettingsScreen = () => {
-    const { theme, preference, themeName, setPreference } = useTheme();
+    const { preference, setPreference } = useTheme();
+    const { isSoundEnabled, language, setIsSoundEnabled, setLanguage } =
+        useSettingsStore();
     const st = useSettingsStyles();
+
+    const themeOptions = [
+        { value: 'light' as const, label: 'Light' },
+        { value: 'dark' as const, label: 'Dark' },
+        { value: 'system' as const, label: 'System' },
+    ];
+
+    const soundOptions = [
+        { value: 'on' as const, label: 'On' },
+        { value: 'off' as const, label: 'Off' },
+    ];
+
+    const languageOptions = LANGUAGE_OPTIONS.map(({ value, label, flag }) => ({
+        value,
+        label,
+        leftSlot: (
+            <AppText variant="bodySmall" style={st.flagEmoji}>
+                {flag}
+            </AppText>
+        ),
+    }));
 
     return (
         <MainContainer title="Settings">
-            <View style={st.section}>
-                <AppText variant="title1">Appearance</AppText>
+            <SettingsSection iconId="appearance" title="Appearance">
+                <SettingsSubSection description={'Select your preferred theme'}>
+                    <OptionPills
+                        options={themeOptions}
+                        selectedValue={preference}
+                        onSelect={setPreference}
+                    />
+                </SettingsSubSection>
+                {/* <SettingsSubSection description="Select your preferred color accent">
+                    <OptionPills
+                        options={colorAccessibilityOptions}
+                        selectedValue={colorAccessibility}
+                        onSelect={setColorAccessibility}
+                    />
+                </SettingsSubSection> */}
+            </SettingsSection>
 
-                <AppText variant="bodySmall" tone="muted">
-                    Current theme: {themeName} ({preference})
-                </AppText>
+            <View style={st.separator} />
 
-                <View style={st.switchRow}>
-                    {(['light', 'dark', 'system'] as const).map((opt) => {
-                        const isActive = preference === opt;
+            <SettingsSection iconId="sound" title="Sound">
+                <SettingsSubSection description="Enable sound effects and notifications">
+                    <OptionPills
+                        options={soundOptions}
+                        selectedValue={isSoundEnabled ? 'on' : 'off'}
+                        onSelect={(value) => setIsSoundEnabled(value === 'on')}
+                    />
+                </SettingsSubSection>
+            </SettingsSection>
 
-                        return (
-                            <GuardedPressable
-                                key={opt}
-                                onPress={() => setPreference(opt)}
-                                style={[
-                                    st.pill,
-                                    isActive && {
-                                        borderColor:
-                                            theme.palette.accent.primary,
-                                        backgroundColor:
-                                            theme.palette.accent.soft,
-                                    },
-                                ]}
-                            >
-                                <AppText
-                                    variant="bodySmall"
-                                    tone={isActive ? 'primary' : 'muted'}
-                                >
-                                    {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                                </AppText>
-                            </GuardedPressable>
-                        );
-                    })}
+            <View style={st.separator} />
+
+            <SettingsSection iconId="language" title="Language">
+                <SettingsSubSection description="Select your preferred language">
+                    <OptionPills
+                        options={languageOptions}
+                        selectedValue={language}
+                        onSelect={setLanguage}
+                    />
+                </SettingsSubSection>
+            </SettingsSection>
+
+            <View style={st.separator} />
+
+            <SettingsSection iconId="info" title="About">
+                <View style={st.aboutContent}>
+                    <AppLogo size={64} withBackground />
+                    <View style={st.aboutInfo}>
+                        <AppText variant="subtitle" style={st.appName}>
+                            {APP_NAME}
+                        </AppText>
+                        <AppText variant="bodySmall" tone="muted">
+                            Version {APP_VERSION}
+                        </AppText>
+                        <AppText
+                            variant="bodySmall"
+                            tone="muted"
+                            style={st.copyright}
+                        >
+                            © {new Date().getFullYear()}
+                        </AppText>
+                    </View>
                 </View>
-            </View>
-
-            <View style={{ flexDirection: 'row' }}>
-                <AppLogo size={96} withBackground />
-
-                <AppLogo size={96} useOppositeTheme withBackground />
-
-                <AppLogo size={96} />
-
-                <AppLogo size={96} useOppositeTheme />
-            </View>
-
-            <View style={{ flexDirection: 'row' }}>
-                <AppLogo size={96} logoMode="neutral-dark" withBackground />
-
-                <AppLogo size={96} logoMode="neutral-light" withBackground />
-
-                <AppLogo size={96} logoMode="neutral-dark" />
-
-                <AppLogo size={96} logoMode="neutral-light" />
-            </View>
+            </SettingsSection>
         </MainContainer>
     );
 };
