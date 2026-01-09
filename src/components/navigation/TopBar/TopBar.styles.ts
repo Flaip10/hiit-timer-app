@@ -5,7 +5,7 @@ export const BAR_H = 72;
 export const PILL_H = 45;
 
 // Defines the *reserved* lateral space (layout), not the button position.
-export const SLOT_W = 36;
+export const SLOT_W = 24;
 
 export const useStyles = createStyles((theme) =>
     StyleSheet.create({
@@ -55,12 +55,12 @@ export const useStyles = createStyles((theme) =>
         },
 
         leftAction: {
-            left: 10,
+            paddingHorizontal: 20,
             alignItems: 'flex-start',
         },
 
         rightAction: {
-            right: 10,
+            paddingHorizontal: 20,
             alignItems: 'flex-end',
         },
     })

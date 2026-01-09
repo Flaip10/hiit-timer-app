@@ -109,6 +109,16 @@ const ICON_MAP = {
         name: 'information-circle-outline',
         defaultSize: 20,
     },
+    back: {
+        lib: 'ion',
+        name: 'chevron-back',
+        defaultSize: 22,
+    },
+    menu: {
+        lib: 'ion',
+        name: 'menu',
+        defaultSize: 22,
+    },
 } satisfies Record<string, IconDefinition>;
 
 export type IconId = keyof typeof ICON_MAP;

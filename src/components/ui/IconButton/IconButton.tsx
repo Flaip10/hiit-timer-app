@@ -1,6 +1,6 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useTheme } from '@src/theme/ThemeProvider';
-import { AppTheme } from '@src/theme/theme';
+import type { AppTheme } from '@src/theme/theme';
 import st from './styles';
 import GuardedPressable from '../GuardedPressable/GuardedPressable';
 

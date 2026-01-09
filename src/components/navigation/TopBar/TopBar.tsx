@@ -1,14 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { LayoutChangeEvent, StatusBar, View } from 'react-native';
+import type { LayoutChangeEvent } from 'react-native';
+import { StatusBar, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import { useRouter, useSegments } from 'expo-router';
 
-import { IconButton } from '../../ui/IconButton/IconButton';
 import { AppText } from '@src/components/ui/Typography/AppText';
+import { AppIcon } from '@src/components/ui/Icon/AppIcon';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { PILL_H, useStyles } from './TopBar.styles';
+import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
 
 type Props = {
     title?: string;
@@ -107,14 +108,14 @@ export const TopBar = ({
         try {
             router.back();
         } catch {
-            if (typeof nav.goBack === 'function' && nav.canGoBack?.())
+            if (typeof nav.goBack === 'function' && nav.canGoBack())
                 nav.goBack();
         }
     };
 
     const onOpenDrawer = () => {
         try {
-            nav.dispatch?.(DrawerActions.openDrawer());
+            nav.dispatch(DrawerActions.openDrawer());
         } catch {}
     };
 
@@ -158,24 +159,21 @@ export const TopBar = ({
                 </View>
                 <View style={st.sideSpacer} pointerEvents="none" />
 
-                <View
-                    style={[st.action, st.leftAction]}
-                    pointerEvents="box-none"
-                >
-                    {showBack ? (
-                        <IconButton onPress={onBack}>
-                            <Ionicons
-                                name="chevron-back"
-                                size={22}
-                                color={iconColor}
-                            />
-                        </IconButton>
-                    ) : showHamburger ? (
-                        <IconButton onPress={onOpenDrawer}>
-                            <Ionicons name="menu" size={22} color={iconColor} />
-                        </IconButton>
-                    ) : null}
-                </View>
+                {showBack ? (
+                    <GuardedPressable
+                        onPress={onBack}
+                        style={[st.action, st.leftAction]}
+                    >
+                        <AppIcon id="back" size={22} color={iconColor} />
+                    </GuardedPressable>
+                ) : showHamburger ? (
+                    <GuardedPressable
+                        onPress={onOpenDrawer}
+                        style={[st.action, st.leftAction]}
+                    >
+                        <AppIcon id="menu" size={22} color={iconColor} />
+                    </GuardedPressable>
+                ) : null}
 
                 <View
                     style={[st.action, st.rightAction]}
