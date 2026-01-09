@@ -78,6 +78,24 @@ export const colors = {
         100: '#fafafa',
         dark: '#612a0b',
     },
+    classic: {
+        600: '#B8956A',
+        500: '#D7C19A', // main brand accent
+        400: '#E5D4B0', // softer accent
+        300: '#F0E6D2',
+        200: '#F6F3EB', // subtle background / chip
+        100: '#FAF8F4',
+        dark: '#23272A',
+    },
+    neutral: {
+        600: '#4B5563',
+        500: '#6B7280', // main brand accent
+        400: '#9CA3AF', // softer accent
+        300: '#D1D5DB',
+        200: '#E5E7EB', // subtle background / chip
+        100: '#F3F4F6',
+        dark: '#111827',
+    },
     overlay: {
         scrim: 'rgba(0,0,0,0.45)',
     },

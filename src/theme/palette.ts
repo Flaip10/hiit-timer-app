@@ -78,7 +78,7 @@ export interface ThemePalette {
     };
 }
 
-export type AccentId = 'violet' | 'cyan' | 'amber';
+export type AccentId = 'classic' | 'violet' | 'cyan' | 'amber' | 'neutral';
 
 export interface AccentTokens {
     primary: string;
@@ -118,7 +118,28 @@ export const AMBER_ACCENT: AccentTokens = {
     darkInk: colors.amber.dark,
 };
 
+export const CLASSIC_ACCENT: AccentTokens = {
+    primary: colors.classic[500],
+    primaryStrong: colors.classic[600],
+    soft: colors.classic[300],
+    surface: colors.classic[100],
+    darkInk: colors.classic.dark,
+};
+
+export const NEUTRAL_ACCENT: AccentTokens = {
+    primary: colors.neutral[500],
+    primaryStrong: colors.neutral[600],
+    soft: colors.neutral[300],
+    surface: colors.neutral[100],
+    darkInk: colors.neutral.dark,
+};
+
 export const COLOR_ACCENTS: Record<AccentId, AccentDefinition> = {
+    classic: {
+        id: 'classic',
+        label: 'Classic',
+        tokens: CLASSIC_ACCENT,
+    },
     violet: {
         id: 'violet',
         label: 'Violet',
@@ -133,6 +154,11 @@ export const COLOR_ACCENTS: Record<AccentId, AccentDefinition> = {
         id: 'amber',
         label: 'Amber',
         tokens: AMBER_ACCENT,
+    },
+    neutral: {
+        id: 'neutral',
+        label: 'Neutral',
+        tokens: NEUTRAL_ACCENT,
     },
 };
 
