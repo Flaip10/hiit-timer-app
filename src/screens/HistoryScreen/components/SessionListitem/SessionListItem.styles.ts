@@ -48,10 +48,11 @@ export const useStyles = createStyles((theme: AppTheme) =>
             paddingVertical: 6,
             paddingHorizontal: 10,
             borderRadius: 999,
+            backgroundColor: theme.palette.metaCard.datePill.background,
         },
 
         durationText: {
-            color: theme.palette.text.secondary,
+            color: theme.palette.metaCard.datePill.icon,
         },
     })
 );

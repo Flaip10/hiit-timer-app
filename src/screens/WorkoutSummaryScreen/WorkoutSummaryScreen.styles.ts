@@ -25,12 +25,10 @@ export const useWorkoutSummaryStyles = createStyles((theme: AppTheme) =>
         },
         metricCard: {
             flex: 1,
-            backgroundColor: theme.palette.background.card,
             justifyContent: 'center',
         },
         metricCardWide: {
             flex: 1.2,
-            backgroundColor: theme.palette.background.card,
             justifyContent: 'center',
         },
         metricLabel: {

@@ -20,7 +20,7 @@ export const FieldLabel: React.FC<FieldLabelProps> = ({
                 <Ionicons
                     name={iconName as never}
                     size={12}
-                    color={theme.palette.accent.primary}
+                    color={theme.palette.fieldLabel.icon}
                 />
             </View>
 

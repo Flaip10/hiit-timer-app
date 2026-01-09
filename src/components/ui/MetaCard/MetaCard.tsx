@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import React, { useState } from 'react';
-import { Image, LayoutChangeEvent, View, Text } from 'react-native';
+import type { LayoutChangeEvent } from 'react-native';
+import { Image, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import type { MetaCardProps } from './MetaCard.interfaces';
@@ -137,7 +138,7 @@ export const MetaCard: FC<MetaCardProps> = ({
                             <Ionicons
                                 name="calendar-outline"
                                 size={14}
-                                color={theme.palette.text.secondary}
+                                color={theme.palette.metaCard.datePill.icon}
                             />
                             <Text style={st.dateTimePillText} numberOfLines={1}>
                                 {getPillDate(date, hideHours)}

@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { createStyles } from '@src/theme/createStyles';
-import { AppTheme } from '@src/theme/theme';
+import type { AppTheme } from '@src/theme/theme';
 
 type MetaCardStyleProps = {
     hasActionStrip: boolean;
@@ -20,7 +20,6 @@ export const useMetaCardStyles = createStyles(
                 flexDirection: 'column',
                 position: 'relative',
                 overflow: 'hidden',
-                // borderWidth: 1,
                 borderColor: theme.palette.metaCard.container.border,
                 gap: 14,
             },
@@ -56,7 +55,7 @@ export const useMetaCardStyles = createStyles(
                 alignItems: 'center',
             },
             dateTimePillText: {
-                color: theme.palette.text.secondary,
+                color: theme.palette.metaCard.datePill.icon,
                 fontSize: 13,
                 fontWeight: '400',
             },

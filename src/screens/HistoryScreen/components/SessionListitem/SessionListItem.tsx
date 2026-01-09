@@ -55,7 +55,7 @@ export const SessionListItem = ({ session, onPress }: Props) => {
                         <Ionicons
                             name="time-outline"
                             size={14}
-                            color={theme.palette.text.secondary}
+                            color={theme.palette.metaCard.datePill.icon}
                         />
                         <AppText
                             variant="bodySmall"

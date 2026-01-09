@@ -15,10 +15,7 @@ export const useFieldLabelStyles = createStyles((theme: AppTheme) =>
             borderRadius: 9,
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: theme.palette.accent.soft,
-        },
-        icon: {
-            // color comes from icon prop, this is just a placeholder if needed
+            backgroundColor: theme.palette.fieldLabel.iconBackground,
         },
         text: {
             color: theme.palette.text.muted,
