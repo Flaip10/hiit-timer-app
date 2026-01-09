@@ -1,16 +1,22 @@
 import { StyleSheet } from 'react-native';
 import { createStyles } from '@src/theme/createStyles';
-import { AppTheme } from '@src/theme/theme';
+import type { AppTheme } from '@src/theme/theme';
 
 export const useStyles = createStyles((theme: AppTheme) =>
     StyleSheet.create({
         headerContainer: {
+            flexDirection: 'row',
+            gap: 12,
+            alignItems: 'center',
+            paddingTop: 1,
+        },
+        headerTextContainer: {
             width: '100%',
-            gap: 8,
+            gap: 4,
         },
         heading: {},
         subheading: {},
-        gridContainer: { gap: 14 },
+        gridContainer: { gap: 14, paddingBottom: 16 },
 
         grid: {
             flexDirection: 'row',

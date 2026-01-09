@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { createStyles } from '@src/theme/createStyles';
-import { AppTheme } from '@src/theme/theme';
+import type { AppTheme } from '@src/theme/theme';
 
 export const useStyles = createStyles(
     (theme: AppTheme, { variant }: { variant: 'primary' | 'secondary' }) =>
@@ -13,7 +13,7 @@ export const useStyles = createStyles(
                         ? theme.palette.accent.primary
                         : theme.palette.background.card,
                 justifyContent: 'space-between',
-                gap: 16,
+                gap: 24,
             },
 
             pressed: {

@@ -10,6 +10,7 @@ import { useWorkouts } from '@src/state/useWorkouts';
 import { useRecentSessions } from '@src/state/stores/useWorkoutHistory';
 import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
 import SessionListItem from '../HistoryScreen/components/SessionListitem/SessionListItem';
+import { AppLogo } from '@src/components/ui/AppLogo/AppLogo';
 
 const HomeScreen = () => {
     const router = useRouter();
@@ -29,17 +30,20 @@ const HomeScreen = () => {
             scroll={false}
         >
             <View style={st.headerContainer}>
-                <AppText variant="title3" style={st.heading}>
-                    Welcome
-                </AppText>
+                <AppLogo size={60} />
+                <View style={st.headerTextContainer}>
+                    <AppText variant="title1" style={st.heading}>
+                        Welcome
+                    </AppText>
 
-                <AppText
-                    variant="bodySmall"
-                    tone="secondary"
-                    style={st.subheading}
-                >
-                    Get started with your training.
-                </AppText>
+                    <AppText
+                        variant="bodySmall"
+                        tone="secondary"
+                        style={st.subheading}
+                    >
+                        Get started with your training.
+                    </AppText>
+                </View>
             </View>
 
             {/* Primary action */}
@@ -52,7 +56,7 @@ const HomeScreen = () => {
                     onPress={() => {
                         useWorkouts.getState().startDraftQuick();
 
-                        const b0 = useWorkouts.getState().draft?.blocks?.[0];
+                        const b0 = useWorkouts.getState().draft?.blocks[0];
                         if (!b0) return;
 
                         router.push(
