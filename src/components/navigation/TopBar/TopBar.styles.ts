@@ -2,10 +2,10 @@ import { createStyles } from '@src/theme/createStyles';
 import { StyleSheet } from 'react-native';
 
 export const BAR_H = 72;
-export const PILL_H = 45;
+export const PILL_H = 50;
 
 // Defines the *reserved* lateral space (layout), not the button position.
-export const SLOT_W = 24;
+export const SLOT_W = 22;
 
 export const useStyles = createStyles((theme) =>
     StyleSheet.create({
@@ -43,7 +43,6 @@ export const useStyles = createStyles((theme) =>
         },
 
         title: { color: theme.palette.text.inverted },
-        titleInteractive: { opacity: 0.95 },
 
         // Actions are absolute: their position doesn't depend on SLOT_W.
         action: {

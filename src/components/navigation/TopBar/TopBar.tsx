@@ -15,7 +15,6 @@ type Props = {
     title?: string;
     right?: React.ReactNode;
     forceBack?: boolean;
-    onTitlePress?: () => void;
 };
 
 type TopPillPathParams = {
@@ -69,12 +68,7 @@ export const buildTopPillPath = ({
     ].join(' ');
 };
 
-export const TopBar = ({
-    title,
-    right,
-    forceBack = false,
-    onTitlePress,
-}: Props) => {
+export const TopBar = ({ title, right, forceBack = false }: Props) => {
     const nav = useNavigation();
     const router = useRouter();
     const segments = useSegments();
@@ -98,29 +92,28 @@ export const TopBar = ({
     const pillPath = useMemo(() => {
         if (centerW <= 0) return '';
 
-        const sideW = Math.round(PILL_H * 2); // or tweak 1.8..2.2
+        const desiredSideW = Math.round(PILL_H * 2); // or tweak 1.8..2.2
+        const sideW = Math.min(desiredSideW, Math.floor(centerW / 2));
         const middleW = Math.max(0, centerW - 2 * sideW);
 
         return buildTopPillPath({ h: PILL_H, middleW, sideW });
     }, [centerW]);
 
     const onBack = () => {
-        try {
-            router.back();
-        } catch {
-            if (typeof nav.goBack === 'function' && nav.canGoBack())
-                nav.goBack();
+        if (typeof nav.canGoBack === 'function' && nav.canGoBack()) {
+            nav.goBack();
+            return;
         }
+        router.back();
     };
 
     const onOpenDrawer = () => {
-        try {
-            nav.dispatch(DrawerActions.openDrawer());
-        } catch {}
+        nav.dispatch(DrawerActions.openDrawer());
     };
 
     const iconColor = theme.palette.text.primary;
     const barStyle = themeName === 'dark' ? 'light-content' : 'dark-content';
+    const titleMaxWidth = Math.max(0, centerW - Math.round(PILL_H * 3));
 
     return (
         <View style={[st.root, { paddingTop: theme.insets.top }]}>
@@ -145,13 +138,11 @@ export const TopBar = ({
                         )}
 
                         <AppText
-                            variant="title3"
+                            variant="title2"
                             align="center"
                             numberOfLines={1}
-                            onPress={onTitlePress}
-                            style={
-                                onTitlePress ? st.titleInteractive : st.title
-                            }
+                            ellipsizeMode="tail"
+                            style={[st.title, { maxWidth: titleMaxWidth }]}
                         >
                             {title ?? ''}
                         </AppText>
