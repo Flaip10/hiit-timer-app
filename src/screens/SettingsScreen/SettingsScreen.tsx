@@ -14,6 +14,7 @@ import { AppLogo } from '@src/components/ui/AppLogo/AppLogo';
 import { SettingsSection } from './components/SettingsSection';
 import { SettingsSubSection } from './components/SettingsSubSection';
 import { OptionPills } from './components/OptionPills';
+import { type AccentId, COLOR_ACCENTS } from '@src/theme/palette';
 
 const LANGUAGE_OPTIONS: { value: LanguageCode; label: string; flag: string }[] =
     [
@@ -26,8 +27,14 @@ const APP_NAME = Application.applicationName ?? 'ARC Timer';
 
 const SettingsScreen = () => {
     const { preference, setPreference } = useTheme();
-    const { isSoundEnabled, language, setIsSoundEnabled, setLanguage } =
-        useSettingsStore();
+    const {
+        isSoundEnabled,
+        language,
+        accentPreference,
+        setIsSoundEnabled,
+        setLanguage,
+        setAccentPreference,
+    } = useSettingsStore();
     const st = useSettingsStyles();
 
     const themeOptions = [
@@ -51,6 +58,17 @@ const SettingsScreen = () => {
         ),
     }));
 
+    const colorAccentOptions = (Object.keys(COLOR_ACCENTS) as AccentId[]).map(
+        (id) => {
+            const accent = COLOR_ACCENTS[id];
+
+            return {
+                value: id,
+                label: accent.label,
+            };
+        }
+    );
+
     return (
         <MainContainer title="Settings">
             <SettingsSection iconId="appearance" title="Appearance">
@@ -61,13 +79,13 @@ const SettingsScreen = () => {
                         onSelect={setPreference}
                     />
                 </SettingsSubSection>
-                {/* <SettingsSubSection description="Select your preferred color accent">
+                <SettingsSubSection description="Select your preferred color accent">
                     <OptionPills
-                        options={colorAccessibilityOptions}
-                        selectedValue={colorAccessibility}
-                        onSelect={setColorAccessibility}
+                        options={colorAccentOptions}
+                        selectedValue={accentPreference}
+                        onSelect={setAccentPreference}
                     />
-                </SettingsSubSection> */}
+                </SettingsSubSection>
             </SettingsSection>
 
             <View style={st.separator} />

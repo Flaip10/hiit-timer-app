@@ -1,6 +1,12 @@
 import type { EdgeInsets } from 'react-native-safe-area-context';
-import { lightPalette, darkPalette, type ThemePalette } from './palette';
+import {
+    buildLightPalette,
+    buildDarkPalette,
+    type ThemePalette,
+    type AccentTokens,
+} from './palette';
 import { createLayout, type ThemeLayout } from './layout';
+import { VIOLET_ACCENT } from './palette';
 
 export type ThemeName = 'light' | 'dark';
 export type ThemePreference = ThemeName | 'system';
@@ -20,12 +26,15 @@ export const buildTheme = ({
     name,
     uiScale,
     insets,
+    accent = VIOLET_ACCENT,
 }: {
     name: ThemeName;
     uiScale: number;
     insets: EdgeInsets;
+    accent?: AccentTokens;
 }): AppTheme => {
-    const palette = name === 'dark' ? darkPalette : lightPalette;
+    const palette =
+        name === 'dark' ? buildDarkPalette(accent) : buildLightPalette(accent);
 
     return {
         name,
