@@ -7,6 +7,7 @@ import { useTheme } from '@src/theme/ThemeProvider';
 import DrawerItemRow from './DrawerItemRow/DrawerItemRow';
 import { useStyles } from './AppDrawerContent.styles';
 import { AppLogo } from '@src/components/ui/AppLogo/AppLogo';
+import { Watermark } from '@src/components/ui/Watermark/Watermark';
 
 const resolveLabel = (
     routeName: string,
@@ -33,13 +34,7 @@ const DrawerHeader = () => {
     return (
         <View style={st.header}>
             <View style={st.headerContent}>
-                <AppLogo
-                    size={44}
-                    withBackground
-                    // darkColor="#23272A"
-                    // progressColor="#D7C19A"
-                    // bgColor="#F6F3EB"
-                />
+                <AppLogo size={44} withBackground />
                 <View style={st.headerTitleContainer}>
                     <AppText variant="title2" style={st.headerTitle}>
                         ARC Timer
@@ -72,6 +67,8 @@ const AppDrawerContent = ({
     return (
         <View style={st.root}>
             <DrawerHeader />
+
+            <Watermark watermarkMode="medium" watermarkPosition="bottom" />
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
