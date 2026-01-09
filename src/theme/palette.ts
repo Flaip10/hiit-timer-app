@@ -22,6 +22,7 @@ export interface ThemePalette {
         primary: string; // brand color (buttons, key actions)
         soft: string; // low-emphasis accent bg (chips, pills)
         surfaces: string;
+        darkInk: string;
     };
     button: {
         primary: string;
@@ -67,6 +68,10 @@ export interface ThemePalette {
             background: string;
             icon: string;
         };
+    };
+    fieldLabel: {
+        icon: string;
+        iconBackground: string;
     };
     overlay: {
         scrim: string;
@@ -153,6 +158,7 @@ export const buildLightPalette = (accent: AccentTokens): ThemePalette => ({
         primary: accent.primary,
         soft: accent.soft,
         surfaces: colors.gray[900],
+        darkInk: accent.darkInk,
     },
     button: {
         primary: accent.primary,
@@ -199,6 +205,10 @@ export const buildLightPalette = (accent: AccentTokens): ThemePalette => ({
             icon: accent.darkInk,
         },
     },
+    fieldLabel: {
+        icon: accent.darkInk,
+        iconBackground: accent.soft,
+    },
     overlay: {
         scrim: colors.overlay.scrim,
     },
@@ -226,6 +236,7 @@ export const buildDarkPalette = (accent: AccentTokens): ThemePalette => ({
         primary: accent.primary,
         soft: colors.gray[900],
         surfaces: colors.gray[900],
+        darkInk: accent.darkInk,
     },
     button: {
         primary: accent.primary,
@@ -271,6 +282,10 @@ export const buildDarkPalette = (accent: AccentTokens): ThemePalette => ({
             background: colors.gray.secondaryButton,
             icon: colors.gray[50],
         },
+    },
+    fieldLabel: {
+        icon: accent.primary,
+        iconBackground: colors.gray[900],
     },
     overlay: {
         scrim: colors.overlay.scrim,
