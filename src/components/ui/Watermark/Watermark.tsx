@@ -9,7 +9,16 @@ import {
 import { useWatermarkStyles } from './Watermark.styles';
 
 export type WatermarkMode = 'none' | 'subtle' | 'medium';
-export type WatermarkPosition = 'center' | 'bottom-right' | 'bottom-left';
+export type WatermarkPosition =
+    | 'center'
+    | 'top'
+    | 'bottom'
+    | 'left'
+    | 'right'
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right';
 
 export interface WatermarkProps {
     watermarkMode?: WatermarkMode;
@@ -86,17 +95,52 @@ export const Watermark: React.FC<WatermarkProps> = ({
     // Base compensation to align the content to the chosen edge/center
     const baseOffset = (() => {
         switch (watermarkPosition) {
-            case 'bottom-right':
+            case 'top-left':
                 return {
-                    // Negative values here push the box outside so the content sits on the edge
+                    x: -(insetsPx.left + offsetXPx),
+                    y: -(insetsPx.top + offsetYPx),
+                };
+
+            case 'top-right':
+                return {
                     x: -(insetsPx.right + offsetXPx),
-                    y: -(insetsPx.bottom + offsetYPx),
+                    y: -(insetsPx.top + offsetYPx),
                 };
 
             case 'bottom-left':
                 return {
                     x: -(insetsPx.left + offsetXPx),
                     y: -(insetsPx.bottom + offsetYPx),
+                };
+
+            case 'bottom-right':
+                return {
+                    x: -(insetsPx.right + offsetXPx),
+                    y: -(insetsPx.bottom + offsetYPx),
+                };
+
+            case 'top':
+                return {
+                    x: (insetsPx.left - insetsPx.right) / 2 + offsetXPx,
+                    y: -(insetsPx.top + offsetYPx),
+                };
+
+            case 'bottom':
+                return {
+                    x: (insetsPx.left - insetsPx.right) / 2 + offsetXPx,
+                    y: -(insetsPx.bottom + offsetYPx),
+                };
+
+            case 'left':
+                return {
+                    x: -(insetsPx.left + offsetXPx),
+                    y: (insetsPx.top - insetsPx.bottom) / 2 + offsetYPx,
+                };
+
+            case 'right':
+                return {
+                    x: -(insetsPx.right + offsetXPx),
+                    y: (insetsPx.top - insetsPx.bottom) / 2 + offsetYPx,
                 };
 
             case 'center':

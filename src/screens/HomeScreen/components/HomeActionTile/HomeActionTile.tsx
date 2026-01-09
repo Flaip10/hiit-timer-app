@@ -1,8 +1,9 @@
-import React from 'react';
-import { Pressable, View } from 'react-native';
+import React, { useState } from 'react';
+import { Pressable, View, type LayoutChangeEvent } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
+import { Watermark } from '@src/components/ui/Watermark/Watermark';
 import { useStyles } from './HomeActionTile.styles';
 
 export type HomeActionTileProps = {
@@ -22,12 +23,32 @@ export const HomeActionTile = ({
 }: HomeActionTileProps) => {
     const { theme } = useTheme();
     const st = useStyles({ variant });
+    const [tileHeight, setTileHeight] = useState<number | null>(null);
+
+    const handleLayout = (event: LayoutChangeEvent) => {
+        const { height } = event.nativeEvent.layout;
+        setTileHeight(height);
+    };
+
+    // Watermark size is proportional to tile height
+    const watermarkSize = tileHeight ? tileHeight * 0.9 : undefined;
 
     return (
         <Pressable
             onPress={onPress}
             style={({ pressed }) => [st.root, pressed && st.pressed]}
+            onLayout={handleLayout}
         >
+            {variant === 'secondary' && watermarkSize && (
+                <Watermark
+                    watermarkMode="medium"
+                    watermarkSize={watermarkSize}
+                    watermarkPosition="bottom-right"
+                    offsetY={0.05}
+                    offsetX={0.05}
+                    sizeScale={0.9}
+                />
+            )}
             <Ionicons
                 name={icon}
                 size={variant === 'primary' ? 26 : 22}

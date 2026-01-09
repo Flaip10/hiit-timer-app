@@ -28,14 +28,76 @@ export const useWatermarkStyles = createStyles(
                     ],
                 }),
 
-                ...(watermarkPosition === 'bottom-right' && {
-                    right: offsetX,
-                    bottom: offsetY,
+                ...(watermarkPosition === 'top-left' && {
+                    left: 0,
+                    top: 0,
+                    transform: [
+                        { translateX: offsetX },
+                        { translateY: offsetY },
+                    ],
+                }),
+
+                ...(watermarkPosition === 'top-right' && {
+                    right: 0,
+                    top: 0,
+                    transform: [
+                        { translateX: -offsetX },
+                        { translateY: offsetY },
+                    ],
                 }),
 
                 ...(watermarkPosition === 'bottom-left' && {
-                    left: offsetX,
+                    left: 0,
+                    bottom: 0,
+                    transform: [
+                        { translateX: offsetX },
+                        { translateY: -offsetY },
+                    ],
+                }),
+
+                ...(watermarkPosition === 'bottom-right' && {
+                    right: 0,
+                    bottom: 0,
+                    transform: [
+                        { translateX: -offsetX },
+                        { translateY: -offsetY },
+                    ],
+                }),
+
+                ...(watermarkPosition === 'top' && {
+                    top: offsetY,
+                    left: 0,
+                    right: 0,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    transform: [{ translateX: offsetX }],
+                }),
+
+                ...(watermarkPosition === 'bottom' && {
                     bottom: offsetY,
+                    left: 0,
+                    right: 0,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    transform: [{ translateX: offsetX }],
+                }),
+
+                ...(watermarkPosition === 'left' && {
+                    left: offsetX,
+                    top: 0,
+                    bottom: 0,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    transform: [{ translateY: offsetY }],
+                }),
+
+                ...(watermarkPosition === 'right' && {
+                    right: offsetX,
+                    top: 0,
+                    bottom: 0,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    transform: [{ translateY: offsetY }],
                 }),
             },
         })

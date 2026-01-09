@@ -14,6 +14,8 @@ export const useStyles = createStyles(
                         : theme.palette.background.card,
                 justifyContent: 'space-between',
                 gap: 24,
+                position: 'relative',
+                overflow: 'hidden',
             },
 
             pressed: {
