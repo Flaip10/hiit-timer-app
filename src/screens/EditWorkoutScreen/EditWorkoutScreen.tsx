@@ -37,9 +37,9 @@ const createEmptyBlock = (): WorkoutBlock => ({
 });
 
 const EditWorkoutScreen = () => {
-    const { id, importing } = useLocalSearchParams<{
+    const { id, fromImport } = useLocalSearchParams<{
         id?: string;
-        importing?: string;
+        fromImport?: string;
     }>();
     const router = useRouter();
 
@@ -62,7 +62,7 @@ const EditWorkoutScreen = () => {
     // initialise / cleanup draft
     useEffect(() => {
         // If we are importing, DO NOT touch the draft.
-        if (importing === '1') return;
+        if (fromImport === '1') return;
 
         if (id) {
             startDraftFromExisting(id);
@@ -73,7 +73,7 @@ const EditWorkoutScreen = () => {
         return () => {
             clearDraft();
         };
-    }, [clearDraft, id, importing, startDraftFromExisting, startDraftNew]);
+    }, [clearDraft, id, fromImport, startDraftFromExisting, startDraftNew]);
 
     const name = draft?.name ?? 'New Workout';
     const blocks = draft?.blocks ?? [];
