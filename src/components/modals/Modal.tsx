@@ -1,5 +1,13 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
-import { Modal as RNModal, View, Animated, Easing } from 'react-native';
+import type { ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import {
+    Modal as RNModal,
+    View,
+    Animated,
+    Easing,
+    type StyleProp,
+    type ViewStyle,
+} from 'react-native';
 import { useModalStyles } from './Modal.styles';
 import GuardedPressable from '../ui/GuardedPressable/GuardedPressable';
 
@@ -8,6 +16,10 @@ type ModalProps = {
     onRequestClose: () => void;
     children: ReactNode;
     dismissOnBackdrop?: boolean;
+    solidBackground?: boolean;
+    containerStyle?: StyleProp<ViewStyle>;
+    contentStyle?: StyleProp<ViewStyle>;
+    animationType?: 'none' | 'slide' | 'fade';
 };
 
 export const Modal = ({
@@ -15,6 +27,10 @@ export const Modal = ({
     onRequestClose,
     children,
     dismissOnBackdrop = true,
+    solidBackground = false,
+    containerStyle,
+    contentStyle,
+    animationType = 'none',
 }: ModalProps) => {
     const fade = useRef(new Animated.Value(0)).current;
     const scale = useRef(new Animated.Value(0.96)).current;
@@ -25,7 +41,7 @@ export const Modal = ({
     // guard stale callbacks
     const animTokenRef = useRef(0);
 
-    const st = useModalStyles();
+    const st = useModalStyles({ solidBackground });
 
     useEffect(() => {
         animTokenRef.current += 1;
@@ -88,7 +104,7 @@ export const Modal = ({
         <RNModal
             visible={mounted} // IMPORTANT: not `visible`
             transparent
-            animationType="none"
+            animationType={animationType}
             onRequestClose={onRequestClose}
             statusBarTranslucent
         >
@@ -99,10 +115,13 @@ export const Modal = ({
                 />
             </Animated.View>
 
-            <View style={st.centerWrap} pointerEvents="box-none">
+            <View
+                style={[st.centerWrap, containerStyle]}
+                pointerEvents="box-none"
+            >
                 <Animated.View
                     style={[
-                        st.sheet,
+                        contentStyle,
                         { transform: [{ scale }], opacity: fade },
                     ]}
                 >
