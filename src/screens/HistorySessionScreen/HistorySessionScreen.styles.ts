@@ -47,7 +47,7 @@ export const useHistorySessionStyles = createStyles((_theme: AppTheme) =>
         },
         metricCard: {
             flex: 1,
-            minWidth: '30%',
+            minWidth: '25%',
             gap: 4,
         },
         metricLabel: {
