@@ -1,23 +1,21 @@
 import { createStyles } from '@src/theme/createStyles';
 
-const useFinishedCardStyles = createStyles((theme) => ({
-    finishedCard: {
-        marginHorizontal: 16,
-        paddingVertical: theme.layout.card.padding,
-        paddingHorizontal: theme.layout.card.padding,
-        borderRadius: theme.layout.card.borderRadius,
-        backgroundColor: theme.palette.background.card,
-        // backgroundColor: '#020617',
-        borderWidth: 1,
-        borderColor: theme.palette.border.subtle,
-        // borderColor: '#1F2937',
+const useFinishedCardStyles = createStyles((_theme) => ({
+    finishedCard: {},
+    overviewRow: {
+        flexDirection: 'row',
+        alignItems: 'stretch',
+        justifyContent: 'space-between',
+        gap: 16,
+        flexWrap: 'wrap',
     },
-    finishedTitle: {
-        color: theme.palette.text.primary,
-        marginBottom: 10,
+    metricCard: {
+        flex: 1,
+        minWidth: '25%',
+        gap: 4,
     },
-    finishedBody: {
-        color: theme.palette.text.muted,
+    metricLabel: {
+        marginBottom: 2,
     },
 }));
 

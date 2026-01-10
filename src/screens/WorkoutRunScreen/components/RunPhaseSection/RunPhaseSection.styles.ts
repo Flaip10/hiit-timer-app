@@ -63,13 +63,7 @@ export const useRunPhaseSectionStyles = createStyles((theme: AppTheme) =>
             flex: 1,
             width: '100%',
             gap: 16,
-        },
-        finishedFooterRow: {
-            flexShrink: 0,
-            flexDirection: 'row',
-            alignItems: 'center',
             justifyContent: 'center',
-            width: '100%',
         },
     })
 );

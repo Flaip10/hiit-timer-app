@@ -24,10 +24,12 @@ import useStepBeeps from './hooks/useStepBeeps';
 import { useWorkoutHistory } from '@src/state/stores/useWorkoutHistory';
 import { useSettingsStore } from '@src/state/useSettingsStore';
 import { prepareRunData } from '@src/core/timer';
+import { useTheme } from '@src/theme/ThemeProvider';
 
 export const WorkoutRunScreen = () => {
     useKeepAwake();
     const router = useRouter();
+    const { theme } = useTheme();
 
     const st = useWorkoutRunStyles();
 
@@ -136,6 +138,18 @@ export const WorkoutRunScreen = () => {
         sessionSavedRef.current = true;
     }, [running, isFinished, workout, runStats, mode, id]);
 
+    // -------- Calculate total duration when finished --------
+    const totalDurationSec = useMemo(() => {
+        if (!isFinished || startedAtMsRef.current == null) {
+            return undefined;
+        }
+        const endedAtMs = Date.now();
+        const totalSec = Math.round(
+            (endedAtMs - startedAtMsRef.current) / 1000
+        );
+        return totalSec > 0 ? totalSec : undefined;
+    }, [isFinished]);
+
     // -------- empty / not found state --------
 
     if (!workout || plan.steps.length === 0) {
@@ -165,7 +179,9 @@ export const WorkoutRunScreen = () => {
 
     // -------- visual mapping from phase --------
 
-    const phaseColor = colorFor(phase, !!isSetRest);
+    const phaseColor = isFinished
+        ? theme.palette.accent.primary
+        : colorFor(phase, !!isSetRest);
     const phaseLabel = labelFor(phase, !!isSetRest);
 
     // ----- handlers --------
@@ -238,6 +254,8 @@ export const WorkoutRunScreen = () => {
                     remainingSec={remainingSec}
                     breathingPhase={breathingPhase}
                     openSharePreview={openSharePreview}
+                    runStats={runStats}
+                    totalDurationSec={totalDurationSec}
                 />
 
                 {/* Share preview modal – only used on finished state */}
@@ -274,6 +292,7 @@ export const WorkoutRunScreen = () => {
                     onSkip={handleSkip}
                     onRequestEnd={handleRequestEnd}
                     onDone={handleDone}
+                    onShare={openSharePreview}
                     isBlockPause={awaitingBlockContinue}
                 />
             </FooterBar>

@@ -4,15 +4,13 @@ import Animated, {
     useAnimatedStyle,
     type SharedValue,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
 
 import type { Phase, Step } from '@src/core/timer';
 import type { WorkoutBlock } from '@src/core/entities/entities';
+import type { WorkoutSessionStats } from '@src/core/entities/workoutSession.interfaces';
 
 import { AppText } from '@src/components/ui/Typography/AppText';
-import { useTheme } from '@src/theme/ThemeProvider';
 import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
-import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
 
 import FinishedCard from './components/FinishedCard/FinishedCard';
 import { PhasePill } from './components/PhasePill/PhasePill';
@@ -43,6 +41,8 @@ type RunPhaseSectionProps = {
 
     // Finishing Zone
     openSharePreview: () => void;
+    runStats?: WorkoutSessionStats;
+    totalDurationSec?: number;
 };
 
 export const RunPhaseSection = ({
@@ -57,10 +57,10 @@ export const RunPhaseSection = ({
     currentStep,
     isRunning,
     breathingPhase,
-    openSharePreview,
+    runStats,
+    totalDurationSec,
 }: RunPhaseSectionProps) => {
     const st = useRunPhaseSectionStyles();
-    const { theme } = useTheme();
 
     const isBlockPause = awaitingBlockContinue && !!currentBlock;
 
@@ -123,44 +123,40 @@ export const RunPhaseSection = ({
                 </View>
 
                 {/* EXERCISES */}
-                {!isFinished && currentExerciseName && (
-                    <View style={st.exerciseInfoContainer}>
-                        {currentExerciseName.length > 0 && (
-                            <ExerciseInfoCard
-                                phase={phase}
-                                color={phaseColor}
-                                currentExerciseName={currentExerciseName}
-                            />
-                        )}
+                {/* {!isFinished && currentExerciseName && ( */}
+                <AppearingView
+                    visible={!isFinished && currentExerciseName != null}
+                    style={st.exerciseInfoContainer}
+                    delay={260}
+                >
+                    {/* <View style={st.exerciseInfoContainer}> */}
+                    {currentExerciseName && currentExerciseName.length > 0 && (
+                        <ExerciseInfoCard
+                            phase={phase}
+                            color={phaseColor}
+                            currentExerciseName={currentExerciseName}
+                        />
+                    )}
 
-                        {nextExerciseName && nextExerciseName.length > 0 && (
-                            <NextExerciseCarousel
-                                phase={phase}
-                                label={nextExerciseName}
-                            />
-                        )}
-                    </View>
-                )}
+                    {nextExerciseName && nextExerciseName.length > 0 && (
+                        <NextExerciseCarousel
+                            phase={phase}
+                            label={nextExerciseName}
+                        />
+                    )}
+                </AppearingView>
+                {/* )} */}
 
                 {/* FINISHING ZONE */}
                 <AppearingView
                     visible={isFinished}
                     style={st.finishedContainer}
+                    delay={260}
                 >
-                    <FinishedCard />
-
-                    <View style={st.finishedFooterRow}>
-                        <CircleIconButton
-                            onPress={openSharePreview}
-                            variant="secondary"
-                        >
-                            <Ionicons
-                                name="share-outline"
-                                size={22}
-                                color={theme.palette.text.primary}
-                            />
-                        </CircleIconButton>
-                    </View>
+                    <FinishedCard
+                        runStats={runStats}
+                        totalDurationSec={totalDurationSec}
+                    />
                 </AppearingView>
             </AppearingView>
         </View>
