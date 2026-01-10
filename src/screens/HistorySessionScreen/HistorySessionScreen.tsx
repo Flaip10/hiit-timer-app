@@ -1,8 +1,6 @@
-import React, { useRef, useState } from 'react';
-import { View, Modal } from 'react-native';
+import React, { useState } from 'react';
+import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { captureRef } from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
 
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
@@ -12,10 +10,8 @@ import { Button } from '@src/components/ui/Button/Button';
 import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
 import { AppIcon } from '@src/components/ui/Icon/AppIcon';
 import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
-import {
-    ShareWorkoutCard,
-    type ShareRunStats,
-} from '@src/screens/WorkoutRunScreen/components/ShareWorkoutCard/ShareWorkoutCard';
+import { type ShareRunStats } from '@src/screens/WorkoutRunScreen/components/ShareWorkoutCard/ShareWorkoutCard';
+import { ShareWorkoutModal } from '@src/components/modals/ShareWorkoutModal/ShareWorkoutModal';
 
 import { useWorkout, useWorkouts } from '@state/useWorkouts';
 import { useWorkoutHistory } from '@src/state/stores/useWorkoutHistory';
@@ -34,7 +30,6 @@ const HistorySessionScreen = () => {
     const st = useHistorySessionStyles();
 
     const [shareVisible, setShareVisible] = useState(false);
-    const shareCardRef = useRef<View | null>(null);
 
     const session = useWorkoutHistory((s) =>
         sessionId ? s.sessions[sessionId] : undefined
@@ -201,26 +196,6 @@ const HistorySessionScreen = () => {
 
     const closeSharePreview = () => {
         setShareVisible(false);
-    };
-
-    const handleConfirmShare = async () => {
-        try {
-            const node = shareCardRef.current;
-            if (!node) return;
-
-            const uri = await captureRef(node, {
-                format: 'png',
-                quality: 1,
-            });
-
-            if (await Sharing.isAvailableAsync()) {
-                await Sharing.shareAsync(uri);
-            }
-
-            setShareVisible(false);
-        } catch (err) {
-            console.warn('Share failed', err);
-        }
     };
 
     // -------- UI --------
@@ -597,40 +572,12 @@ const HistorySessionScreen = () => {
             </FooterBar>
 
             {/* Share preview modal */}
-            <Modal
+            <ShareWorkoutModal
                 visible={shareVisible}
-                transparent
-                animationType="slide"
-                onRequestClose={closeSharePreview}
-            >
-                <View style={st.shareModalBackdrop}>
-                    <View style={st.shareModalContent}>
-                        <View style={st.shareModalCardWrapper}>
-                            <ShareWorkoutCard
-                                workout={session.workoutSnapshot}
-                                shareRef={shareCardRef}
-                                runStats={runStats}
-                            />
-                        </View>
-
-                        <View style={st.shareModalButtonsRow}>
-                            <Button
-                                title="Cancel"
-                                variant="secondary"
-                                onPress={closeSharePreview}
-                                flex={1}
-                            />
-                            <View style={st.shareModalButtonsSpacer} />
-                            <Button
-                                title="Share"
-                                variant="primary"
-                                onPress={handleConfirmShare}
-                                flex={1}
-                            />
-                        </View>
-                    </View>
-                </View>
-            </Modal>
+                onClose={closeSharePreview}
+                workout={session.workoutSnapshot}
+                runStats={runStats}
+            />
         </>
     );
 };

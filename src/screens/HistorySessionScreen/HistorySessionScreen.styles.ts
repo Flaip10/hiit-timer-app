@@ -2,7 +2,7 @@ import { createStyles } from '@src/theme/createStyles';
 import type { AppTheme } from '@src/theme/theme';
 import { StyleSheet } from 'react-native';
 
-export const useHistorySessionStyles = createStyles((theme: AppTheme) =>
+export const useHistorySessionStyles = createStyles((_theme: AppTheme) =>
     StyleSheet.create({
         headerRow: {
             flexDirection: 'row',
@@ -90,31 +90,6 @@ export const useHistorySessionStyles = createStyles((theme: AppTheme) =>
         },
         emptyTitle: {
             marginBottom: 4,
-        },
-
-        // Share modal
-        shareModalBackdrop: {
-            flex: 1,
-            backgroundColor: theme.palette.overlay.scrim,
-            justifyContent: 'center',
-            alignItems: 'center',
-        },
-        shareModalContent: {
-            width: '100%',
-            maxWidth: 400,
-            gap: 20,
-        },
-        shareModalCardWrapper: {
-            backgroundColor: theme.palette.background.primary,
-            borderRadius: 16,
-            overflow: 'hidden',
-        },
-        shareModalButtonsRow: {
-            flexDirection: 'row',
-            gap: 12,
-        },
-        shareModalButtonsSpacer: {
-            width: 12,
         },
     })
 );

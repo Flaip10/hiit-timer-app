@@ -1,11 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Modal } from 'react-native';
+import { View } from 'react-native';
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
-
-import { captureRef } from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
 
 import { useWorkout, useWorkouts } from '@state/useWorkouts';
 
@@ -14,9 +11,9 @@ import { FooterBar } from '@src/components/layout/FooterBar';
 import { Button } from '@src/components/ui/Button/Button';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
+import { ShareWorkoutModal } from '@src/components/modals/ShareWorkoutModal/ShareWorkoutModal';
 
 import useWorkoutRunStyles from './WorkoutRunScreen.styles';
-import { ShareWorkoutCard } from './components/ShareWorkoutCard/ShareWorkoutCard';
 import { useWorkoutRun } from './hooks/useWorkoutRun';
 import { colorFor, labelFor } from './helpers';
 import { RunTopSection } from './components/RunTopSection/RunTopSection';
@@ -36,7 +33,6 @@ export const WorkoutRunScreen = () => {
 
     const [shareVisible, setShareVisible] = useState(false);
     const [endConfirmVisible, setEndConfirmVisible] = useState(false);
-    const shareCardRef = useRef<View | null>(null);
 
     const { id, autoStart, mode, origin } = useLocalSearchParams<{
         id?: string;
@@ -183,27 +179,6 @@ export const WorkoutRunScreen = () => {
         setShareVisible(false);
     };
 
-    const handleConfirmShare = async () => {
-        try {
-            const node = shareCardRef.current;
-            if (!node) return;
-
-            const uri = await captureRef(node, {
-                format: 'png',
-                quality: 1,
-            });
-
-            if (await Sharing.isAvailableAsync()) {
-                await Sharing.shareAsync(uri);
-            }
-
-            setShareVisible(false);
-        } catch (err) {
-            // eslint-disable-next-line no-console
-            console.warn('Share failed', err);
-        }
-    };
-
     const handleRequestEnd = () => {
         if (running) handlePrimary(); // pause
         setEndConfirmVisible(true);
@@ -267,40 +242,12 @@ export const WorkoutRunScreen = () => {
 
                 {/* Share preview modal – only used on finished state */}
                 {isFinished && (
-                    <Modal
+                    <ShareWorkoutModal
                         visible={shareVisible}
-                        transparent
-                        animationType="slide"
-                        onRequestClose={closeSharePreview}
-                    >
-                        <View style={st.shareModalBackdrop}>
-                            <View style={st.shareModalContent}>
-                                <View style={st.shareModalCardWrapper}>
-                                    <ShareWorkoutCard
-                                        workout={workout}
-                                        shareRef={shareCardRef}
-                                        runStats={runStats}
-                                    />
-                                </View>
-
-                                <View style={st.shareModalButtonsRow}>
-                                    <Button
-                                        title="Cancel"
-                                        variant="secondary"
-                                        onPress={closeSharePreview}
-                                        flex={1}
-                                    />
-                                    <View style={st.shareModalButtonsSpacer} />
-                                    <Button
-                                        title="Share"
-                                        variant="primary"
-                                        onPress={handleConfirmShare}
-                                        flex={1}
-                                    />
-                                </View>
-                            </View>
-                        </View>
-                    </Modal>
+                        onClose={closeSharePreview}
+                        workout={workout}
+                        runStats={runStats}
+                    />
                 )}
 
                 {/* End-workout confirmation dialog */}
