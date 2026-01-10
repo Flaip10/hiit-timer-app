@@ -218,21 +218,6 @@ export const PhaseArc = ({
                     easing: Easing.inOut(Easing.cubic),
                 })
             );
-
-            // If we create ForcedFinish variable
-            // arcProgress.value = withSequence(
-            //     withTiming(0, {
-            //         duration: GLOW_DELAY,
-            //         easing: Easing.inOut(Easing.cubic),
-            //     }),
-            //     withDelay(
-            //         700,
-            //         withTiming(1, {
-            //             duration: 0,
-            //             easing: Easing.linear,
-            //         })
-            //     )
-            // );
         }
 
         prevFinished.current = finished;
