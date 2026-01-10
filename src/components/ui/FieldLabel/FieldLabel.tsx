@@ -24,7 +24,7 @@ export const FieldLabel: React.FC<FieldLabelProps> = ({
                 />
             </View>
 
-            <AppText variant="label" tone="muted">
+            <AppText variant="label" tone="secondary">
                 {label}
             </AppText>
         </View>

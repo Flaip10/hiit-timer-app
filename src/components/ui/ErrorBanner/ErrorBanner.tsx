@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Pressable, StyleProp, ViewStyle } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@src/theme/ThemeProvider';
@@ -25,7 +26,6 @@ const useStyles = createStyles((theme) => ({
         backgroundColor: theme.palette.feedback.errorBg,
         borderWidth: 1,
         borderColor: theme.palette.feedback.errorBorder,
-        marginBottom: 8,
         gap: 8,
         width: '100%',
     },

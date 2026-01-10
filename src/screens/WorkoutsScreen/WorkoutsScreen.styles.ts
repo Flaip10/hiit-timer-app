@@ -4,11 +4,13 @@ import type { AppTheme } from '@src/theme/theme';
 
 export const useWorkoutsScreenStyles = createStyles((theme: AppTheme) =>
     StyleSheet.create({
+        headerContainer: {
+            gap: theme.layout.listItem.gap,
+        },
         headerRow: {
             flexDirection: 'row',
             alignItems: 'center',
             gap: 8,
-            marginBottom: 6,
         },
 
         list: {
