@@ -27,7 +27,8 @@ export const useRunFooterStyles = createStyles((theme: AppTheme) =>
         // Finished state
         footerFinishedWrapper: {
             width: '100%',
-            paddingHorizontal: 16,
+            flexDirection: 'row',
+            gap: 12,
         },
         footerFinishedButton: {
             width: '100%',

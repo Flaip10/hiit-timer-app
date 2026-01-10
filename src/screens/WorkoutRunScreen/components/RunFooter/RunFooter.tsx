@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
+import { AppIcon } from '@src/components/ui/Icon/AppIcon';
 import { useRunFooterStyles } from './RunFooter.styles';
 import { HoldToConfirmButton } from '@src/components/ui/HoldToConfirmButton/HoldToConfirmButton';
 import { Button } from '@src/components/ui/Button/Button';
@@ -25,6 +26,7 @@ type RunFooterProps = {
     onSkip: () => void;
     onRequestEnd: () => void;
     onDone: () => void;
+    onShare: () => void;
 
     // Block pause behaviour
     isBlockPause: boolean;
@@ -40,11 +42,16 @@ export const RunFooter = ({
     onSkip,
     onRequestEnd,
     onDone,
+    onShare,
     isBlockPause,
     holdToContinueMs = 1000,
 }: RunFooterProps) => {
     const st = useRunFooterStyles();
     const { theme } = useTheme();
+
+    const shareIcon = (
+        <AppIcon id="share" size={18} color={theme.palette.text.inverted} />
+    );
 
     return (
         <>
@@ -54,9 +61,17 @@ export const RunFooter = ({
                 delay={260}
             >
                 <Button
-                    title="Back to summary"
+                    title="Back to home"
                     onPress={onDone}
+                    variant="secondary"
+                    flex={1}
+                />
+                <Button
+                    title="Share "
+                    onPress={onShare}
                     variant="primary"
+                    icon={shareIcon}
+                    flex={1}
                 />
             </AppearingView>
             <AppearingView
