@@ -5,19 +5,30 @@ import type { AppTheme } from '@src/theme/theme';
 export const useShareWorkoutCardStyles = createStyles((theme: AppTheme) =>
     StyleSheet.create({
         mainWrapper: {
+            flex: 1,
             borderRadius: 24,
+            aspectRatio: 0.56,
             borderWidth: 1,
             borderColor: theme.palette.border.subtle,
             overflow: 'hidden',
+            justifyContent: 'center',
+            alignItems: 'center',
+            maxWidth: '100%',
         },
         cardContainer: {
+            flex: 1,
             aspectRatio: 0.56, // share-friendly 9/16
+            maxWidth: '100%',
             padding: 20,
             paddingTop: 80,
             gap: 14,
             backgroundColor: theme.palette.background.primary,
             justifyContent: 'space-between',
             position: 'relative',
+        },
+
+        cardWatermark: {
+            paddingTop: 60,
         },
 
         // HEADER

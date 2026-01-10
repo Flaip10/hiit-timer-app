@@ -121,6 +121,7 @@ export const ShareWorkoutCard = ({
                     watermarkMode="medium"
                     watermarkPosition="center"
                     sizeScale={1.2}
+                    style={st.cardWatermark}
                 />
                 {/* Header */}
                 <View style={st.cardHeaderRow}>
