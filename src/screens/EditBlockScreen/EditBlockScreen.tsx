@@ -15,7 +15,6 @@ import { useBlockEditor } from './useBlockEditor';
 import { useBlockEditStyles } from './EditBlockScreen.styles';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
-import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
 
 const EditBlockScreen = () => {
     const { blockId, quick } = useLocalSearchParams<{
@@ -152,23 +151,7 @@ const EditBlockScreen = () => {
                     </View>
                 </ScreenSection>
                 {/* Exercises section */}
-                <ScreenSection
-                    title="Exercises"
-                    topSpacing="large"
-                    rightAccessory={
-                        <GuardedPressable
-                            onPress={onAddExercise}
-                            style={({ pressed }) => [
-                                st.addMinor,
-                                pressed && st.pressed,
-                            ]}
-                        >
-                            <AppText variant="bodySmall" tone="primary">
-                                ＋ Add Exercise
-                            </AppText>
-                        </GuardedPressable>
-                    }
-                >
+                <ScreenSection title="Exercises" topSpacing="large">
                     <View style={st.exercisesGap}>
                         {block.exercises.map((ex, ei) => (
                             <ExerciseCard
@@ -182,6 +165,12 @@ const EditBlockScreen = () => {
                     </View>
 
                     {errorBox}
+
+                    <Button
+                        title="＋ Add Exercise"
+                        onPress={onAddExercise}
+                        variant="secondary"
+                    />
                 </ScreenSection>
             </MainContainer>
 
