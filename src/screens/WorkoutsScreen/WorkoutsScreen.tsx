@@ -76,15 +76,21 @@ const WorkoutsScreen = () => {
             if (!result.ok) {
                 if (result.error === 'CANCELLED') return;
 
-                if (result.error === 'INVALID_KIND') {
-                    setImportError(
-                        'That file is not a HIIT Timer workout (.hitw).'
-                    );
-                } else if (result.error === 'PARSE_FAILED') {
-                    setImportError('The file is corrupted or not valid JSON.');
-                } else if (result.error === 'READ_FAILED') {
-                    setImportError('Could not read the selected file.');
-                }
+                const messageByError: Record<
+                    Exclude<typeof result.error, 'CANCELLED'>,
+                    string
+                > = {
+                    INVALID_EXTENSION:
+                        'That file is not an ARC Timer workout (.arcw).',
+                    INVALID_KIND:
+                        'That file is not an ARC Timer workout export.',
+                    INVALID_SHAPE:
+                        'That file looks like an ARC Timer export, but it is missing data.',
+                    PARSE_FAILED: 'The file is corrupted or not valid JSON.',
+                    READ_FAILED: 'Could not read the selected file.',
+                };
+
+                setImportError(messageByError[result.error]);
                 return;
             }
 
@@ -97,7 +103,6 @@ const WorkoutsScreen = () => {
         } catch (err) {
             console.warn('Import failed (unexpected)', err);
             setImportError('Import failed due to an unexpected error.');
-            closeModal();
         } finally {
             setImporting(false);
             closeModal();
@@ -112,21 +117,22 @@ const WorkoutsScreen = () => {
                 style={st.list}
                 contentContainerStyle={st.listContent}
                 ListHeaderComponent={
-                    <View style={st.headerRow}>
-                        <SearchField
-                            value={search}
-                            onChangeText={setSearch}
-                            fullWidth
-                            placeholder="Search workouts"
-                        />
+                    <View style={st.headerContainer}>
+                        <View style={st.headerRow}>
+                            <SearchField
+                                value={search}
+                                onChangeText={setSearch}
+                                fullWidth
+                                placeholder="Search workouts"
+                            />
 
-                        <Button
-                            title="＋ New"
-                            variant="primary"
-                            onPress={() => setModalVisible(true)}
-                            style={st.newButton}
-                        />
-
+                            <Button
+                                title="＋ New"
+                                variant="primary"
+                                onPress={() => setModalVisible(true)}
+                                style={st.newButton}
+                            />
+                        </View>
                         <AppearingView visible={!!importError}>
                             <ErrorBanner
                                 message={importError ?? ''}

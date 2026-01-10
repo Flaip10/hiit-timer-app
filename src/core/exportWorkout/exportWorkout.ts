@@ -1,9 +1,10 @@
 import RNFS from 'react-native-fs';
 import * as Sharing from 'expo-sharing';
-import type { Workout } from '@src/core/entities/entities';
-import { ExportedWorkoutFileV1 } from '../exportWorkout/exportTypes';
 
-export const HIIT_WORKOUT_MIME = 'application/vnd.hiittimer.workout+json';
+import type { Workout } from '@src/core/entities/entities';
+import type { ExportedWorkoutFileV1 } from './exportTypes';
+
+export const ARC_WORKOUT_MIME = 'application/vnd.arctimer.workout+json';
 
 export type ExportResult =
     | { ok: true }
@@ -12,24 +13,37 @@ export type ExportResult =
           error: 'SHARING_UNAVAILABLE' | 'WRITE_FAILED' | 'SHARE_FAILED';
       };
 
+const toFileUri = (path: string): string =>
+    path.startsWith('file://') ? path : `file://${path}`;
+
+const sanitizeFilename = (name: string): string => {
+    const safe = name
+        .replace(/[^\w\s-]/g, '')
+        .trim()
+        .slice(0, 60);
+    return safe.length > 0 ? safe : 'Workout';
+};
+
 export const exportWorkoutToFile = async (
     workout: Workout
 ): Promise<ExportResult> => {
     const payload: ExportedWorkoutFileV1 = {
         version: 1,
-        kind: 'hiit-timer/workout',
+        kind: 'arc-timer/workout',
         exportedAt: new Date().toISOString(),
         app: {
-            name: 'HIIT Timer',
+            name: 'ARC Timer',
             platform: 'mobile',
         },
         workout,
     };
 
     const json = JSON.stringify(payload, null, 2);
-    const safeName = workout.name.replace(/[^\w\s-]/g, '').trim() || 'Workout';
-    const filename = `${safeName}.hitw`;
+
+    const safeName = sanitizeFilename(workout.name);
+    const filename = `${safeName}.arcw`;
     const filePath = `${RNFS.TemporaryDirectoryPath}/${filename}`;
+    const fileUri = toFileUri(filePath);
 
     try {
         await RNFS.writeFile(filePath, json, 'utf8');
@@ -51,8 +65,8 @@ export const exportWorkoutToFile = async (
     }
 
     try {
-        await Sharing.shareAsync(filePath, {
-            mimeType: HIIT_WORKOUT_MIME,
+        await Sharing.shareAsync(fileUri, {
+            mimeType: ARC_WORKOUT_MIME,
             dialogTitle: `Share workout "${workout.name}"`,
         });
 
