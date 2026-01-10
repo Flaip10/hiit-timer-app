@@ -32,7 +32,12 @@ const NewWorkoutModal = ({
     };
 
     return (
-        <Modal visible={visible} onRequestClose={closeModal}>
+        <Modal
+            visible={visible}
+            onRequestClose={closeModal}
+            containerStyle={st.modalContainer}
+            contentStyle={st.modalContent}
+        >
             <View style={st.mainContainer}>
                 <View style={st.textContainer}>
                     <AppText variant="title3" tone="primary">

@@ -3,6 +3,20 @@ import { createStyles } from '@src/theme/createStyles';
 
 export const useNewWorkoutModalStyles = createStyles((theme) =>
     StyleSheet.create({
+        modalContainer: {
+            padding: 20,
+        },
+        modalContent: {
+            backgroundColor: theme.palette.background.card,
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: theme.palette.border.subtle,
+            padding: 16,
+            shadowColor: theme.palette.background.primary,
+            shadowOpacity: 0.3,
+            shadowRadius: 12,
+            elevation: 8,
+        },
         mainContainer: {
             gap: 14,
         },
