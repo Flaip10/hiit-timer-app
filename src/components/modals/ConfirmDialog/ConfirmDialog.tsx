@@ -1,4 +1,5 @@
-import { ReactNode, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import { Modal } from '../Modal';
@@ -39,7 +40,12 @@ const ConfirmDialog = ({
     }, [visible, message]);
 
     return (
-        <Modal visible={visible} onRequestClose={onCancel}>
+        <Modal
+            visible={visible}
+            onRequestClose={onCancel}
+            containerStyle={st.modalContainer}
+            contentStyle={st.modalContent}
+        >
             <View style={st.container}>
                 <View style={st.textContainer}>
                     <AppText variant="title3" style={st.title}>
