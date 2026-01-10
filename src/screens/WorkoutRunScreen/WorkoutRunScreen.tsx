@@ -253,7 +253,6 @@ export const WorkoutRunScreen = () => {
                     currentBlockIndex={workoutContext.currentBlockIdx}
                     remainingSec={remainingSec}
                     breathingPhase={breathingPhase}
-                    openSharePreview={openSharePreview}
                     runStats={runStats}
                     totalDurationSec={totalDurationSec}
                 />

@@ -40,7 +40,6 @@ type RunPhaseSectionProps = {
     breathingPhase: SharedValue<number>;
 
     // Finishing Zone
-    openSharePreview: () => void;
     runStats?: WorkoutSessionStats;
     totalDurationSec?: number;
 };
