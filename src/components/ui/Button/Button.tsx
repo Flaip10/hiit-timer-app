@@ -18,12 +18,13 @@ export const Button: React.FC<ButtonProps> = ({
     disabled, // from PressableProps
     cooldownMs = 200,
     preventDoublePress = true,
+    icon,
     ...pressableProps
 }) => {
     const { theme } = useTheme();
     const st = useButtonStyles();
 
-    const isDisabled = disabled || loading;
+    const isDisabled = (disabled ?? false) || loading;
 
     const spinnerColor =
         variant === 'primary' || variant === 'danger'
@@ -34,6 +35,8 @@ export const Button: React.FC<ButtonProps> = ({
         <GuardedPressable
             {...pressableProps}
             onPress={isDisabled ? undefined : onPress}
+            cooldownMs={cooldownMs}
+            preventDoublePress={preventDoublePress}
             style={({ pressed }) => [
                 st.base,
                 st[variant],
@@ -48,12 +51,15 @@ export const Button: React.FC<ButtonProps> = ({
             {loading ? (
                 <ActivityIndicator color={spinnerColor} />
             ) : (
-                <AppText
-                    variant="bodySmall"
-                    style={[st.text, st[`text_${variant}`], textStyle]}
-                >
-                    {title}
-                </AppText>
+                <>
+                    {icon}
+                    <AppText
+                        variant="bodySmall"
+                        style={[st.text, st[`text_${variant}`], textStyle]}
+                    >
+                        {title}
+                    </AppText>
+                </>
             )}
         </GuardedPressable>
     );
