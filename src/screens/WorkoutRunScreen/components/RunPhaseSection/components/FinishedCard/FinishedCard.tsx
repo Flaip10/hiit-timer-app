@@ -7,6 +7,7 @@ import { useTheme } from '@src/theme/ThemeProvider';
 import type { WorkoutSessionStats } from '@src/core/entities/workoutSession.interfaces';
 import { formatWorkoutDuration } from '@src/core/workouts/summarizeWorkout';
 import useFinishedCardStyles from './FinishedCard.styles';
+import type { SessionStatsMetric } from '@src/screens/HistorySessionScreen/HistorySessionScreen';
 
 type FinishedCardProps = {
     runStats?: WorkoutSessionStats;
@@ -40,19 +41,50 @@ export const FinishedCard = ({
             ? formatWorkoutDuration(runStats.totalPausedSec)
             : '—';
 
-    const completedSets = runStats?.completedSets ?? 0;
+    const completedSets = runStats?.completedSets;
     const completedSetsText = runStats ? `${completedSets}` : '—';
-    const isSetsZero = completedSets === 0;
 
     const completedExercises = runStats?.completedExercises ?? 0;
     const completedExercisesText = runStats ? `${completedExercises}` : '—';
-    const isExercisesZero = completedExercises === 0;
 
-    // Check if time values are zero
-    const isWorkTimeZero = (runStats?.totalWorkSec ?? 0) === 0;
-    const isRestTimeZero = (runStats?.totalRestSec ?? 0) === 0;
-    const isPausedTimeZero = (runStats?.totalPausedSec ?? 0) === 0;
-    const isDurationZero = (totalDurationSec ?? 0) === 0;
+    const metrics: SessionStatsMetric[] = [
+        {
+            key: 'duration',
+            label: 'Duration',
+            value: totalDurationText,
+            isDimmed: totalDurationSec == null || totalDurationSec === 0,
+        },
+        {
+            key: 'sets',
+            label: 'Sets',
+            value: completedSetsText,
+            isDimmed: completedSets === 0,
+        },
+        {
+            key: 'exercises',
+            label: 'Exercises',
+            value: completedExercisesText,
+            isDimmed: completedExercises === 0,
+        },
+        {
+            key: 'work',
+            label: 'Work time',
+            value: workText,
+            isDimmed: runStats?.totalWorkSec === 0,
+        },
+        {
+            key: 'rest',
+            label: 'Rest time',
+            value: restText,
+            isDimmed: runStats?.totalRestSec === 0,
+        },
+        {
+            key: 'paused',
+            label: 'Paused time',
+            value: pausedText,
+            isDimmed: runStats?.totalPausedSec === 0,
+        },
+    ];
 
     return (
         <View style={st.finishedCard}>
@@ -74,101 +106,23 @@ export const FinishedCard = ({
                 }}
                 summaryContent={
                     <View style={st.overviewRow}>
-                        <View style={st.metricCard}>
-                            <AppText
-                                variant="caption"
-                                tone="muted"
-                                style={st.metricLabel}
-                            >
-                                Duration
-                            </AppText>
-                            <AppText
-                                variant="body"
-                                tone={isDurationZero ? 'muted' : 'primary'}
-                            >
-                                {totalDurationText}
-                            </AppText>
-                        </View>
-
-                        <View style={st.metricCard}>
-                            <AppText
-                                variant="caption"
-                                tone="muted"
-                                style={st.metricLabel}
-                            >
-                                Sets
-                            </AppText>
-                            <AppText
-                                variant="body"
-                                tone={isSetsZero ? 'muted' : 'primary'}
-                            >
-                                {completedSetsText}
-                            </AppText>
-                        </View>
-
-                        <View style={st.metricCard}>
-                            <AppText
-                                variant="caption"
-                                tone="muted"
-                                style={st.metricLabel}
-                            >
-                                Exercises
-                            </AppText>
-                            <AppText
-                                variant="body"
-                                tone={isExercisesZero ? 'muted' : 'primary'}
-                            >
-                                {completedExercisesText}
-                            </AppText>
-                        </View>
-
-                        <View style={st.metricCard}>
-                            <AppText
-                                variant="caption"
-                                tone="muted"
-                                style={st.metricLabel}
-                            >
-                                Work time
-                            </AppText>
-                            <AppText
-                                variant="body"
-                                tone={isWorkTimeZero ? 'muted' : 'primary'}
-                            >
-                                {workText}
-                            </AppText>
-                        </View>
-
-                        <View style={st.metricCard}>
-                            <AppText
-                                variant="caption"
-                                tone="muted"
-                                style={st.metricLabel}
-                            >
-                                Rest time
-                            </AppText>
-                            <AppText
-                                variant="body"
-                                tone={isRestTimeZero ? 'muted' : 'primary'}
-                            >
-                                {restText}
-                            </AppText>
-                        </View>
-
-                        <View style={st.metricCard}>
-                            <AppText
-                                variant="caption"
-                                tone="muted"
-                                style={st.metricLabel}
-                            >
-                                Paused time
-                            </AppText>
-                            <AppText
-                                variant="body"
-                                tone={isPausedTimeZero ? 'muted' : 'primary'}
-                            >
-                                {pausedText}
-                            </AppText>
-                        </View>
+                        {metrics.map(({ key, label, value, isDimmed }) => (
+                            <View key={key} style={st.metricCard}>
+                                <AppText
+                                    variant="caption"
+                                    tone="muted"
+                                    style={st.metricLabel}
+                                >
+                                    {label}
+                                </AppText>
+                                <AppText
+                                    variant="body"
+                                    tone={isDimmed ? 'muted' : 'primary'}
+                                >
+                                    {value}
+                                </AppText>
+                            </View>
+                        ))}
                     </View>
                 }
             />
