@@ -81,7 +81,7 @@ const EditWorkoutScreen = () => {
     const onAddBlock = () => {
         if (!draft) return;
 
-        setDraftBlocks([...(draft.blocks ?? []), createEmptyBlock()]);
+        setDraftBlocks([...draft.blocks, createEmptyBlock()]);
         setErrors((prev) => prev.filter((e) => e.field !== 'blocks'));
     };
 
@@ -159,7 +159,7 @@ const EditWorkoutScreen = () => {
                     label="Name"
                     value={name}
                     onChangeText={(value) => {
-                        updateDraftMeta({ name: value ?? '' });
+                        updateDraftMeta({ name: value });
                         // Clear only 'name' errors when user edits the name
                         setErrors((prev) =>
                             prev.filter((e) => e.field !== 'name')
