@@ -41,8 +41,6 @@ export const ShareWorkoutModal = ({
             if (await Sharing.isAvailableAsync()) {
                 await Sharing.shareAsync(uri);
             }
-
-            onClose();
         } catch (error) {
             console.warn('Share failed', error);
         }
@@ -79,4 +77,3 @@ export const ShareWorkoutModal = ({
         </Modal>
     );
 };
-
