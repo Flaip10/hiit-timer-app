@@ -12,7 +12,7 @@ export const useRunTopSectionStyles = createStyles((theme: AppTheme) =>
 
         pageHeader: {
             gap: 12,
-            paddingHorizontal: 16,
+            paddingHorizontal: 12,
         },
 
         upperRowContainer: {
