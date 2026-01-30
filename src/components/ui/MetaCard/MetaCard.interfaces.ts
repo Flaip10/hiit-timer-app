@@ -103,4 +103,8 @@ export interface MetaCardProps {
      * Optional image url to display in the card
      */
     imageUrl?: string;
+    /**
+     * Optional key to trigger a re-measure of the content of the card
+     */
+    measureKey?: string;
 }

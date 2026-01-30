@@ -1,19 +1,13 @@
+import type { FC, ReactElement } from 'react';
 import React, {
-    FC,
-    ReactElement,
     useCallback,
     useEffect,
     useMemo,
     useRef,
     useState,
 } from 'react';
-import {
-    Animated,
-    Easing,
-    LayoutChangeEvent,
-    View,
-    ViewProps,
-} from 'react-native';
+import type { LayoutChangeEvent, ViewProps } from 'react-native';
+import { Animated, Easing, View } from 'react-native';
 import type { MinHeightCollapseProps } from './MinHeightCollapse.interfaces';
 import { st } from './MinHeightCollapse.styles';
 

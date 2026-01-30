@@ -55,6 +55,7 @@ export const MetaCard: FC<MetaCardProps> = ({
     hideHours = false,
     imageUrl,
     initiallyExpanded = false,
+    measureKey,
 }) => {
     const [expanded, setExpanded] = useState(initiallyExpanded);
     const [overflowing, setOverflowing] = useState(false);
@@ -78,7 +79,7 @@ export const MetaCard: FC<MetaCardProps> = ({
 
     // Slot resolution
     const hasSummary = !!summaryContent;
-    const hasSplitSlots = !!(summaryContent || collapsibleContent);
+    const hasSplitSlots = summaryContent != null || collapsibleContent != null;
     const collapsibleInner = hasSplitSlots
         ? (collapsibleContent ?? null)
         : children;
@@ -274,6 +275,7 @@ export const MetaCard: FC<MetaCardProps> = ({
                 {/* Collapsible Content */}
                 {hasCollapsibleContent && (
                     <MinHeightCollapse
+                        key={measureKey}
                         expanded={
                             collapseTarget === 'content'
                                 ? collapseExpanded
