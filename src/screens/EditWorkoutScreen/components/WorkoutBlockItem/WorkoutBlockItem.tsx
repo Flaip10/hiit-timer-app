@@ -104,8 +104,17 @@ export const WorkoutBlockItem = ({
           }
         : undefined;
 
+    const measureKey = [
+        block.id,
+        block.sets,
+        block.exercises.length,
+        block.restBetweenSetsSec,
+        block.restBetweenExercisesSec,
+    ].join(':');
+
     return (
         <MetaCard
+            measureKey={measureKey}
             topLeftContent={{
                 text: blockLabel,
                 icon: (
