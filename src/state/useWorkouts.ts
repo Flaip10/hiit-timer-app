@@ -9,7 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type WorkoutsState = {
     // saved workouts
-    workouts: Record<string, Workout>;
+    workouts: Partial<Record<string, Workout>>;
     order: string[];
 
     // current draft (for create/edit flow)
@@ -93,7 +93,7 @@ export const useWorkouts = create<WorkoutsState>()(
 
             // ----- real workouts -----
             add: (workout) => {
-                const id = workout.id ?? uid();
+                const id = getValidId(workout.id);
                 const nextWorkout: Workout = { ...workout, id };
 
                 set((state) => {
@@ -180,18 +180,17 @@ export const useWorkouts = create<WorkoutsState>()(
             updateDraftMeta: (patch) =>
                 set((state) => {
                     if (!state.draft) return;
-                    Object.assign(state.draft, patch);
+                    state.draft = { ...state.draft, ...patch };
                 }),
 
             // patch a single block inside the draft by blockId
             updateDraftBlock: (blockId, patch) =>
                 set((state) => {
                     if (!state.draft) return;
-                    const block = state.draft.blocks.find(
-                        (b: WorkoutBlock) => b.id === blockId
+
+                    state.draft.blocks = state.draft.blocks.map((block) =>
+                        block.id === blockId ? { ...block, ...patch } : block
                     );
-                    if (!block) return;
-                    Object.assign(block, patch);
                 }),
 
             // replace all draft blocks (e.g. when coming back from EditBlockScreen)
@@ -207,7 +206,7 @@ export const useWorkouts = create<WorkoutsState>()(
                 const { draft, order } = get();
                 if (!draft) return null;
 
-                const id = draft.id ?? uid();
+                const id = getValidId(draft.id);
                 const workout: Workout = { ...draft, id };
 
                 set((state) => {
@@ -254,3 +253,7 @@ export const ensureStarter = (): void => {
     const { workouts, add } = useWorkouts.getState();
     if (Object.keys(workouts).length === 0) add(starterWorkout());
 };
+
+// ----- helpers ----------------------------------------------------
+
+const getValidId = (id?: string): string => (id && id.length > 0 ? id : uid());
