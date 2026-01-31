@@ -69,6 +69,7 @@ const starterWorkout = (): Workout => ({
     id: uid(),
     name: 'New Workout',
     blocks: [starterBlock()],
+    updatedAtMs: Date.now(),
 });
 
 const quickWorkout = (): Workout => ({
@@ -80,6 +81,7 @@ const quickWorkout = (): Workout => ({
             title: 'Quick Block',
         },
     ],
+    updatedAtMs: Date.now(),
 });
 
 // --- store --------------------------------------------------------
@@ -94,7 +96,11 @@ export const useWorkouts = create<WorkoutsState>()(
             // ----- real workouts -----
             add: (workout) => {
                 const id = getValidId(workout.id);
-                const nextWorkout: Workout = { ...workout, id };
+                const nextWorkout: Workout = {
+                    ...workout,
+                    id,
+                    updatedAtMs: Date.now(),
+                };
 
                 set((state) => {
                     state.workouts[id] = nextWorkout;
@@ -116,6 +122,7 @@ export const useWorkouts = create<WorkoutsState>()(
                         ...current,
                         ...patch,
                         blocks: patch.blocks ?? current.blocks,
+                        updatedAtMs: Date.now(),
                     };
 
                     state.workouts[id] = next;
@@ -207,7 +214,11 @@ export const useWorkouts = create<WorkoutsState>()(
                 if (!draft) return null;
 
                 const id = getValidId(draft.id);
-                const workout: Workout = { ...draft, id };
+                const workout: Workout = {
+                    ...draft,
+                    id,
+                    updatedAtMs: Date.now(),
+                };
 
                 set((state) => {
                     state.workouts[id] = workout;
@@ -230,6 +241,27 @@ export const useWorkouts = create<WorkoutsState>()(
                 workouts: state.workouts,
                 order: state.order,
             }),
+            merge: (target, persisted) => {
+                const current = target as WorkoutsState;
+                const persistedState = persisted as Partial<WorkoutsState>;
+                const merged: WorkoutsState = {
+                    ...current,
+                    ...persistedState,
+                    workouts: {
+                        ...current.workouts,
+                        ...(persistedState.workouts ?? {}),
+                    },
+                    order: persistedState.order ?? current.order,
+                };
+                const workouts = merged.workouts;
+                for (const id of Object.keys(workouts)) {
+                    const w = workouts[id];
+                    if (w && !Number.isFinite(w.updatedAtMs)) {
+                        workouts[id] = { ...w, updatedAtMs: 0 };
+                    }
+                }
+                return merged;
+            },
         }
     )
 );

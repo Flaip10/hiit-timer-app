@@ -48,4 +48,5 @@ export interface Workout {
     id: UUID;
     name: string;
     blocks: WorkoutBlock[];
+    updatedAtMs: number;
 }

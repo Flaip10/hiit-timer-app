@@ -207,8 +207,24 @@ const HistorySessionScreen = () => {
 
     // -------- actions --------
 
+    const canOpenSavedWorkout = !!session.workoutId && !!savedWorkout;
+
+    // Check if the saved workout matches the session version
+    const savedWorkoutMatchesSessionVersion = (() => {
+        if (!canOpenSavedWorkout) return false;
+
+        const savedUpdatedAt = savedWorkout.updatedAtMs;
+        const sessionUpdatedAt = session.workoutSnapshot.updatedAtMs;
+
+        return (
+            Number.isFinite(savedUpdatedAt) &&
+            Number.isFinite(sessionUpdatedAt) &&
+            savedUpdatedAt === sessionUpdatedAt
+        );
+    })();
+
     const handleRunAgain = () => {
-        if (session.workoutId && savedWorkout) {
+        if (savedWorkoutMatchesSessionVersion && session.workoutId) {
             router.push({
                 pathname: `/run/${session.workoutId}`,
                 params: { autoStart: '1' },
@@ -223,12 +239,20 @@ const HistorySessionScreen = () => {
         });
     };
 
-    const canRunSavedWorkout = !!session.workoutId && !!savedWorkout;
-
     const handleOpenWorkout = () => {
-        if (!canRunSavedWorkout) return;
-        router.push(`/workouts/${session.workoutId}`);
+        if (savedWorkoutMatchesSessionVersion && session.workoutId) {
+            router.push(`/workouts/${session.workoutId}`);
+            return;
+        }
+
+        // open the session snapshot (as draft) when:
+        // - workout doesn't exist anymore
+        // - workout exists but is a different version
+        startDraftFromImported(session.workoutSnapshot);
+        router.push('/workouts/edit?fromImport=1');
     };
+
+    const canOpenWorkout = !!session.workoutSnapshot;
 
     const openSharePreview = () => {
         setShareVisible(true);
@@ -491,21 +515,34 @@ const HistorySessionScreen = () => {
                 <ScreenSection topSpacing="medium" gap={8}>
                     <View style={st.actionsContainer}>
                         <Button
-                            title="Open saved workout"
+                            title={
+                                savedWorkoutMatchesSessionVersion
+                                    ? 'Open workout'
+                                    : 'Save workout'
+                            }
                             variant="secondary"
                             onPress={handleOpenWorkout}
-                            disabled={!canRunSavedWorkout}
+                            disabled={!canOpenWorkout}
                         />
-                        {!canRunSavedWorkout && (
+                        {!canOpenSavedWorkout && (
                             <AppText
                                 variant="bodySmall"
                                 tone="secondary"
                                 style={st.linkHint}
                             >
-                                This session isn't linked to an existing saved
-                                workout.
+                                No saved workout found for this session.
                             </AppText>
                         )}
+                        {canOpenSavedWorkout &&
+                            !savedWorkoutMatchesSessionVersion && (
+                                <AppText
+                                    variant="bodySmall"
+                                    tone="secondary"
+                                    style={st.linkHint}
+                                >
+                                    Workout edited since this session.
+                                </AppText>
+                            )}
                     </View>
                 </ScreenSection>
             </MainContainer>

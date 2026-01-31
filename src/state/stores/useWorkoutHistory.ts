@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { nanoid } from 'nanoid/non-secure';
 
 import type { WorkoutSession } from '@src/core/entities/workoutSession.interfaces';
-import { Workout } from '@src/core/entities/entities';
+import type { Workout } from '@src/core/entities/entities';
 import { useShallow } from 'zustand/react/shallow';
 
 interface WorkoutHistoryState {
@@ -50,6 +50,10 @@ export const useWorkoutHistory = create<WorkoutHistoryState>()(
                           ) as Workout);
 
                 const ended = Math.max(endedAtMs, startedAtMs);
+                // Ensure snapshot has updatedAtMs (for backwards compatibility and consistency)
+                if (!Number.isFinite(snap.updatedAtMs)) {
+                    snap.updatedAtMs = ended;
+                }
                 const totalDurationSec = Math.round(
                     (ended - startedAtMs) / 1000
                 );
@@ -119,7 +123,7 @@ const getRecentSelector = (limit: number) => {
         state.order
             .slice(0, limit)
             .map((id) => state.sessions[id])
-            .filter(Boolean) as WorkoutSession[];
+            .filter(Boolean);
 
     recentSelectorCache.set(limit, selector);
     return selector;
