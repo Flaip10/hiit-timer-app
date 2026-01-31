@@ -186,6 +186,7 @@ const EditWorkoutScreen = () => {
                             onPress={onEditBlock}
                             onRemove={setBlockToRemove}
                             initiallyExpanded
+                            isWiggling={true}
                         />
                     ))}
 
