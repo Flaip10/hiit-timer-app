@@ -1,5 +1,15 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, View } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { View } from 'react-native';
+import Animated, {
+    cancelAnimation,
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withRepeat,
+    withSequence,
+    withTiming,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
 import type { WorkoutBlock } from '@src/core/entities/entities';
@@ -37,81 +47,54 @@ export const WorkoutBlockItem = ({
     const st = useWorkoutBlockItemStyles();
     const { sets, exercises } = block;
 
-    const shakeAnim = useRef(new Animated.Value(0)).current;
+    const wiggleValue = useSharedValue<number>(0);
+
+    const wiggleAnimatedStyle = useAnimatedStyle(() => ({
+        transform: [{ translateX: wiggleValue.value }],
+    }));
 
     useEffect(() => {
         if (!isWiggling) {
-            shakeAnim.stopAnimation();
-            shakeAnim.setValue(0);
+            cancelAnimation(wiggleValue);
+            wiggleValue.value = 0;
             return;
         }
 
-        const shakeSequence = Animated.sequence([
-            Animated.timing(shakeAnim, {
-                toValue: 0.25,
-                duration: SHAKE_STEP_MS,
-                useNativeDriver: true,
-            }),
-            Animated.timing(shakeAnim, {
-                toValue: 0.5,
-                duration: SHAKE_STEP_MS,
-                useNativeDriver: true,
-            }),
-            Animated.timing(shakeAnim, {
-                toValue: 0.75,
-                duration: SHAKE_STEP_MS,
-                useNativeDriver: true,
-            }),
-            Animated.timing(shakeAnim, {
-                toValue: 1,
-                duration: SHAKE_STEP_MS,
-                useNativeDriver: true,
-            }),
-            Animated.delay(PAUSE_BETWEEN_SHAKES_MS),
-            Animated.timing(shakeAnim, {
-                toValue: 0,
-                duration: 0,
-                useNativeDriver: true,
-            }),
-        ]);
-
-        const loop = Animated.loop(shakeSequence);
-
         const initialDelayMs = index * INITIAL_DELAY_STAGGER_MS;
+        const easing = Easing.inOut(Easing.quad);
 
-        let isCancelled = false;
-        const timerId = setTimeout(() => {
-            if (isCancelled) return;
-            loop.start();
-        }, initialDelayMs);
-
-        return () => {
-            isCancelled = true;
-            clearTimeout(timerId);
-            loop.stop();
-            shakeAnim.setValue(0);
-        };
-    }, [isWiggling, index, shakeAnim]);
-
-    const shakeStyle = useMemo(
-        () => ({
-            transform: [
-                {
-                    translateX: shakeAnim.interpolate({
-                        inputRange: [0, 0.25, 0.5, 0.75, 1],
-                        outputRange: [
-                            0,
-                            SHAKE_DISTANCE,
-                            -SHAKE_DISTANCE,
-                            SHAKE_DISTANCE,
-                            0,
-                        ],
+        wiggleValue.value = withDelay(
+            initialDelayMs,
+            withRepeat(
+                withSequence(
+                    withTiming(SHAKE_DISTANCE, {
+                        duration: SHAKE_STEP_MS,
+                        easing,
                     }),
-                },
-            ],
-        }),
-        [shakeAnim]
-    );
+                    withTiming(-SHAKE_DISTANCE, {
+                        duration: SHAKE_STEP_MS,
+                        easing,
+                    }),
+                    withTiming(SHAKE_DISTANCE, {
+                        duration: SHAKE_STEP_MS,
+                        easing,
+                    }),
+                    withTiming(0, {
+                        duration: SHAKE_STEP_MS,
+                        easing,
+                    }),
+                    withDelay(
+                        PAUSE_BETWEEN_SHAKES_MS,
+                        withTiming(0, {
+                            duration: 0,
+                            easing,
+                        })
+                    )
+                ),
+                -1
+            )
+        );
+    }, [wiggleValue, index, isWiggling]);
 
     const exerciseSummary = useMemo(() => {
         if (exercises.length === 0) return '';
@@ -179,7 +162,7 @@ export const WorkoutBlockItem = ({
     ].join(':');
 
     return (
-        <Animated.View style={isWiggling ? shakeStyle : undefined}>
+        <Animated.View style={isWiggling ? wiggleAnimatedStyle : undefined}>
             <MetaCard
                 measureKey={measureKey}
                 topLeftContent={{
