@@ -94,7 +94,8 @@ export const WorkoutBlockItem = ({
                 -1
             )
         );
-    }, [wiggleValue, index, isWiggling]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [index, isWiggling]);
 
     const exerciseSummary = useMemo(() => {
         if (exercises.length === 0) return '';
