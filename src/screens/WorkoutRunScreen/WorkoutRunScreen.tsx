@@ -25,6 +25,7 @@ import { useWorkoutHistory } from '@src/state/stores/useWorkoutHistory';
 import { useSettingsStore } from '@src/state/useSettingsStore';
 import { prepareRunData } from '@src/core/timer';
 import { useTheme } from '@src/theme/ThemeProvider';
+import { useSystemBackHandler } from '@src/hooks/navigation/useSystemBackHandler';
 
 export const WorkoutRunScreen = () => {
     useKeepAwake();
@@ -83,6 +84,15 @@ export const WorkoutRunScreen = () => {
         remainingSec,
         stepDurationSec: step.durationSec,
         enabled: isSoundEnabled,
+    });
+
+    const { allowNextBack } = useSystemBackHandler({
+        onSystemBack: () => {
+            if (!isFinished) handleRequestEnd();
+            else handleDone();
+            return true;
+        },
+        isGestureBackDisabled: true,
     });
 
     // ----- Block info --------
@@ -210,6 +220,7 @@ export const WorkoutRunScreen = () => {
     };
 
     const handleDone = () => {
+        allowNextBack();
         router.replace('/(drawer)');
 
         const shouldClearDraft = mode === 'quick' && origin === 'quick';
