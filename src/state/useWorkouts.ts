@@ -235,33 +235,13 @@ export const useWorkouts = create<WorkoutsState>()(
                 }),
         })),
         {
-            name: 'workouts-storage-v2',
+            name: 'workouts-storage',
+            version: 1,
             storage: createJSONStorage(() => AsyncStorage),
             partialize: (state) => ({
                 workouts: state.workouts,
                 order: state.order,
             }),
-            merge: (target, persisted) => {
-                const current = target as WorkoutsState;
-                const persistedState = persisted as Partial<WorkoutsState>;
-                const merged: WorkoutsState = {
-                    ...current,
-                    ...persistedState,
-                    workouts: {
-                        ...current.workouts,
-                        ...(persistedState.workouts ?? {}),
-                    },
-                    order: persistedState.order ?? current.order,
-                };
-                const workouts = merged.workouts;
-                for (const id of Object.keys(workouts)) {
-                    const w = workouts[id];
-                    if (w && !Number.isFinite(w.updatedAtMs)) {
-                        workouts[id] = { ...w, updatedAtMs: 0 };
-                    }
-                }
-                return merged;
-            },
         }
     )
 );
@@ -280,11 +260,6 @@ export const useAllWorkouts = () =>
 
 export const useWorkout = (id?: string) =>
     useWorkouts((state) => (id ? state.workouts[id] : undefined));
-
-export const ensureStarter = (): void => {
-    const { workouts, add } = useWorkouts.getState();
-    if (Object.keys(workouts).length === 0) add(starterWorkout());
-};
 
 // ----- helpers ----------------------------------------------------
 
