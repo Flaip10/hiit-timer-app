@@ -2,14 +2,13 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { AppState } from 'react-native';
 
 import {
+    createTimer,
     type Phase,
     type RunPlan,
     type TimerEvent,
     type TimerSnapshot,
     type CountdownUiTick,
 } from '@src/core/timer';
-
-import { createTimer } from '@src/core/timer';
 
 import { useWorkoutRunStore } from '@src/state/stores/useWorkoutRunStore';
 
@@ -294,7 +293,7 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
             completedSetsByBlock,
             completedExercisesByBlock,
 
-            // Convert ms accounting into UI/session seconds using ceil to match countdown behavior.
+            // Convert ms accounting into UI/session seconds using floor for stable persisted stats.
             totalWorkSec: msToSeconds(state.stats.totalWorkMs, 'floor'),
             totalRestSec: msToSeconds(state.stats.totalRestMs, 'floor'),
             totalPrepSec: msToSeconds(state.stats.totalPrepMs, 'floor'),

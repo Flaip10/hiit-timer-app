@@ -37,8 +37,11 @@ export const FinishedCard = ({
             : '—';
 
     const pausedText =
-        runStats?.totalPausedSec != null
-            ? formatWorkoutDuration(runStats.totalPausedSec)
+        runStats != null
+            ? formatWorkoutDuration(
+                  (runStats.totalPausedSec ?? 0) +
+                      (runStats.totalBlockPauseSec ?? 0)
+              )
             : '—';
 
     const completedSets = runStats?.completedSets;
@@ -82,7 +85,10 @@ export const FinishedCard = ({
             key: 'paused',
             label: 'Paused time',
             value: pausedText,
-            isDimmed: runStats?.totalPausedSec === 0,
+            isDimmed:
+                ((runStats?.totalPausedSec ?? 0) +
+                    (runStats?.totalBlockPauseSec ?? 0)) ===
+                0,
         },
     ];
 

@@ -104,8 +104,10 @@ const HistorySessionScreen = () => {
             : '—';
 
     const pausedText =
-        stats?.totalPausedSec != null
-            ? formatWorkoutDuration(stats.totalPausedSec)
+        stats != null
+            ? formatWorkoutDuration(
+                  (stats.totalPausedSec ?? 0) + (stats.totalBlockPauseSec ?? 0)
+              )
             : '—';
 
     const completedSets = stats?.completedSets ?? 0;
@@ -201,7 +203,8 @@ const HistorySessionScreen = () => {
             key: 'paused',
             label: 'Paused time',
             value: pausedText,
-            isDimmed: runStats.totalPausedSec === 0,
+            isDimmed:
+                runStats.totalPausedSec + runStats.totalBlockPauseSec === 0,
         },
     ];
 

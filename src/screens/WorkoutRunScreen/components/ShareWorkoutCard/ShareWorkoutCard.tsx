@@ -69,7 +69,6 @@ export const ShareWorkoutCard = ({
     const elapsedSec =
         runStats.totalWorkSec +
         runStats.totalRestSec +
-        runStats.totalPrepSec +
         runStats.totalPausedSec +
         runStats.totalBlockPauseSec;
 

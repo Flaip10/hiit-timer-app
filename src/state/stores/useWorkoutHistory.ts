@@ -26,9 +26,28 @@ interface WorkoutHistoryState {
 
 const uid = (): string => nanoid(12);
 
+const resolveSessionDurationSec = (args: {
+    startedAtMs: number;
+    endedAtMs: number;
+    stats?: WorkoutSession['stats'];
+}): number => {
+    const { startedAtMs, endedAtMs, stats } = args;
+
+    if (stats != null) {
+        return (
+            stats.totalWorkSec +
+            stats.totalRestSec +
+            (stats.totalPausedSec ?? 0) +
+            (stats.totalBlockPauseSec ?? 0)
+        );
+    }
+
+    return Math.round((endedAtMs - startedAtMs) / 1000);
+};
+
 export const useWorkoutHistory = create<WorkoutHistoryState>()(
     persist(
-        immer((set, get) => ({
+        immer((set) => ({
             sessions: {},
             order: [],
 
@@ -54,9 +73,11 @@ export const useWorkoutHistory = create<WorkoutHistoryState>()(
                 if (!Number.isFinite(snap.updatedAtMs)) {
                     snap.updatedAtMs = ended;
                 }
-                const totalDurationSec = Math.round(
-                    (ended - startedAtMs) / 1000
-                );
+                const totalDurationSec = resolveSessionDurationSec({
+                    startedAtMs,
+                    endedAtMs: ended,
+                    stats,
+                });
 
                 const session: WorkoutSession = {
                     id,

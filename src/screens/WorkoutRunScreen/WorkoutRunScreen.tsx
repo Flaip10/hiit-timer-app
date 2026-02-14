@@ -60,7 +60,7 @@ export const WorkoutRunScreen = () => {
     const {
         timer: {
             stepIndex,
-            remainingSec: remainingSec,
+            remainingSec,
             running,
             step,
             phase,
@@ -150,15 +150,22 @@ export const WorkoutRunScreen = () => {
 
     // -------- Calculate total duration when finished --------
     const totalDurationSec = useMemo(() => {
-        if (!isFinished || startedAtMsRef.current == null) {
+        if (!isFinished) {
             return undefined;
         }
-        const endedAtMs = Date.now();
-        const totalSec = Math.round(
-            (endedAtMs - startedAtMsRef.current) / 1000
-        );
+        const totalSec =
+            runStats.totalWorkSec +
+            runStats.totalRestSec +
+            runStats.totalPausedSec +
+            runStats.totalBlockPauseSec;
         return totalSec > 0 ? totalSec : undefined;
-    }, [isFinished]);
+    }, [
+        isFinished,
+        runStats.totalWorkSec,
+        runStats.totalRestSec,
+        runStats.totalPausedSec,
+        runStats.totalBlockPauseSec,
+    ]);
 
     // -------- empty / not found state --------
 
