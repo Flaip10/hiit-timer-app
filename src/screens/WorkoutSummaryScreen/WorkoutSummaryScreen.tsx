@@ -3,16 +3,18 @@ import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useWorkout } from '@state/useWorkouts';
+import { useWorkout, useWorkouts } from '@state/useWorkouts';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
 import { Button } from '@src/components/ui/Button/Button';
 import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
 import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
+import { AppIcon } from '@src/components/ui/Icon/AppIcon';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { ErrorBanner } from '@src/components/ui/ErrorBanner/ErrorBanner';
 import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
 import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
+import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
 
 import {
     summarizeWorkout,
@@ -28,6 +30,7 @@ const WorkoutSummaryScreen = () => {
     const { id } = useLocalSearchParams<{ id?: string }>();
     const router = useRouter();
     const workout = useWorkout(id);
+    const toggleFavorite = useWorkouts((state) => state.toggleFavorite);
     const { theme } = useTheme();
     const st = useWorkoutSummaryStyles();
 
@@ -60,6 +63,7 @@ const WorkoutSummaryScreen = () => {
             : summary.hasReps
               ? 'Mixed (time + reps)'
               : 'No time estimate';
+    const isFavorite = workout.isFavorite === true;
 
     const handleExport = async () => {
         if (exporting) return;
@@ -85,7 +89,37 @@ const WorkoutSummaryScreen = () => {
         <>
             <MainContainer title={workout.name} gap={0}>
                 {/* Overview Section */}
-                <ScreenSection title="Overview" topSpacing="small" gap={12}>
+                <ScreenSection
+                    title="Overview"
+                    topSpacing="small"
+                    gap={12}
+                    rightAccessory={
+                        <GuardedPressable
+                            onPress={() => toggleFavorite(workout.id)}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                            style={st.favoriteToggle}
+                        >
+                            <AppIcon
+                                id={isFavorite ? 'star' : 'starOutline'}
+                                size={20}
+                                color={
+                                    isFavorite
+                                        ? theme.palette.accent.primary
+                                        : theme.palette.text.secondary
+                                }
+                            />
+                            <AppText
+                                variant="bodySmall"
+                                style={[
+                                    st.favoriteLabel,
+                                    isFavorite && st.favoriteLabelActive,
+                                ]}
+                            >
+                                Favorite
+                            </AppText>
+                        </GuardedPressable>
+                    }
+                >
                     <MetaCard
                         expandable={false}
                         topLeftContent={{

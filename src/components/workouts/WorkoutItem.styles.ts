@@ -14,6 +14,8 @@ export const useWorkoutItemStyles = createStyles((theme: AppTheme) =>
         },
         title: {
             color: theme.palette.text.primary,
+            flex: 1,
+            flexShrink: 1,
         },
         metaRow: {
             flexDirection: 'row',

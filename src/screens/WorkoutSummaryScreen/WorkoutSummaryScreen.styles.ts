@@ -16,6 +16,17 @@ export const useWorkoutSummaryStyles = createStyles((theme: AppTheme) =>
         errorButton: {
             alignSelf: 'center',
         },
+        favoriteToggle: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+        },
+        favoriteLabel: {
+            color: theme.palette.text.secondary,
+        },
+        favoriteLabelActive: {
+            color: theme.palette.accent.primary,
+        },
 
         overviewRow: {
             flexDirection: 'row',
