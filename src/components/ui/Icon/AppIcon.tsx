@@ -119,6 +119,16 @@ const ICON_MAP = {
         name: 'menu',
         defaultSize: 22,
     },
+    star: {
+        lib: 'ion',
+        name: 'star',
+        defaultSize: 20,
+    },
+    starOutline: {
+        lib: 'ion',
+        name: 'star-outline',
+        defaultSize: 20,
+    },
 } satisfies Record<string, IconDefinition>;
 
 export type IconId = keyof typeof ICON_MAP;

@@ -44,7 +44,7 @@ const EmptyWorkouts = ({ onPressButton }: { onPressButton: () => void }) => {
 const WorkoutsScreen = () => {
     const router = useRouter();
     const list = useAllWorkouts();
-    const { remove, startDraftFromImported } = useWorkouts();
+    const { remove, startDraftFromImported, toggleFavorite } = useWorkouts();
 
     const [search, setSearch] = useState('');
     const [toRemove, setToRemove] = useState<string | null>(null);
@@ -58,7 +58,7 @@ const WorkoutsScreen = () => {
     const data = useMemo(() => {
         const searchTerm = search.trim().toLowerCase();
         if (!searchTerm) return list;
-        return list.filter((w) => w?.name.toLowerCase().includes(searchTerm));
+        return list.filter((w) => w.name.toLowerCase().includes(searchTerm));
     }, [list, search]);
 
     const closeModal = () => {
@@ -142,15 +142,14 @@ const WorkoutsScreen = () => {
                     </View>
                 }
                 stickyHeaderIndices={[0]} // make headerRow stick to the top
-                renderItem={({ item }) =>
-                    item ? (
-                        <WorkoutItem
-                            item={item}
-                            onPress={() => router.push(`/workouts/${item.id}`)}
-                            onRemove={() => setToRemove(item.id)}
-                        />
-                    ) : null
-                }
+                renderItem={({ item }) => (
+                    <WorkoutItem
+                        item={item}
+                        onPress={() => router.push(`/workouts/${item.id}`)}
+                        onRemove={() => setToRemove(item.id)}
+                        onToggleFavorite={() => toggleFavorite(item.id)}
+                    />
+                )}
                 ListEmptyComponent={
                     <EmptyWorkouts
                         onPressButton={() => setModalVisible(true)}

@@ -49,4 +49,5 @@ export interface Workout {
     name: string;
     blocks: WorkoutBlock[];
     updatedAtMs: number;
+    isFavorite?: boolean;
 }

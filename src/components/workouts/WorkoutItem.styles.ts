@@ -7,6 +7,11 @@ export const useWorkoutItemStyles = createStyles((theme: AppTheme) =>
         summaryContainer: {
             gap: 10,
         },
+        titleRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+        },
         title: {
             color: theme.palette.text.primary,
         },

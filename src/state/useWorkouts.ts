@@ -19,6 +19,7 @@ type WorkoutsState = {
     add: (workout: Workout) => string;
     update: (id: string, patch: Partial<Workout>) => void;
     remove: (id: string) => void;
+    toggleFavorite: (id: string) => void;
 
     // draft workflow
     startDraftNew: () => void;
@@ -136,6 +137,17 @@ export const useWorkouts = create<WorkoutsState>()(
                     state.order = state.order.filter((x: string) => x !== id);
                 }),
 
+            toggleFavorite: (id) =>
+                set((state) => {
+                    const current = state.workouts[id];
+                    if (!current) return;
+
+                    state.workouts[id] = {
+                        ...current,
+                        isFavorite: !current.isFavorite,
+                    };
+                }),
+
             // ----- draft workflow -----
 
             // start a brand new draft
@@ -250,12 +262,20 @@ export const useWorkouts = create<WorkoutsState>()(
 
 export const useAllWorkouts = () =>
     useWorkouts(
-        useShallow(
-            (state) =>
-                state.order
-                    .map((id) => state.workouts[id])
-                    .filter(Boolean) as Workout[]
-        )
+        useShallow((state) => {
+            const workouts = state.order
+                .map((id) => state.workouts[id])
+                .filter((w): w is Workout => !!w);
+
+            return [...workouts].sort((a, b) => {
+                const aFav = a.isFavorite === true;
+                const bFav = b.isFavorite === true;
+
+                if (aFav && !bFav) return -1;
+                if (!aFav && bFav) return 1;
+                return b.updatedAtMs - a.updatedAtMs;
+            });
+        })
     );
 
 export const useWorkout = (id?: string) =>

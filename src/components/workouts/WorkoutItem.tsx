@@ -5,7 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import type { Workout } from '@src/core/entities/entities';
 import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
 import { AppText } from '@src/components/ui/Typography/AppText';
+import { AppIcon } from '@src/components/ui/Icon/AppIcon';
 import { useTheme } from '@src/theme/ThemeProvider';
+import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
 import {
     summarizeWorkout,
     formatWorkoutDuration,
@@ -16,12 +18,14 @@ type WorkoutItemProps = {
     item: Workout;
     onPress?: () => void;
     onRemove?: () => void;
+    onToggleFavorite?: () => void;
 };
 
 export const WorkoutItem: React.FC<WorkoutItemProps> = ({
     item,
     onPress,
     onRemove,
+    onToggleFavorite,
 }) => {
     const { theme } = useTheme();
     const st = useWorkoutItemStyles();
@@ -36,6 +40,7 @@ export const WorkoutItem: React.FC<WorkoutItemProps> = ({
               : 'No time estimate';
 
     const name = item.name || 'Untitled workout';
+    const isFavorite = item.isFavorite === true;
 
     return (
         <MetaCard
@@ -77,13 +82,36 @@ export const WorkoutItem: React.FC<WorkoutItemProps> = ({
             onPress={onPress}
             summaryContent={
                 <View style={st.summaryContainer}>
-                    <AppText
-                        variant="subtitle"
-                        style={st.title}
-                        numberOfLines={2}
-                    >
-                        {name}
-                    </AppText>
+                    <View style={st.titleRow}>
+                        {onToggleFavorite ? (
+                            <GuardedPressable
+                                onPress={onToggleFavorite}
+                                hitSlop={{
+                                    top: 8,
+                                    bottom: 8,
+                                    left: 8,
+                                    right: 8,
+                                }}
+                            >
+                                <AppIcon
+                                    id={isFavorite ? 'star' : 'starOutline'}
+                                    size={22}
+                                    color={
+                                        isFavorite
+                                            ? theme.palette.accent.primary
+                                            : theme.palette.text.secondary
+                                    }
+                                />
+                            </GuardedPressable>
+                        ) : null}
+                        <AppText
+                            variant="subtitle"
+                            style={st.title}
+                            numberOfLines={2}
+                        >
+                            {name}
+                        </AppText>
+                    </View>
 
                     <View style={st.metaRow}>
                         <View style={st.metaItem}>
