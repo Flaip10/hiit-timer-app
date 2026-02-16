@@ -97,6 +97,32 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 
 ---
 
+## React async bootstraps: avoid "isMounted" / setState-after-unmount guards
+
+- Do NOT use `let isMounted = true` / `if (isMounted)` patterns to guard async effects.
+- Do NOT store global bootstrap readiness in component local state when a global store exists.
+
+Preferred patterns:
+
+1. Global bootstrap state (Zustand):
+    - Store flags like `isI18nReady`, `isHydrated`, etc. in a store.
+    - Update the store from bootstrap code/hook.
+    - Gate UI render based on store flags (not local `useState`).
+
+2. Deterministic initialization:
+    - If a library provides an init promise (e.g., `initializeI18n()`), await it once and set a store flag.
+    - Avoid duplicated initialization by memoizing the init promise at module scope.
+
+3. Only use cancellation when it is real:
+    - Use `AbortController` only for cancellable work (fetch, etc.).
+    - If work is not cancellable, do not add fake “mounted” guards—move state updates out of React local state.
+
+Allowed exception:
+
+- Local `useState` + mounted guard is acceptable ONLY for screen-level async work that truly unmounts often and cannot be moved to a store.
+
+---
+
 ## 10) Don’ts
 
 - Don’t add new dependencies without a clear reason.
