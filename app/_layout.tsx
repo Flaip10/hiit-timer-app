@@ -1,11 +1,25 @@
+import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '@src/theme/ThemeProvider';
 import { useAppFonts } from '@src/theme/typography';
+import { initializeI18n } from '@src/i18n';
 
 const RootLayout = () => {
     const [fontsLoaded] = useAppFonts();
-    if (!fontsLoaded) return null;
+    const [isI18nReady, setIsI18nReady] = useState(false);
+
+    useEffect(() => {
+        initializeI18n()
+            .catch((error: unknown) => {
+                console.error('i18n init failed', error);
+            })
+            .finally(() => {
+                setIsI18nReady(true);
+            });
+    }, []);
+
+    if (!fontsLoaded || !isI18nReady) return null;
 
     return (
         <ThemeProvider>
