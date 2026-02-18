@@ -18,6 +18,7 @@ import { useWorkoutHistory } from '@src/state/stores/useWorkoutHistory';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { formatWorkoutDuration } from '@core/workouts/summarizeWorkout';
 import { useHistorySessionStyles } from './HistorySessionScreen.styles';
+import { useTranslation } from 'react-i18next';
 
 export type SessionStatsMetric = {
     key: string;
@@ -31,6 +32,7 @@ export type SessionStatsMetric = {
 /* -------------------------------------------------------------------------- */
 
 const HistorySessionScreen = () => {
+    const { t } = useTranslation();
     const router = useRouter();
     const { sessionId } = useLocalSearchParams<{ sessionId?: string }>();
     const { theme } = useTheme();
@@ -51,13 +53,13 @@ const HistorySessionScreen = () => {
 
     if (!hasSession) {
         return (
-            <MainContainer title="Session" scroll={false}>
+            <MainContainer title={t('historySession.title')} scroll={false}>
                 <View style={st.emptyContainer}>
                     <AppText variant="title3" style={st.emptyTitle}>
-                        Session not found
+                        {t('historySession.notFound')}
                     </AppText>
                     <Button
-                        title="Back"
+                        title={t('common.actions.back')}
                         variant="secondary"
                         onPress={() => router.back()}
                     />
@@ -147,7 +149,9 @@ const HistorySessionScreen = () => {
         return Array.from({ length: count }, (_, i) => {
             const rawTitle = blocks[i]?.title?.trim();
             const title =
-                rawTitle && rawTitle.length > 0 ? rawTitle : `Block ${i + 1}`;
+                rawTitle && rawTitle.length > 0
+                    ? rawTitle
+                    : t('common.labels.blockWithIndex', { index: i + 1 });
             const isAutoTitle = !(rawTitle && rawTitle.length > 0);
 
             return {
@@ -169,7 +173,7 @@ const HistorySessionScreen = () => {
     const metrics: SessionStatsMetric[] = [
         {
             key: 'duration',
-            label: 'Duration',
+            label: t('run.stats.duration'),
             value: totalDurationText,
             isDimmed:
                 session.totalDurationSec == null ||
@@ -177,31 +181,31 @@ const HistorySessionScreen = () => {
         },
         {
             key: 'sets',
-            label: 'Sets',
+            label: t('run.stats.sets'),
             value: completedSetsText,
             isDimmed: completedSets === 0,
         },
         {
             key: 'exercises',
-            label: 'Exercises',
+            label: t('run.stats.exercises'),
             value: completedExercisesText,
             isDimmed: completedExercises === 0,
         },
         {
             key: 'work',
-            label: 'Work time',
+            label: t('run.stats.workTime'),
             value: workText,
             isDimmed: runStats.totalWorkSec === 0,
         },
         {
             key: 'rest',
-            label: 'Rest time',
+            label: t('run.stats.restTime'),
             value: restText,
             isDimmed: runStats.totalRestSec === 0,
         },
         {
             key: 'paused',
-            label: 'Paused time',
+            label: t('run.stats.pausedTime'),
             value: pausedText,
             isDimmed:
                 runStats.totalPausedSec + runStats.totalBlockPauseSec === 0,
@@ -269,7 +273,7 @@ const HistorySessionScreen = () => {
 
     return (
         <>
-            <MainContainer title="Session" gap={0}>
+            <MainContainer title={t('historySession.title')} gap={0}>
                 {/* Header Section */}
                 <ScreenSection topSpacing="small" gap={6}>
                     <View style={st.headerRow}>
@@ -280,7 +284,7 @@ const HistorySessionScreen = () => {
                                 style={st.headerTitle}
                             >
                                 {session.workoutNameSnapshot ??
-                                    'Workout session'}
+                                    t('historySession.workoutSessionFallback')}
                             </AppText>
 
                             <View style={st.headerDateRow}>
@@ -307,7 +311,9 @@ const HistorySessionScreen = () => {
                                         style={st.headerIcon}
                                     />
                                     <AppText variant="bodySmall" tone="muted">
-                                        Ended {endedAtLabel}
+                                        {t('historySession.endedAt', {
+                                            time: endedAtLabel,
+                                        })}
                                     </AppText>
                                 </View>
                             </View>
@@ -328,11 +334,15 @@ const HistorySessionScreen = () => {
                 </ScreenSection>
 
                 {/* Overview Stats */}
-                <ScreenSection title="Overview" topSpacing="medium" gap={12}>
+                <ScreenSection
+                    title={t('workoutSummary.overview')}
+                    topSpacing="medium"
+                    gap={12}
+                >
                     <MetaCard
                         expandable={false}
                         topLeftContent={{
-                            text: 'Session stats',
+                            text: t('run.stats.title'),
                             icon: (
                                 <AppIcon
                                     id="stats"
@@ -383,7 +393,7 @@ const HistorySessionScreen = () => {
                 {/* Blocks Breakdown */}
                 {hasCompletedBlocks ? (
                     <ScreenSection
-                        title="By block"
+                        title={t('historySession.byBlock')}
                         topSpacing="large"
                         gap={theme.layout.listItem.gap}
                     >
@@ -426,7 +436,7 @@ const HistorySessionScreen = () => {
                                                     tone="secondary"
                                                     style={st.blockStatLabel}
                                                 >
-                                                    Sets:
+                                                    {t('historySession.blockStats.sets')}
                                                 </AppText>
                                                 <AppText
                                                     variant="bodySmall"
@@ -446,7 +456,9 @@ const HistorySessionScreen = () => {
                                                     tone="secondary"
                                                     style={st.blockStatLabel}
                                                 >
-                                                    Exercises:
+                                                    {t(
+                                                        'historySession.blockStats.exercises'
+                                                    )}
                                                 </AppText>
                                                 <AppText
                                                     variant="bodySmall"
@@ -467,7 +479,7 @@ const HistorySessionScreen = () => {
                                                     tone="secondary"
                                                     style={st.blockStatLabel}
                                                 >
-                                                    Work:
+                                                    {t('historySession.blockStats.work')}
                                                 </AppText>
                                                 <AppText
                                                     variant="bodySmall"
@@ -489,7 +501,7 @@ const HistorySessionScreen = () => {
                                                     tone="secondary"
                                                     style={st.blockStatLabel}
                                                 >
-                                                    Rest:
+                                                    {t('historySession.blockStats.rest')}
                                                 </AppText>
                                                 <AppText variant="bodySmall">
                                                     {formatWorkoutDuration(
@@ -504,12 +516,12 @@ const HistorySessionScreen = () => {
                     </ScreenSection>
                 ) : (
                     <ScreenSection
-                        title="By block"
+                        title={t('historySession.byBlock')}
                         topSpacing="large"
                         gap={theme.layout.listItem.gap}
                     >
                         <AppText variant="bodySmall" tone="muted">
-                            No completed blocks in this session
+                            {t('historySession.noCompletedBlocks')}
                         </AppText>
                     </ScreenSection>
                 )}
@@ -520,8 +532,8 @@ const HistorySessionScreen = () => {
                         <Button
                             title={
                                 savedWorkoutMatchesSessionVersion
-                                    ? 'Open workout'
-                                    : 'Save workout'
+                                    ? t('historySession.actions.openWorkout')
+                                    : t('historySession.actions.saveWorkout')
                             }
                             variant="secondary"
                             onPress={handleOpenWorkout}
@@ -533,7 +545,7 @@ const HistorySessionScreen = () => {
                                 tone="secondary"
                                 style={st.linkHint}
                             >
-                                No saved workout found for this session.
+                                {t('historySession.hints.noSavedWorkout')}
                             </AppText>
                         )}
                         {canOpenSavedWorkout &&
@@ -543,7 +555,9 @@ const HistorySessionScreen = () => {
                                     tone="secondary"
                                     style={st.linkHint}
                                 >
-                                    Workout edited since this session.
+                                    {t(
+                                        'historySession.hints.workoutEditedSinceSession'
+                                    )}
                                 </AppText>
                             )}
                     </View>
@@ -552,13 +566,13 @@ const HistorySessionScreen = () => {
 
             <FooterBar>
                 <Button
-                    title="Back"
+                    title={t('common.actions.back')}
                     variant="secondary"
                     onPress={() => router.back()}
                     flex
                 />
                 <Button
-                    title="Run again"
+                    title={t('historySession.actions.runAgain')}
                     variant="primary"
                     onPress={handleRunAgain}
                     flex

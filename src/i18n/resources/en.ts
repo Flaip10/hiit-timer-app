@@ -57,6 +57,29 @@ export const en: I18nResource = {
             cancel: 'Cancel',
         },
     },
+    historySession: {
+        title: 'Session',
+        notFound: 'Session not found',
+        workoutSessionFallback: 'Workout session',
+        endedAt: 'Ended {{time}}',
+        byBlock: 'By block',
+        noCompletedBlocks: 'No completed blocks in this session',
+        blockStats: {
+            sets: 'Sets:',
+            exercises: 'Exercises:',
+            work: 'Work:',
+            rest: 'Rest:',
+        },
+        actions: {
+            openWorkout: 'Open workout',
+            saveWorkout: 'Save workout',
+            runAgain: 'Run again',
+        },
+        hints: {
+            noSavedWorkout: 'No saved workout found for this session.',
+            workoutEditedSinceSession: 'Workout edited since this session.',
+        },
+    },
     settings: {
         title: 'Settings',
         sections: {

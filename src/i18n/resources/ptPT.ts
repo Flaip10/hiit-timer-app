@@ -57,6 +57,31 @@ export const ptPT: I18nResource = {
             cancel: 'Cancelar',
         },
     },
+    historySession: {
+        title: 'Sessão',
+        notFound: 'Sessão não encontrada',
+        workoutSessionFallback: 'Sessão de treino',
+        endedAt: 'Terminou {{time}}',
+        byBlock: 'Por bloco',
+        noCompletedBlocks: 'Sem blocos concluídos nesta sessão',
+        blockStats: {
+            sets: 'Séries:',
+            exercises: 'Exercícios:',
+            work: 'Trabalho:',
+            rest: 'Descanso:',
+        },
+        actions: {
+            openWorkout: 'Abrir treino',
+            saveWorkout: 'Guardar treino',
+            runAgain: 'Repetir treino',
+        },
+        hints: {
+            noSavedWorkout:
+                'Nenhum treino guardado encontrado para esta sessão.',
+            workoutEditedSinceSession:
+                'O treino foi editado desde esta sessão.',
+        },
+    },
     settings: {
         title: 'Definições',
         sections: {

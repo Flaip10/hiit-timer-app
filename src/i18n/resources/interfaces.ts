@@ -55,6 +55,29 @@ export interface I18nResource {
             cancel: string;
         };
     };
+    historySession: {
+        title: string;
+        notFound: string;
+        workoutSessionFallback: string;
+        endedAt: string;
+        byBlock: string;
+        noCompletedBlocks: string;
+        blockStats: {
+            sets: string;
+            exercises: string;
+            work: string;
+            rest: string;
+        };
+        actions: {
+            openWorkout: string;
+            saveWorkout: string;
+            runAgain: string;
+        };
+        hints: {
+            noSavedWorkout: string;
+            workoutEditedSinceSession: string;
+        };
+    };
     settings: {
         title: string;
         sections: {
