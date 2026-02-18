@@ -8,6 +8,7 @@ import DrawerItemRow from './DrawerItemRow/DrawerItemRow';
 import { useStyles } from './AppDrawerContent.styles';
 import { AppLogo } from '@src/components/ui/AppLogo/AppLogo';
 import { Watermark } from '@src/components/ui/Watermark/Watermark';
+import { useTranslation } from 'react-i18next';
 
 const resolveLabel = (
     routeName: string,
@@ -30,6 +31,7 @@ const ICONS_BY_ROUTE: Record<
 
 const DrawerHeader = () => {
     const st = useStyles();
+    const { t } = useTranslation();
 
     return (
         <View style={st.header}>
@@ -44,7 +46,7 @@ const DrawerHeader = () => {
                         style={st.headerSubtitle}
                         numberOfLines={1}
                     >
-                        Quick access
+                        {t('drawer.quickAccess')}
                     </AppText>
                 </View>
             </View>
