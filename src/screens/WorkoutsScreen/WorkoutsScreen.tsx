@@ -15,24 +15,34 @@ import { AppText } from '@src/components/ui/Typography/AppText';
 import { Button } from '@src/components/ui/Button/Button';
 import { useWorkoutsScreenStyles } from './WorkoutsScreen.styles';
 import { SearchField } from '@src/components/ui/SearchField/SearchField';
+import { useTranslation } from 'react-i18next';
+
+interface ImportErrorTranslationMap {
+    INVALID_EXTENSION: 'workouts.import.errors.invalidExtension';
+    INVALID_KIND: 'workouts.import.errors.invalidKind';
+    INVALID_SHAPE: 'workouts.import.errors.invalidShape';
+    PARSE_FAILED: 'workouts.import.errors.parseFailed';
+    READ_FAILED: 'workouts.import.errors.readFailed';
+}
 
 const EmptyWorkouts = ({ onPressButton }: { onPressButton: () => void }) => {
     const st = useWorkoutsScreenStyles();
+    const { t } = useTranslation();
 
     return (
         <View style={st.emptyContainer}>
-            <AppText variant="title3">No workouts yet</AppText>
+            <AppText variant="title3">{t('workouts.emptyTitle')}</AppText>
 
             <AppText
                 variant="bodySmall"
                 tone="secondary"
                 style={st.emptyDescription}
             >
-                Create your first workout to get started.
+                {t('workouts.emptyDescription')}
             </AppText>
 
             <Button
-                title="＋ Create workout"
+                title={t('workouts.createButton')}
                 variant="primary"
                 onPress={onPressButton}
                 style={st.emptyButton}
@@ -42,6 +52,7 @@ const EmptyWorkouts = ({ onPressButton }: { onPressButton: () => void }) => {
 };
 
 const WorkoutsScreen = () => {
+    const { t } = useTranslation();
     const router = useRouter();
     const list = useAllWorkouts();
     const { remove, startDraftFromImported, toggleFavorite } = useWorkouts();
@@ -78,19 +89,17 @@ const WorkoutsScreen = () => {
 
                 const messageByError: Record<
                     Exclude<typeof result.error, 'CANCELLED'>,
-                    string
+                    ImportErrorTranslationMap[keyof ImportErrorTranslationMap]
                 > = {
                     INVALID_EXTENSION:
-                        'That file is not an ARC Timer workout (.arcw).',
-                    INVALID_KIND:
-                        'That file is not an ARC Timer workout export.',
-                    INVALID_SHAPE:
-                        'That file looks like an ARC Timer export, but it is missing data.',
-                    PARSE_FAILED: 'The file is corrupted or not valid JSON.',
-                    READ_FAILED: 'Could not read the selected file.',
+                        'workouts.import.errors.invalidExtension',
+                    INVALID_KIND: 'workouts.import.errors.invalidKind',
+                    INVALID_SHAPE: 'workouts.import.errors.invalidShape',
+                    PARSE_FAILED: 'workouts.import.errors.parseFailed',
+                    READ_FAILED: 'workouts.import.errors.readFailed',
                 };
 
-                setImportError(messageByError[result.error]);
+                setImportError(t(messageByError[result.error]));
                 return;
             }
 
@@ -102,7 +111,7 @@ const WorkoutsScreen = () => {
             });
         } catch (err) {
             console.warn('Import failed (unexpected)', err);
-            setImportError('Import failed due to an unexpected error.');
+            setImportError(t('workouts.import.errors.unexpected'));
         } finally {
             setImporting(false);
             closeModal();
@@ -110,7 +119,7 @@ const WorkoutsScreen = () => {
     };
 
     return (
-        <MainContainer title="Workouts" scroll={false} noPadding>
+        <MainContainer title={t('workouts.title')} scroll={false} noPadding>
             <FlatList
                 data={data}
                 keyExtractor={(w) => w.id}
@@ -123,11 +132,11 @@ const WorkoutsScreen = () => {
                                 value={search}
                                 onChangeText={setSearch}
                                 fullWidth
-                                placeholder="Search workouts"
+                                placeholder={t('workouts.searchPlaceholder')}
                             />
 
                             <Button
-                                title="＋ New"
+                                title={t('workouts.newButton')}
                                 variant="primary"
                                 onPress={() => setModalVisible(true)}
                                 style={st.newButton}
@@ -166,10 +175,10 @@ const WorkoutsScreen = () => {
 
             <ConfirmDialog
                 visible={toRemove != null}
-                title="Remove workout"
-                message="This will permanently delete the workout."
-                confirmLabel="Remove"
-                cancelLabel="Cancel"
+                title={t('workouts.confirmRemove.title')}
+                message={t('workouts.confirmRemove.message')}
+                confirmLabel={t('workouts.confirmRemove.confirm')}
+                cancelLabel={t('workouts.confirmRemove.cancel')}
                 destructive
                 onConfirm={() => {
                     if (toRemove) remove(toRemove);

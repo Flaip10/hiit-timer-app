@@ -13,6 +13,7 @@ import {
     formatWorkoutDuration,
 } from '@src/core/workouts/summarizeWorkout';
 import { useWorkoutItemStyles } from './WorkoutItem.styles';
+import { useTranslation } from 'react-i18next';
 
 type WorkoutItemProps = {
     item: Workout;
@@ -27,6 +28,7 @@ export const WorkoutItem: React.FC<WorkoutItemProps> = ({
     onRemove,
     onToggleFavorite,
 }) => {
+    const { t } = useTranslation();
     const { theme } = useTheme();
     const st = useWorkoutItemStyles();
 
@@ -36,10 +38,10 @@ export const WorkoutItem: React.FC<WorkoutItemProps> = ({
         summary.approxSec > 0
             ? formatWorkoutDuration(summary.approxSec)
             : summary.hasReps
-              ? 'Mixed (time + reps)'
-              : 'No time estimate';
+              ? t('common.status.mixedTimeAndReps')
+              : t('common.status.noTimeEstimate');
 
-    const name = item.name || 'Untitled workout';
+    const name = item.name || t('workouts.item.untitled');
     const isFavorite = item.isFavorite === true;
 
     return (
@@ -125,8 +127,9 @@ export const WorkoutItem: React.FC<WorkoutItemProps> = ({
                                 tone="secondary"
                                 numberOfLines={1}
                             >
-                                {summary.blocks}{' '}
-                                {summary.blocks === 1 ? 'block' : 'blocks'}
+                                {t('common.units.block', {
+                                    count: summary.blocks,
+                                })}
                             </AppText>
                         </View>
 
@@ -141,10 +144,9 @@ export const WorkoutItem: React.FC<WorkoutItemProps> = ({
                                 tone="secondary"
                                 numberOfLines={1}
                             >
-                                {summary.exercises}{' '}
-                                {summary.exercises === 1
-                                    ? 'exercise'
-                                    : 'exercises'}
+                                {t('common.units.exercise', {
+                                    count: summary.exercises,
+                                })}
                             </AppText>
                         </View>
                     </View>

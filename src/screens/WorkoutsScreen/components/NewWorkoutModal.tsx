@@ -7,6 +7,7 @@ import { AppText } from '@src/components/ui/Typography/AppText';
 import { Button } from '@src/components/ui/Button/Button';
 import { useNewWorkoutModalStyles } from './NewWorkoutModal.styles';
 import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
+import { useTranslation } from 'react-i18next';
 
 type NewWorkoutModalProps = {
     visible: boolean;
@@ -19,6 +20,7 @@ const NewWorkoutModal = ({
     closeModal,
     handleImportFromFile,
 }: NewWorkoutModalProps) => {
+    const { t } = useTranslation();
     const router = useRouter();
     const st = useNewWorkoutModalStyles();
 
@@ -41,23 +43,23 @@ const NewWorkoutModal = ({
             <View style={st.mainContainer}>
                 <View style={st.textContainer}>
                     <AppText variant="title3" tone="primary">
-                        New workout
+                        {t('workouts.modal.title')}
                     </AppText>
 
                     <AppText variant="bodySmall" tone="muted">
-                        Choose how you want to start:
+                        {t('workouts.modal.subtitle')}
                     </AppText>
                 </View>
 
                 <View style={st.buttonsContainer}>
                     <Button
-                        title="Create new"
+                        title={t('workouts.modal.createNew')}
                         variant="primary"
                         onPress={handleCreateNew}
                     />
 
                     <Button
-                        title="Import from file"
+                        title={t('workouts.modal.importFromFile')}
                         variant="secondary"
                         onPress={handleImport}
                     />
@@ -67,7 +69,7 @@ const NewWorkoutModal = ({
                         style={st.cancelButton}
                     >
                         <AppText variant="bodySmall" tone="muted">
-                            Cancel
+                            {t('workouts.modal.cancel')}
                         </AppText>
                     </GuardedPressable>
                 </View>
