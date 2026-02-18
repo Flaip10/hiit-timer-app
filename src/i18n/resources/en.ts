@@ -46,7 +46,7 @@ export const en: I18nResource = {
         descriptions: {
             theme: 'Select your preferred theme',
             accent: 'Select your preferred color accent',
-            sound: 'Enable sound effects and notifications',
+            sound: 'Enable sound effects',
             language: 'Select your preferred language',
         },
         theme: {
@@ -61,6 +61,13 @@ export const en: I18nResource = {
         languages: {
             en: 'English',
             ptPT: 'Portuguese (Portugal)',
+        },
+        accents: {
+            classic: 'Classic',
+            violet: 'Violet',
+            cyan: 'Cyan',
+            amber: 'Amber',
+            neutral: 'Neutral',
         },
         about: {
             version: 'Version {{version}}',
@@ -91,7 +98,8 @@ export const en: I18nResource = {
         },
         import: {
             errors: {
-                invalidExtension: 'That file is not an ARC Timer workout (.arcw).',
+                invalidExtension:
+                    'That file is not an ARC Timer workout (.arcw).',
                 invalidKind: 'That file is not an ARC Timer workout export.',
                 invalidShape:
                     'That file looks like an ARC Timer export, but it is missing data.',

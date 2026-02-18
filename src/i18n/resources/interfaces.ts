@@ -60,6 +60,13 @@ export interface I18nResource {
             en: string;
             ptPT: string;
         };
+        accents: {
+            classic: string;
+            violet: string;
+            cyan: string;
+            amber: string;
+            neutral: string;
+        };
         about: {
             version: string;
         };

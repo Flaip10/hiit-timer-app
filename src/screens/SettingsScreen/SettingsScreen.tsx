@@ -6,80 +6,118 @@ import { MainContainer } from '@src/components/layout/MainContainer/MainContaine
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useSettingsStyles } from './SettingsScreen.styles';
-import {
-    useSettingsStore,
-    type LanguageCode,
-} from '@src/state/useSettingsStore';
+import { useSettingsStore } from '@src/state/useSettingsStore';
 import { AppLogo } from '@src/components/ui/AppLogo/AppLogo';
 import { SettingsSection } from './components/SettingsSection';
 import { SettingsSubSection } from './components/SettingsSubSection';
 import { OptionPills } from './components/OptionPills';
 import { type AccentId, COLOR_ACCENTS } from '@src/theme/palette';
+import { useTranslation } from 'react-i18next';
+import {
+    getCurrentLanguage,
+    setLanguage,
+    type LanguageCode,
+} from '@src/i18n/language';
 
-const LANGUAGE_OPTIONS: { value: LanguageCode; label: string; flag: string }[] =
-    [
-        { value: 'en', label: 'English', flag: '🇬🇧' },
-        { value: 'pt', label: 'Português', flag: '🇵🇹' },
-    ];
+interface LanguageOption {
+    value: LanguageCode;
+    labelKey: 'settings.languages.en' | 'settings.languages.ptPT';
+    flag: string;
+}
+
+interface AccentLabelKeys {
+    classic: 'settings.accents.classic';
+    violet: 'settings.accents.violet';
+    cyan: 'settings.accents.cyan';
+    amber: 'settings.accents.amber';
+    neutral: 'settings.accents.neutral';
+}
+
+const LANGUAGE_OPTIONS: LanguageOption[] = [
+    { value: 'en', labelKey: 'settings.languages.en', flag: '🇬🇧' },
+    { value: 'pt-PT', labelKey: 'settings.languages.ptPT', flag: '🇵🇹' },
+];
+
+const ACCENT_LABEL_KEYS: AccentLabelKeys = {
+    classic: 'settings.accents.classic',
+    violet: 'settings.accents.violet',
+    cyan: 'settings.accents.cyan',
+    amber: 'settings.accents.amber',
+    neutral: 'settings.accents.neutral',
+};
 
 const APP_VERSION = Application.nativeApplicationVersion ?? '1.0.0';
 const APP_NAME = Application.applicationName ?? 'ARC Timer';
 
 const SettingsScreen = () => {
+    const { t } = useTranslation();
     const { preference, setPreference } = useTheme();
     const {
         isSoundEnabled,
-        language,
         accentPreference,
         setIsSoundEnabled,
-        setLanguage,
         setAccentPreference,
     } = useSettingsStore();
     const st = useSettingsStyles();
 
     const themeOptions = [
-        { value: 'light' as const, label: 'Light' },
-        { value: 'dark' as const, label: 'Dark' },
-        { value: 'system' as const, label: 'System' },
+        { value: 'light' as const, label: t('settings.theme.light') },
+        { value: 'dark' as const, label: t('settings.theme.dark') },
+        { value: 'system' as const, label: t('settings.theme.system') },
     ];
 
     const soundOptions = [
-        { value: 'on' as const, label: 'On' },
-        { value: 'off' as const, label: 'Off' },
+        { value: 'on' as const, label: t('settings.sound.on') },
+        { value: 'off' as const, label: t('settings.sound.off') },
     ];
 
-    const languageOptions = LANGUAGE_OPTIONS.map(({ value, label, flag }) => ({
-        value,
-        label,
-        leftSlot: (
-            <AppText variant="bodySmall" style={st.flagEmoji}>
-                {flag}
-            </AppText>
-        ),
-    }));
+    const languageOptions = LANGUAGE_OPTIONS.map(
+        ({ value, labelKey, flag }) => ({
+            value,
+            label: t(labelKey),
+            leftSlot: (
+                <AppText variant="bodySmall" style={st.flagEmoji}>
+                    {flag}
+                </AppText>
+            ),
+        })
+    );
 
     const colorAccentOptions = (Object.keys(COLOR_ACCENTS) as AccentId[]).map(
         (id) => {
-            const accent = COLOR_ACCENTS[id];
-
             return {
                 value: id,
-                label: accent.label,
+                label: t(ACCENT_LABEL_KEYS[id]),
             };
         }
     );
 
+    const currentLanguage = getCurrentLanguage();
+
+    const handleSelectLanguage = (languageCode: LanguageCode) => {
+        setLanguage(languageCode).catch((error: unknown) => {
+            console.error('setLanguage failed', error);
+        });
+    };
+
     return (
-        <MainContainer title="Settings">
-            <SettingsSection iconId="appearance" title="Appearance">
-                <SettingsSubSection description={'Select your preferred theme'}>
+        <MainContainer title={t('settings.title')}>
+            <SettingsSection
+                iconId="appearance"
+                title={t('settings.sections.appearance')}
+            >
+                <SettingsSubSection
+                    description={t('settings.descriptions.theme')}
+                >
                     <OptionPills
                         options={themeOptions}
                         selectedValue={preference}
                         onSelect={setPreference}
                     />
                 </SettingsSubSection>
-                <SettingsSubSection description="Select your preferred color accent">
+                <SettingsSubSection
+                    description={t('settings.descriptions.accent')}
+                >
                     <OptionPills
                         options={colorAccentOptions}
                         selectedValue={accentPreference}
@@ -90,8 +128,13 @@ const SettingsScreen = () => {
 
             <View style={st.separator} />
 
-            <SettingsSection iconId="sound" title="Sound">
-                <SettingsSubSection description="Enable sound effects and notifications">
+            <SettingsSection
+                iconId="sound"
+                title={t('settings.sections.sound')}
+            >
+                <SettingsSubSection
+                    description={t('settings.descriptions.sound')}
+                >
                     <OptionPills
                         options={soundOptions}
                         selectedValue={isSoundEnabled ? 'on' : 'off'}
@@ -102,19 +145,24 @@ const SettingsScreen = () => {
 
             <View style={st.separator} />
 
-            <SettingsSection iconId="language" title="Language">
-                <SettingsSubSection description="Select your preferred language">
+            <SettingsSection
+                iconId="language"
+                title={t('settings.sections.language')}
+            >
+                <SettingsSubSection
+                    description={t('settings.descriptions.language')}
+                >
                     <OptionPills
                         options={languageOptions}
-                        selectedValue={language}
-                        onSelect={setLanguage}
+                        selectedValue={currentLanguage}
+                        onSelect={handleSelectLanguage}
                     />
                 </SettingsSubSection>
             </SettingsSection>
 
             <View style={st.separator} />
 
-            <SettingsSection iconId="info" title="About">
+            <SettingsSection iconId="info" title={t('settings.sections.about')}>
                 <View style={st.aboutContent}>
                     <AppLogo size={64} withBackground />
                     <View style={st.aboutInfo}>
@@ -122,7 +170,9 @@ const SettingsScreen = () => {
                             {APP_NAME}
                         </AppText>
                         <AppText variant="bodySmall" tone="muted">
-                            Version {APP_VERSION}
+                            {t('settings.about.version', {
+                                version: APP_VERSION,
+                            })}
                         </AppText>
                         <AppText
                             variant="bodySmall"

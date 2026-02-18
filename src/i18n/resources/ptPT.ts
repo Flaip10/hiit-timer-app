@@ -46,7 +46,7 @@ export const ptPT: I18nResource = {
         descriptions: {
             theme: 'Seleciona o tema preferido',
             accent: 'Seleciona a cor de destaque preferida',
-            sound: 'Ativa efeitos sonoros e notificações',
+            sound: 'Ativa efeitos sonoros',
             language: 'Seleciona o idioma preferido',
         },
         theme: {
@@ -61,6 +61,13 @@ export const ptPT: I18nResource = {
         languages: {
             en: 'Inglês',
             ptPT: 'Português (Portugal)',
+        },
+        accents: {
+            classic: 'Clássico',
+            violet: 'Violeta',
+            cyan: 'Ciano',
+            amber: 'Âmbar',
+            neutral: 'Neutro',
         },
         about: {
             version: 'Versão {{version}}',
@@ -122,7 +129,8 @@ export const ptPT: I18nResource = {
             start: 'Iniciar',
         },
         export: {
-            sharingUnavailable: 'A partilha não está disponível neste dispositivo.',
+            sharingUnavailable:
+                'A partilha não está disponível neste dispositivo.',
             writeFailed: 'Não foi possível preparar o ficheiro para partilha.',
             failed: 'Falha ao exportar treino.',
         },
@@ -130,7 +138,8 @@ export const ptPT: I18nResource = {
     run: {
         title: 'Executar treino',
         emptyTitle: 'Sem passos para executar',
-        emptyDescription: 'Este treino não tem passos temporizados configurados.',
+        emptyDescription:
+            'Este treino não tem passos temporizados configurados.',
         donePill: 'Concluído',
         phase: {
             work: 'Trabalho',
