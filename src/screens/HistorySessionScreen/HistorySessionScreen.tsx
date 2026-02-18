@@ -32,7 +32,7 @@ export type SessionStatsMetric = {
 /* -------------------------------------------------------------------------- */
 
 const HistorySessionScreen = () => {
-    const { t } = useTranslation();
+    const { i18n, t } = useTranslation();
     const router = useRouter();
     const { sessionId } = useLocalSearchParams<{ sessionId?: string }>();
     const { theme } = useTheme();
@@ -69,21 +69,22 @@ const HistorySessionScreen = () => {
     }
 
     // -------- data --------
+    const locale = i18n.resolvedLanguage ?? i18n.language;
 
     const startedAt = new Date(session.startedAtMs);
     const startedAtLabel =
-        startedAt.toLocaleDateString(undefined, {
+        startedAt.toLocaleDateString(locale, {
             day: '2-digit',
             month: 'short',
             year: 'numeric',
         }) +
         ' • ' +
-        startedAt.toLocaleTimeString(undefined, {
+        startedAt.toLocaleTimeString(locale, {
             hour: '2-digit',
             minute: '2-digit',
         });
     const endedAt = new Date(session.endedAtMs);
-    const endedAtLabel = endedAt.toLocaleTimeString(undefined, {
+    const endedAtLabel = endedAt.toLocaleTimeString(locale, {
         hour: '2-digit',
         minute: '2-digit',
     });

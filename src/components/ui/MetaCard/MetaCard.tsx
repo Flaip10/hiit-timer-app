@@ -10,26 +10,31 @@ import MinHeightCollapse from '../MinHeightCollapse/MinHeightCollapse';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { CurvedActionStrip } from './CurvedActionStrip/CurvedActionStrip';
 import GuardedPressable from '../GuardedPressable/GuardedPressable';
+import { useTranslation } from 'react-i18next';
 
-const getPillDate = (isoDate?: string | null, hideHours?: boolean): string => {
+const getPillDate = (
+    isoDate?: string | null,
+    hideHours?: boolean,
+    locale?: string
+): string => {
     if (!isoDate) return '';
     const date = new Date(isoDate);
     if (Number.isNaN(date.getTime())) return '';
 
     if (hideHours) {
-        return date.toLocaleDateString('pt-PT', {
+        return date.toLocaleDateString(locale, {
             day: '2-digit',
             month: 'short',
             year: 'numeric',
         });
     }
 
-    const datePart = date.toLocaleDateString('pt-PT', {
+    const datePart = date.toLocaleDateString(locale, {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
     });
-    const timePart = date.toLocaleTimeString('pt-PT', {
+    const timePart = date.toLocaleTimeString(locale, {
         hour: '2-digit',
         minute: '2-digit',
     });
@@ -57,6 +62,7 @@ export const MetaCard: FC<MetaCardProps> = ({
     initiallyExpanded = false,
     measureKey,
 }) => {
+    const { i18n } = useTranslation();
     const [expanded, setExpanded] = useState(initiallyExpanded);
     const [overflowing, setOverflowing] = useState(false);
     const [measured, setMeasured] = useState(false);
@@ -73,6 +79,7 @@ export const MetaCard: FC<MetaCardProps> = ({
         hasTopContent: !noTopContent,
     });
     const { theme } = useTheme();
+    const locale = i18n.resolvedLanguage ?? i18n.language;
 
     const safeMin =
         typeof minHeight === 'number' && minHeight >= 0 ? minHeight : 0;
@@ -142,7 +149,7 @@ export const MetaCard: FC<MetaCardProps> = ({
                                 color={theme.palette.metaCard.datePill.icon}
                             />
                             <Text style={st.dateTimePillText} numberOfLines={1}>
-                                {getPillDate(date, hideHours)}
+                                {getPillDate(date, hideHours, locale)}
                             </Text>
                         </View>
                     ) : null}

@@ -11,6 +11,7 @@ import {
 } from '@src/screens/WorkoutRunScreen/components/ShareWorkoutCard/ShareWorkoutCard';
 import type { Workout } from '@src/core/entities/entities';
 import { useShareWorkoutModalStyles } from './ShareWorkoutModal.styles';
+import { useTranslation } from 'react-i18next';
 
 type ShareWorkoutModalProps = {
     visible: boolean;
@@ -25,6 +26,7 @@ export const ShareWorkoutModal = ({
     workout,
     runStats,
 }: ShareWorkoutModalProps) => {
+    const { t } = useTranslation();
     const shareCardRef = useRef<View | null>(null);
     const st = useShareWorkoutModalStyles();
 
@@ -61,14 +63,14 @@ export const ShareWorkoutModal = ({
 
             <View style={st.buttonsRow}>
                 <Button
-                    title="Cancel"
+                    title={t('common.actions.cancel')}
                     variant="secondary"
                     onPress={onClose}
                     flex={1}
                 />
 
                 <Button
-                    title="Share"
+                    title={t('common.actions.share')}
                     variant="primary"
                     onPress={handleConfirmShare}
                     flex={1}
