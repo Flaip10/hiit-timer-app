@@ -42,6 +42,19 @@ export interface I18nResource {
         recentWorkouts: string;
         noSessionsYet: string;
     };
+    history: {
+        title: string;
+        searchPlaceholder: string;
+        clear: string;
+        emptyTitle: string;
+        emptyDescription: string;
+        clearConfirm: {
+            title: string;
+            message: string;
+            confirm: string;
+            cancel: string;
+        };
+    };
     settings: {
         title: string;
         sections: {

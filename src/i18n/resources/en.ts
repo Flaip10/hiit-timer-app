@@ -44,6 +44,19 @@ export const en: I18nResource = {
         recentWorkouts: 'Recent Workouts',
         noSessionsYet: 'No sessions yet.',
     },
+    history: {
+        title: 'History',
+        searchPlaceholder: 'Search workouts',
+        clear: 'Clear',
+        emptyTitle: 'No sessions yet',
+        emptyDescription: 'Run a workout and it will appear here.',
+        clearConfirm: {
+            title: 'Clear history',
+            message: 'All workout sessions will be deleted.',
+            confirm: 'Clear',
+            cancel: 'Cancel',
+        },
+    },
     settings: {
         title: 'Settings',
         sections: {

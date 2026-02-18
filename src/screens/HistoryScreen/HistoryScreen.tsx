@@ -10,8 +10,10 @@ import { useWorkoutHistory } from '@src/state/stores/useWorkoutHistory';
 import { useStyles } from './HistoryScreen.styles';
 import SessionListItem from './components/SessionListitem/SessionListItem';
 import { SearchField } from '@src/components/ui/SearchField/SearchField';
+import { useTranslation } from 'react-i18next';
 
 const HistoryScreen = () => {
+    const { t } = useTranslation();
     const router = useRouter();
     const st = useStyles();
 
@@ -35,7 +37,7 @@ const HistoryScreen = () => {
     }, [order, search, sessions]);
 
     return (
-        <MainContainer title="History" scroll={false} noPadding>
+        <MainContainer title={t('history.title')} scroll={false} noPadding>
             <FlatList
                 data={data}
                 keyExtractor={(s) => s.id}
@@ -47,10 +49,10 @@ const HistoryScreen = () => {
                             value={search}
                             onChangeText={setSearch}
                             fullWidth
-                            placeholder="Search workouts"
+                            placeholder={t('history.searchPlaceholder')}
                         />
                         <Button
-                            title="Clear"
+                            title={t('history.clear')}
                             variant="secondary"
                             onPress={() => setConfirmClear(true)}
                             disabled={data.length === 0}
@@ -66,9 +68,11 @@ const HistoryScreen = () => {
                 )}
                 ListEmptyComponent={
                     <View style={st.empty}>
-                        <AppText variant="title3">No sessions yet</AppText>
+                        <AppText variant="title3">
+                            {t('history.emptyTitle')}
+                        </AppText>
                         <AppText variant="bodySmall" tone="secondary">
-                            Run a workout and it will appear here.
+                            {t('history.emptyDescription')}
                         </AppText>
                     </View>
                 }
@@ -76,10 +80,10 @@ const HistoryScreen = () => {
 
             <ConfirmDialog
                 visible={confirmClear}
-                title="Clear history?"
-                message="This will remove all workout sessions."
-                confirmLabel="Clear"
-                cancelLabel="Cancel"
+                title={t('history.clearConfirm.title')}
+                message={t('history.clearConfirm.message')}
+                confirmLabel={t('history.clearConfirm.confirm')}
+                cancelLabel={t('history.clearConfirm.cancel')}
                 destructive
                 onConfirm={() => {
                     clearAll();

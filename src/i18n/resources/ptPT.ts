@@ -44,6 +44,19 @@ export const ptPT: I18nResource = {
         recentWorkouts: 'Treinos recentes',
         noSessionsYet: 'Ainda não existem sessões.',
     },
+    history: {
+        title: 'Histórico',
+        searchPlaceholder: 'Pesquisar treinos',
+        clear: 'Limpar',
+        emptyTitle: 'Ainda não existem sessões',
+        emptyDescription: 'Executa um treino e ele aparecerá aqui.',
+        clearConfirm: {
+            title: 'Limpar histórico',
+            message: 'Todas as sessões serão eliminadas.',
+            confirm: 'Limpar',
+            cancel: 'Cancelar',
+        },
+    },
     settings: {
         title: 'Definições',
         sections: {
