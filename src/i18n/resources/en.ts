@@ -35,6 +35,15 @@ export const en: I18nResource = {
         settings: 'Settings',
         quickAccess: 'Quick access',
     },
+    home: {
+        title: 'Home',
+        welcome: 'Welcome',
+        subtitle: 'Get started with your training.',
+        quickWorkout: 'Quick Workout',
+        startImmediately: 'Start immediately',
+        recentWorkouts: 'Recent Workouts',
+        noSessionsYet: 'No sessions yet.',
+    },
     settings: {
         title: 'Settings',
         sections: {

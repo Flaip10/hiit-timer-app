@@ -35,6 +35,15 @@ export const ptPT: I18nResource = {
         settings: 'Definições',
         quickAccess: 'Acesso rápido',
     },
+    home: {
+        title: 'Início',
+        welcome: 'Bem-vindo',
+        subtitle: 'Começa já o teu treino.',
+        quickWorkout: 'Treino rápido',
+        startImmediately: 'Começar imediatamente',
+        recentWorkouts: 'Treinos recentes',
+        noSessionsYet: 'Ainda não existem sessões.',
+    },
     settings: {
         title: 'Definições',
         sections: {

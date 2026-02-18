@@ -11,8 +11,10 @@ import { useRecentSessions } from '@src/state/stores/useWorkoutHistory';
 import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
 import SessionListItem from '../HistoryScreen/components/SessionListitem/SessionListItem';
 import { AppLogo } from '@src/components/ui/AppLogo/AppLogo';
+import { useTranslation } from 'react-i18next';
 
 const HomeScreen = () => {
+    const { t } = useTranslation();
     const router = useRouter();
     const { theme } = useTheme();
     const st = useStyles();
@@ -25,7 +27,7 @@ const HomeScreen = () => {
 
     return (
         <MainContainer
-            title="Home"
+            title={t('home.title')}
             gap={theme.layout.mainContainer.gap}
             scroll={false}
         >
@@ -33,7 +35,7 @@ const HomeScreen = () => {
                 <AppLogo size={60} />
                 <View style={st.headerTextContainer}>
                     <AppText variant="title1" style={st.heading}>
-                        Welcome
+                        {t('home.welcome')}
                     </AppText>
 
                     <AppText
@@ -41,7 +43,7 @@ const HomeScreen = () => {
                         tone="secondary"
                         style={st.subheading}
                     >
-                        Get started with your training.
+                        {t('home.subtitle')}
                     </AppText>
                 </View>
             </View>
@@ -49,8 +51,8 @@ const HomeScreen = () => {
             {/* Primary action */}
             <View style={st.gridContainer}>
                 <HomeActionTile
-                    title="Quick Workout"
-                    subtitle="Start immediately"
+                    title={t('home.quickWorkout')}
+                    subtitle={t('home.startImmediately')}
                     icon="play"
                     variant="primary"
                     onPress={() => {
@@ -69,7 +71,7 @@ const HomeScreen = () => {
                 <View style={st.grid}>
                     <View style={st.gridItem}>
                         <HomeActionTile
-                            title="Workouts"
+                            title={t('drawer.workouts')}
                             icon="barbell-outline"
                             onPress={() => router.push('/workouts')}
                         />
@@ -77,7 +79,7 @@ const HomeScreen = () => {
 
                     <View style={st.gridItem}>
                         <HomeActionTile
-                            title="History"
+                            title={t('drawer.history')}
                             icon="time-outline"
                             onPress={() => router.push('/history')}
                         />
@@ -85,7 +87,7 @@ const HomeScreen = () => {
                 </View>
             </View>
 
-            <ScreenSection title="Recent Workouts" flex>
+            <ScreenSection title={t('home.recentWorkouts')} flex>
                 <FlatList
                     data={recent}
                     keyExtractor={(s) => s.id}
@@ -99,7 +101,7 @@ const HomeScreen = () => {
                     )}
                     ListEmptyComponent={
                         <AppText variant="bodySmall" tone="secondary">
-                            No sessions yet.
+                            {t('home.noSessionsYet')}
                         </AppText>
                     }
                 />

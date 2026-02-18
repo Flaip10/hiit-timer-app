@@ -33,6 +33,15 @@ export interface I18nResource {
         settings: string;
         quickAccess: string;
     };
+    home: {
+        title: string;
+        welcome: string;
+        subtitle: string;
+        quickWorkout: string;
+        startImmediately: string;
+        recentWorkouts: string;
+        noSessionsYet: string;
+    };
     settings: {
         title: string;
         sections: {
