@@ -2,9 +2,11 @@ import React from 'react';
 import { Drawer } from 'expo-router/drawer';
 import { useTheme } from '@src/theme/ThemeProvider';
 import AppDrawerContent from '../../src/components/navigation/AppDrawerContent/AppDrawerContent';
+import { useTranslation } from 'react-i18next';
 
 const DrawerLayout = () => {
     const { theme } = useTheme();
+    const { t } = useTranslation();
 
     return (
         <Drawer
@@ -24,18 +26,18 @@ const DrawerLayout = () => {
                 },
             }}
         >
-            <Drawer.Screen name="index" options={{ title: 'Home' }} />
+            <Drawer.Screen name="index" options={{ title: t('drawer.home') }} />
             <Drawer.Screen
                 name="workouts/index"
-                options={{ title: 'Workouts' }}
+                options={{ title: t('drawer.workouts') }}
             />
             <Drawer.Screen
                 name="history/index"
-                options={{ title: 'History' }}
+                options={{ title: t('drawer.history') }}
             />
             <Drawer.Screen
                 name="settings/index"
-                options={{ title: 'Settings' }}
+                options={{ title: t('drawer.settings') }}
             />
         </Drawer>
     );
