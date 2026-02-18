@@ -78,6 +78,21 @@ export interface I18nResource {
             workoutEditedSinceSession: string;
         };
     };
+    workoutBlockItem: {
+        summary: {
+            timeEach: string;
+            repsEach: string;
+        };
+        exerciseMeta: {
+            time: string;
+            reps_one: string;
+            reps_other: string;
+            rest: string;
+        };
+        labels: {
+            exerciseWithIndex: string;
+        };
+    };
     settings: {
         title: string;
         sections: {

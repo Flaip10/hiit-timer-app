@@ -82,6 +82,21 @@ export const ptPT: I18nResource = {
                 'O treino foi editado desde esta sessão.',
         },
     },
+    workoutBlockItem: {
+        summary: {
+            timeEach: '{{value}}s cada',
+            repsEach: '{{value}} repetições cada',
+        },
+        exerciseMeta: {
+            time: '{{value}}s',
+            reps_one: '{{count}} repetição',
+            reps_other: '{{count}} repetições',
+            rest: 'Descanso {{value}}s',
+        },
+        labels: {
+            exerciseWithIndex: 'Exercício {{index}}',
+        },
+    },
     settings: {
         title: 'Definições',
         sections: {

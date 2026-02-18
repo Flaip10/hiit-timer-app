@@ -25,8 +25,10 @@ import { exportWorkoutToFile } from '@src/core/exportWorkout/exportWorkout';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useWorkoutSummaryStyles } from './WorkoutSummaryScreen.styles';
 import { WorkoutBlockItem } from '../EditWorkoutScreen/components/WorkoutBlockItem/WorkoutBlockItem';
+import { useTranslation } from 'react-i18next';
 
 const WorkoutSummaryScreen = () => {
+    const { t } = useTranslation();
     const { id } = useLocalSearchParams<{ id?: string }>();
     const router = useRouter();
     const workout = useWorkout(id);
@@ -41,13 +43,13 @@ const WorkoutSummaryScreen = () => {
 
     if (!id || !workout) {
         return (
-            <MainContainer title="Workout" scroll={false}>
+            <MainContainer title={t('workoutSummary.title')} scroll={false}>
                 <View style={st.center}>
                     <AppText variant="body" tone="danger" style={st.errorText}>
-                        Workout not found.
+                        {t('workoutSummary.notFound')}
                     </AppText>
                     <Button
-                        title="Back"
+                        title={t('common.actions.back')}
                         variant="secondary"
                         onPress={() => router.back()}
                         style={st.errorButton}
@@ -61,8 +63,8 @@ const WorkoutSummaryScreen = () => {
         summary.approxSec > 0
             ? formatWorkoutDuration(summary.approxSec)
             : summary.hasReps
-              ? 'Mixed (time + reps)'
-              : 'No time estimate';
+              ? t('common.status.mixedTimeAndReps')
+              : t('common.status.noTimeEstimate');
     const isFavorite = workout.isFavorite === true;
 
     const handleExport = async () => {
@@ -74,11 +76,11 @@ const WorkoutSummaryScreen = () => {
 
         if (!result.ok) {
             if (result.error === 'SHARING_UNAVAILABLE') {
-                setExportError('Sharing is not available on this device.');
+                setExportError(t('workoutSummary.export.sharingUnavailable'));
             } else if (result.error === 'WRITE_FAILED') {
-                setExportError('Could not prepare the file for sharing.');
+                setExportError(t('workoutSummary.export.writeFailed'));
             } else {
-                setExportError('Failed to export workout.');
+                setExportError(t('workoutSummary.export.failed'));
             }
         }
 
@@ -90,7 +92,7 @@ const WorkoutSummaryScreen = () => {
             <MainContainer title={workout.name} gap={0}>
                 {/* Overview Section */}
                 <ScreenSection
-                    title="Overview"
+                    title={t('workoutSummary.overview')}
                     topSpacing="small"
                     gap={12}
                     rightAccessory={
@@ -115,7 +117,7 @@ const WorkoutSummaryScreen = () => {
                                     isFavorite && st.favoriteLabelActive,
                                 ]}
                             >
-                                Favorite
+                                {t('workoutSummary.favorite')}
                             </AppText>
                         </GuardedPressable>
                     }
@@ -123,7 +125,7 @@ const WorkoutSummaryScreen = () => {
                     <MetaCard
                         expandable={false}
                         topLeftContent={{
-                            text: 'Workout summary',
+                            text: t('workoutSummary.cardTitle'),
                             icon: (
                                 <Ionicons
                                     name="barbell-outline"
@@ -149,7 +151,7 @@ const WorkoutSummaryScreen = () => {
                                         tone="muted"
                                         style={st.metricLabel}
                                     >
-                                        Blocks
+                                        {t('workoutSummary.metrics.blocks')}
                                     </AppText>
                                     <AppText
                                         variant="body"
@@ -165,7 +167,7 @@ const WorkoutSummaryScreen = () => {
                                         tone="muted"
                                         style={st.metricLabel}
                                     >
-                                        Exercises
+                                        {t('workoutSummary.metrics.exercises')}
                                     </AppText>
                                     <AppText
                                         variant="body"
@@ -181,7 +183,7 @@ const WorkoutSummaryScreen = () => {
                                         tone="muted"
                                         style={st.metricLabel}
                                     >
-                                        Estimated time
+                                        {t('workoutSummary.metrics.estimatedTime')}
                                     </AppText>
                                     <AppText
                                         variant="bodySmall"
@@ -205,7 +207,7 @@ const WorkoutSummaryScreen = () => {
 
                 {/* Blocks Section*/}
                 <ScreenSection
-                    title="Blocks"
+                    title={t('workoutSummary.blocksSection')}
                     topSpacing="large"
                     gap={theme.layout.listItem.gap}
                 >
@@ -226,7 +228,7 @@ const WorkoutSummaryScreen = () => {
                         style={st.hint}
                         numberOfLines={2}
                     >
-                        You can edit this workout or start it now.
+                        {t('workoutSummary.hint')}
                     </AppText>
 
                     <View style={st.exportContainer}>
@@ -247,7 +249,7 @@ const WorkoutSummaryScreen = () => {
                             tone="muted"
                             style={st.exportText}
                         >
-                            Share workout
+                            {t('workoutSummary.shareWorkout')}
                         </AppText>
                     </View>
                 </ScreenSection>
@@ -255,7 +257,7 @@ const WorkoutSummaryScreen = () => {
 
             <FooterBar>
                 <Button
-                    title="Edit"
+                    title={t('workoutSummary.actions.edit')}
                     variant="secondary"
                     flex={1}
                     onPress={() =>
@@ -266,7 +268,7 @@ const WorkoutSummaryScreen = () => {
                     }
                 />
                 <Button
-                    title="Start"
+                    title={t('workoutSummary.actions.start')}
                     variant="primary"
                     flex={1}
                     onPress={() =>

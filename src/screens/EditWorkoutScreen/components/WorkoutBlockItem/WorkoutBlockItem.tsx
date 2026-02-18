@@ -17,6 +17,7 @@ import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useWorkoutBlockItemStyles } from './WorkoutBlockItem.styles';
+import { useTranslation } from 'react-i18next';
 
 type WorkoutBlockItemProps = {
     index: number;
@@ -43,6 +44,7 @@ export const WorkoutBlockItem = ({
     initiallyExpanded = false,
     isWiggling = false,
 }: WorkoutBlockItemProps) => {
+    const { t } = useTranslation();
     const { theme } = useTheme();
     const st = useWorkoutBlockItemStyles();
     const { sets, exercises } = block;
@@ -107,24 +109,24 @@ export const WorkoutBlockItem = ({
 
         if (!allSame) return '';
         return first.mode === 'time'
-            ? `${first.value}s each`
-            : `${first.value} reps each`;
-    }, [exercises]);
+            ? t('workoutBlockItem.summary.timeEach', { value: first.value })
+            : t('workoutBlockItem.summary.repsEach', { value: first.value });
+    }, [exercises, t]);
 
     const metaParts = useMemo(() => {
         const parts: string[] = [
-            `${sets} ${sets === 1 ? 'set' : 'sets'}`,
-            `${exercises.length} ${exercises.length === 1 ? 'exercise' : 'exercises'}`,
+            t('common.units.set', { count: sets }),
+            t('common.units.exercise', { count: exercises.length }),
         ];
         if (exerciseSummary) parts.push(exerciseSummary);
         return parts;
-    }, [sets, exercises.length, exerciseSummary]);
+    }, [sets, exercises.length, exerciseSummary, t]);
 
     const trimmedTitle = block.title?.trim();
     const blockLabel =
         trimmedTitle && trimmedTitle.length > 0
             ? trimmedTitle
-            : `Block ${index + 1}`;
+            : t('common.labels.blockWithIndex', { index: index + 1 });
 
     const formatExerciseMeta = (
         mode: WorkoutBlock['exercises'][number]['mode'],
@@ -133,9 +135,16 @@ export const WorkoutBlockItem = ({
     ): string => {
         const main =
             mode === 'time'
-                ? `${value}s`
-                : `${value} rep${value === 1 ? '' : 's'}`;
-        return restSec && restSec > 0 ? `${main} • Rest ${restSec}s` : main;
+                ? t('workoutBlockItem.exerciseMeta.time', { value })
+                : t(
+                      value === 1
+                          ? 'workoutBlockItem.exerciseMeta.reps_one'
+                          : 'workoutBlockItem.exerciseMeta.reps_other',
+                      { count: value }
+                  );
+        return restSec && restSec > 0
+            ? `${main} • ${t('workoutBlockItem.exerciseMeta.rest', { value: restSec })}`
+            : main;
     };
 
     const handlePress = onPress ? () => onPress(block.id) : undefined;
@@ -220,7 +229,13 @@ export const WorkoutBlockItem = ({
                                             tone="primary"
                                             numberOfLines={1}
                                         >
-                                            {ex.name ?? `Exercise ${i + 1}`}
+                                            {ex.name ??
+                                                t(
+                                                    'workoutBlockItem.labels.exerciseWithIndex',
+                                                    {
+                                                        index: i + 1,
+                                                    }
+                                                )}
                                         </AppText>
 
                                         <AppText

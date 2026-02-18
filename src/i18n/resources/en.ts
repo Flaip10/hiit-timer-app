@@ -80,6 +80,21 @@ export const en: I18nResource = {
             workoutEditedSinceSession: 'Workout edited since this session.',
         },
     },
+    workoutBlockItem: {
+        summary: {
+            timeEach: '{{value}}s each',
+            repsEach: '{{value}} reps each',
+        },
+        exerciseMeta: {
+            time: '{{value}}s',
+            reps_one: '{{count}} rep',
+            reps_other: '{{count}} reps',
+            rest: 'Rest {{value}}s',
+        },
+        labels: {
+            exerciseWithIndex: 'Exercise {{index}}',
+        },
+    },
     settings: {
         title: 'Settings',
         sections: {

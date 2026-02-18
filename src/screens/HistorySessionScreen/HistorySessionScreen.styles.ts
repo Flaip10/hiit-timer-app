@@ -49,7 +49,7 @@ export const useHistorySessionStyles = createStyles((_theme: AppTheme) =>
         },
         metricCard: {
             flex: 1,
-            minWidth: '25%',
+            minWidth: '26%',
             justifyContent: 'space-between',
             gap: 6,
         },
