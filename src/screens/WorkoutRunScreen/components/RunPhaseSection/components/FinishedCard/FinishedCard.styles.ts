@@ -3,19 +3,25 @@ import { createStyles } from '@src/theme/createStyles';
 const useFinishedCardStyles = createStyles((_theme) => ({
     finishedCard: {},
     overviewRow: {
+        gap: 16,
+    },
+    overviewMetricsRow: {
         flexDirection: 'row',
         alignItems: 'stretch',
         justifyContent: 'space-between',
         gap: 16,
-        flexWrap: 'wrap',
     },
     metricCard: {
         flex: 1,
         minWidth: '25%',
-        gap: 4,
+        justifyContent: 'space-between',
+        gap: 6,
+    },
+    metricLabelSlot: {
+        flexGrow: 1,
     },
     metricLabel: {
-        marginBottom: 2,
+        flexShrink: 1,
     },
 }));
 

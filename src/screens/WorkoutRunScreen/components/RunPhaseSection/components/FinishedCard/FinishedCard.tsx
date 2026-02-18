@@ -8,6 +8,7 @@ import type { WorkoutSessionStats } from '@src/core/entities/workoutSession.inte
 import { formatWorkoutDuration } from '@src/core/workouts/summarizeWorkout';
 import useFinishedCardStyles from './FinishedCard.styles';
 import type { SessionStatsMetric } from '@src/screens/HistorySessionScreen/HistorySessionScreen';
+import { useTranslation } from 'react-i18next';
 
 type FinishedCardProps = {
     runStats?: WorkoutSessionStats;
@@ -18,6 +19,7 @@ export const FinishedCard = ({
     runStats,
     totalDurationSec,
 }: FinishedCardProps) => {
+    const { t } = useTranslation();
     const st = useFinishedCardStyles();
     const { theme } = useTheme();
 
@@ -53,37 +55,37 @@ export const FinishedCard = ({
     const metrics: SessionStatsMetric[] = [
         {
             key: 'duration',
-            label: 'Duration',
+            label: t('run.stats.duration'),
             value: totalDurationText,
             isDimmed: totalDurationSec == null || totalDurationSec === 0,
         },
         {
             key: 'sets',
-            label: 'Sets',
+            label: t('run.stats.sets'),
             value: completedSetsText,
             isDimmed: completedSets === 0,
         },
         {
             key: 'exercises',
-            label: 'Exercises',
+            label: t('run.stats.exercises'),
             value: completedExercisesText,
             isDimmed: completedExercises === 0,
         },
         {
             key: 'work',
-            label: 'Work time',
+            label: t('run.stats.workTime'),
             value: workText,
             isDimmed: runStats?.totalWorkSec === 0,
         },
         {
             key: 'rest',
-            label: 'Rest time',
+            label: t('run.stats.restTime'),
             value: restText,
             isDimmed: runStats?.totalRestSec === 0,
         },
         {
             key: 'paused',
-            label: 'Paused time',
+            label: t('run.stats.pausedTime'),
             value: pausedText,
             isDimmed:
                 ((runStats?.totalPausedSec ?? 0) +
@@ -91,13 +93,17 @@ export const FinishedCard = ({
                 0,
         },
     ];
+    const metricRows: SessionStatsMetric[][] = [
+        metrics.slice(0, 3),
+        metrics.slice(3, 6),
+    ];
 
     return (
         <View style={st.finishedCard}>
             <MetaCard
                 expandable={false}
                 topLeftContent={{
-                    text: 'Session stats',
+                    text: t('run.stats.title'),
                     icon: (
                         <AppIcon
                             id="stats"
@@ -112,21 +118,33 @@ export const FinishedCard = ({
                 }}
                 summaryContent={
                     <View style={st.overviewRow}>
-                        {metrics.map(({ key, label, value, isDimmed }) => (
-                            <View key={key} style={st.metricCard}>
-                                <AppText
-                                    variant="caption"
-                                    tone="muted"
-                                    style={st.metricLabel}
-                                >
-                                    {label}
-                                </AppText>
-                                <AppText
-                                    variant="body"
-                                    tone={isDimmed ? 'muted' : 'primary'}
-                                >
-                                    {value}
-                                </AppText>
+                        {metricRows.map((row, rowIndex) => (
+                            <View
+                                key={`finished-metrics-row-${rowIndex}`}
+                                style={st.overviewMetricsRow}
+                            >
+                                {row.map(({ key, label, value, isDimmed }) => (
+                                    <View key={key} style={st.metricCard}>
+                                        <View style={st.metricLabelSlot}>
+                                            <AppText
+                                                variant="caption"
+                                                tone="muted"
+                                                style={st.metricLabel}
+                                                numberOfLines={2}
+                                            >
+                                                {label}
+                                            </AppText>
+                                        </View>
+                                        <AppText
+                                            variant="body"
+                                            tone={
+                                                isDimmed ? 'muted' : 'primary'
+                                            }
+                                        >
+                                            {value}
+                                        </AppText>
+                                    </View>
+                                ))}
                             </View>
                         ))}
                     </View>
