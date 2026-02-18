@@ -212,6 +212,10 @@ const HistorySessionScreen = () => {
                 runStats.totalPausedSec + runStats.totalBlockPauseSec === 0,
         },
     ];
+    const metricRows: SessionStatsMetric[][] = [
+        metrics.slice(0, 3),
+        metrics.slice(3, 6),
+    ];
 
     // -------- actions --------
 
@@ -363,29 +367,53 @@ const HistorySessionScreen = () => {
                         }}
                         summaryContent={
                             <View style={st.overviewRow}>
-                                {metrics.map(
-                                    ({ key, label, value, isDimmed }) => (
-                                        <View key={key} style={st.metricCard}>
-                                            <AppText
-                                                variant="caption"
-                                                tone="muted"
-                                                style={st.metricLabel}
-                                            >
-                                                {label}
-                                            </AppText>
-                                            <AppText
-                                                variant="body"
-                                                tone={
-                                                    isDimmed
-                                                        ? 'muted'
-                                                        : 'primary'
-                                                }
-                                            >
-                                                {value}
-                                            </AppText>
-                                        </View>
-                                    )
-                                )}
+                                {metricRows.map((row, rowIndex) => (
+                                    <View
+                                        key={`metrics-row-${rowIndex}`}
+                                        style={st.overviewMetricsRow}
+                                    >
+                                        {row.map(
+                                            ({
+                                                key,
+                                                label,
+                                                value,
+                                                isDimmed,
+                                            }) => (
+                                                <View
+                                                    key={key}
+                                                    style={st.metricCard}
+                                                >
+                                                    <View
+                                                        style={
+                                                            st.metricLabelSlot
+                                                        }
+                                                    >
+                                                        <AppText
+                                                            variant="caption"
+                                                            tone="muted"
+                                                            style={
+                                                                st.metricLabel
+                                                            }
+                                                            numberOfLines={2}
+                                                        >
+                                                            {label}
+                                                        </AppText>
+                                                    </View>
+                                                    <AppText
+                                                        variant="body"
+                                                        tone={
+                                                            isDimmed
+                                                                ? 'muted'
+                                                                : 'primary'
+                                                        }
+                                                    >
+                                                        {value}
+                                                    </AppText>
+                                                </View>
+                                            )
+                                        )}
+                                    </View>
+                                ))}
                             </View>
                         }
                     />
@@ -437,7 +465,9 @@ const HistorySessionScreen = () => {
                                                     tone="secondary"
                                                     style={st.blockStatLabel}
                                                 >
-                                                    {t('historySession.blockStats.sets')}
+                                                    {t(
+                                                        'historySession.blockStats.sets'
+                                                    )}
                                                 </AppText>
                                                 <AppText
                                                     variant="bodySmall"
@@ -480,7 +510,9 @@ const HistorySessionScreen = () => {
                                                     tone="secondary"
                                                     style={st.blockStatLabel}
                                                 >
-                                                    {t('historySession.blockStats.work')}
+                                                    {t(
+                                                        'historySession.blockStats.work'
+                                                    )}
                                                 </AppText>
                                                 <AppText
                                                     variant="bodySmall"
@@ -502,7 +534,9 @@ const HistorySessionScreen = () => {
                                                     tone="secondary"
                                                     style={st.blockStatLabel}
                                                 >
-                                                    {t('historySession.blockStats.rest')}
+                                                    {t(
+                                                        'historySession.blockStats.rest'
+                                                    )}
                                                 </AppText>
                                                 <AppText variant="bodySmall">
                                                     {formatWorkoutDuration(
