@@ -1,4 +1,4 @@
-import RNFS from 'react-native-fs';
+import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 import type { Workout } from '@src/core/entities/entities';
@@ -12,9 +12,6 @@ export type ExportResult =
           ok: false;
           error: 'SHARING_UNAVAILABLE' | 'WRITE_FAILED' | 'SHARE_FAILED';
       };
-
-const toFileUri = (path: string): string =>
-    path.startsWith('file://') ? path : `file://${path}`;
 
 const sanitizeFilename = (name: string): string => {
     const safe = name
@@ -42,11 +39,10 @@ export const exportWorkoutToFile = async (
 
     const safeName = sanitizeFilename(workout.name);
     const filename = `${safeName}.arcw`;
-    const filePath = `${RNFS.TemporaryDirectoryPath}/${filename}`;
-    const fileUri = toFileUri(filePath);
+    const file = new File(Paths.cache, filename);
 
     try {
-        await RNFS.writeFile(filePath, json, 'utf8');
+        file.write(json);
     } catch (err) {
         console.warn('Export write failed', err);
         return { ok: false, error: 'WRITE_FAILED' };
@@ -65,7 +61,7 @@ export const exportWorkoutToFile = async (
     }
 
     try {
-        await Sharing.shareAsync(fileUri, {
+        await Sharing.shareAsync(file.uri, {
             mimeType: ARC_WORKOUT_MIME,
             dialogTitle: `Share workout "${workout.name}"`,
         });

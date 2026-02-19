@@ -1,5 +1,5 @@
 import * as DocumentPicker from 'expo-document-picker';
-import RNFS from 'react-native-fs';
+import { File } from 'expo-file-system';
 
 import type { Workout } from '../entities/entities';
 import {
@@ -59,14 +59,10 @@ export const importWorkoutFromFile = async (): Promise<ImportResult> => {
         return { ok: false, error: 'INVALID_EXTENSION' };
     }
 
-    let path = asset.uri;
-    if (path.startsWith('file://')) {
-        path = path.slice('file://'.length);
-    }
-
     let contents: string;
     try {
-        contents = await RNFS.readFile(path, 'utf8');
+        const file = new File(asset.uri);
+        contents = await file.text();
     } catch (err) {
         console.warn('READ_FAILED', err);
         return { ok: false, error: 'READ_FAILED' };
