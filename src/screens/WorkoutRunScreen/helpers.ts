@@ -2,6 +2,13 @@ import type { Phase, RunMeta, Step } from '@src/core/timer';
 import { clamp } from 'react-native-reanimated';
 import { msToSeconds } from '@src/helpers/time.helpers';
 
+interface PhaseLabelKeys {
+    work: 'run.phase.work';
+    setRest: 'run.phase.setRest';
+    rest: 'run.phase.rest';
+    prepare: 'run.phase.prepare';
+}
+
 export const colorFor = (phase: Phase, isSetRest: boolean): string => {
     if (phase === 'WORK') return '#22C55E';
     if (phase === 'REST') {
@@ -10,10 +17,13 @@ export const colorFor = (phase: Phase, isSetRest: boolean): string => {
     return '#F59E0B';
 };
 
-export const labelFor = (phase: Phase, isSetRest: boolean): string => {
-    if (phase === 'WORK') return 'Work';
-    if (phase === 'REST') return isSetRest ? 'Set rest' : 'Rest';
-    return 'Prepare';
+export const phaseLabelKeyFor = (
+    phase: Phase,
+    isSetRest: boolean
+): PhaseLabelKeys[keyof PhaseLabelKeys] => {
+    if (phase === 'WORK') return 'run.phase.work';
+    if (phase === 'REST') return isSetRest ? 'run.phase.setRest' : 'run.phase.rest';
+    return 'run.phase.prepare';
 };
 
 export const formatDuration = (sec: number): string => {
