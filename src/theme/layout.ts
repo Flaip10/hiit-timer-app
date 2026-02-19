@@ -43,7 +43,7 @@ const BASE_LAYOUT: ThemeLayout = {
     },
     tile: { borderRadius: 20 },
     listItem: {
-        gap: 10,
+        gap: 12,
     },
     footer: {
         padding: 12,
