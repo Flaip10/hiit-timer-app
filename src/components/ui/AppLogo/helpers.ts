@@ -1,6 +1,11 @@
 import type { AppTheme } from '@src/theme/theme';
 import { colors } from '@src/theme/colors';
-import { lightPalette, darkPalette } from '@src/theme/palette';
+import {
+    buildLightPalette,
+    buildDarkPalette,
+    COLOR_ACCENTS,
+    CLASSIC_ACCENT,
+} from '@src/theme/palette';
 
 export type LogoMode = 'theme' | 'neutral-light' | 'neutral-dark';
 
@@ -28,10 +33,15 @@ export const resolveLogoColors = (params: {
     }
 
     // mode === 'theme'
+    const accentTokens =
+        Object.values(COLOR_ACCENTS).find(
+            (accent) => accent.tokens.primary === theme.palette.accent.primary
+        )?.tokens ?? CLASSIC_ACCENT;
+
     const palette = useOppositeTheme
         ? theme.name === 'dark'
-            ? lightPalette
-            : darkPalette
+            ? buildLightPalette(accentTokens)
+            : buildDarkPalette(accentTokens)
         : theme.palette;
 
     return {
