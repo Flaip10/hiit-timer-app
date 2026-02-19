@@ -1,6 +1,7 @@
 {
     "extends": "./tsconfig.json",
     "include": [
+        "jest.setup.ts",
         "src/**/*.ts",
         "src/**/*.tsx",
         "app/**/*.ts",

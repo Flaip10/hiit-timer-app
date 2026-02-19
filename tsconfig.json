@@ -23,5 +23,6 @@
         },
         "jsx": "react-native",
         "noEmit": true
-    }
+    },
+    "exclude": ["jest.setup.ts", "src/**/*.test.ts", "src/**/__tests__/**"]
 }

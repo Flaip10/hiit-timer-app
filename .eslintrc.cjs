@@ -45,7 +45,15 @@ module.exports = {
             files: ['*.js', '*.cjs', '*.mjs'],
             parser: 'espree',
             parserOptions: { ecmaVersion: 'latest', sourceType: 'script' },
-            rules: {},
+            rules: {
+                '@typescript-eslint/consistent-type-imports': 'off',
+                '@typescript-eslint/no-unnecessary-condition': 'off',
+                '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+                '@typescript-eslint/switch-exhaustiveness-check': 'off',
+                '@typescript-eslint/no-floating-promises': 'off',
+                '@typescript-eslint/prefer-nullish-coalescing': 'off',
+                '@typescript-eslint/prefer-optional-chain': 'off',
+            },
         },
     ],
 };

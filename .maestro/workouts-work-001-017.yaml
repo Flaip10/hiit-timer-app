@@ -1,0 +1,15 @@
+appId: com.mendesfilipedev.arctimerapp
+---
+# WORK-001: Open Workouts list
+- launchApp
+- assertVisible: "Home"
+- tapOn: "Workouts"
+- assertVisible: "Workouts"
+- assertVisible: "Search workouts"
+
+# WORK-017 (partial): Start create-new workout draft flow
+- tapOn: "＋ New"
+- assertVisible: "New workout"
+- tapOn: "Create new"
+- assertVisible: "New Workout"
+- assertVisible: "Name"
