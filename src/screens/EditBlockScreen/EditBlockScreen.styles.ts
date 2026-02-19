@@ -4,8 +4,29 @@ import type { AppTheme } from '@src/theme/theme';
 
 export const useBlockEditStyles = createStyles((theme: AppTheme) =>
     StyleSheet.create({
-        sectionContentGap: {
+        setupGroup: {
+            gap: 8,
+        },
+        setupGroupCard: {
             gap: 10,
+            padding: 12,
+            paddingTop: 18,
+            borderRadius: theme.layout.card.borderRadius,
+            borderWidth: 1,
+            borderColor: theme.palette.accent.primary,
+            backgroundColor: 'transparent',
+        },
+        setupGroupBody: {
+            gap: 8,
+        },
+        setupGroupLegend: {
+            position: 'absolute',
+            top: -12,
+            left: 12,
+            paddingHorizontal: 10,
+            backgroundColor: theme.palette.background.primary,
+            zIndex: 1,
+            fontWeight: '600',
         },
         exercisesGap: {
             gap: 10,

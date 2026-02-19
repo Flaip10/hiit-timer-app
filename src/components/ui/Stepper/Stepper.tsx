@@ -4,16 +4,19 @@ import { TextInput, View } from 'react-native';
 import { useStepperStyles } from './Stepper.styles';
 import { MiniButton } from './MiniButton';
 import { FieldLabel } from '@src/components/ui/FieldLabel/FieldLabel';
+import type { TextTone } from '@src/components/ui/Typography/AppText';
 
-type Props = {
+interface Props {
     value: number;
     onChange: (next: number) => void;
     min?: number;
     max?: number;
     step?: number;
     label?: string;
+    labelTone?: TextTone;
+    formatValue?: (value: number) => string;
     testID?: string;
-};
+}
 
 const clamp = (n: number, min?: number, max?: number) =>
     Math.max(
@@ -28,6 +31,8 @@ export const Stepper: React.FC<Props> = ({
     max,
     step = 1,
     label,
+    labelTone = 'secondary',
+    formatValue,
     testID,
 }) => {
     const [isFocused, setIsFocused] = useState(false);
@@ -53,10 +58,12 @@ export const Stepper: React.FC<Props> = ({
 
     const disableDec = value <= min;
     const disableInc = max !== undefined && value >= max;
+    const inputValue =
+        !isFocused && formatValue ? formatValue(value) : String(value);
 
     return (
         <View style={st.wrap}>
-            {label ? <FieldLabel label={label} /> : null}
+            {label ? <FieldLabel label={label} tone={labelTone} /> : null}
 
             <View style={st.row}>
                 <MiniButton
@@ -71,7 +78,7 @@ export const Stepper: React.FC<Props> = ({
 
                 <TextInput
                     keyboardType="number-pad"
-                    value={String(value)}
+                    value={inputValue}
                     onChangeText={onText}
                     style={st.input}
                     onFocus={() => setIsFocused(true)}

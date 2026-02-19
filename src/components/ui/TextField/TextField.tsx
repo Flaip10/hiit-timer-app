@@ -8,6 +8,7 @@ import { FieldLabel } from '../FieldLabel/FieldLabel';
 
 export const TextField: React.FC<TextFieldProps> = ({
     label,
+    labelTone = 'primary',
     helperText,
     errorText,
     containerStyle,
@@ -58,7 +59,7 @@ export const TextField: React.FC<TextFieldProps> = ({
         <View style={[st.container, containerStyle]}>
             {label ? (
                 <View style={st.labelRow}>
-                    <FieldLabel label={label} />
+                    <FieldLabel label={label} tone={labelTone} />
                 </View>
             ) : null}
 

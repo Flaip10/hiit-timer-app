@@ -93,6 +93,82 @@ export interface I18nResource {
             exerciseWithIndex: string;
         };
     };
+    editWorkout: {
+        title: {
+            edit: string;
+            create: string;
+        };
+        fields: {
+            name: string;
+            namePlaceholder: string;
+        };
+        defaults: {
+            newWorkout: string;
+        };
+        sections: {
+            blocks: string;
+        };
+        hints: {
+            tapBlockToEdit: string;
+        };
+        actions: {
+            addBlock: string;
+            cancel: string;
+            save: string;
+            create: string;
+        };
+        validation: {
+            nameRequired: string;
+            addBlock: string;
+        };
+        removeBlock: {
+            title: string;
+            message: string;
+            confirm: string;
+            cancel: string;
+        };
+    };
+    editBlock: {
+        title: {
+            edit: string;
+            quick: string;
+        };
+        notFound: string;
+        sections: {
+            setup: string;
+            structure: string;
+            timing: string;
+            exercises: string;
+        };
+        fields: {
+            blockTitle: string;
+            exerciseDurationSec: string;
+            restBetweenExercisesSec: string;
+            setsInBlock: string;
+            restBetweenSetsSec: string;
+        };
+        units: {
+            secondsShort: string;
+        };
+        actions: {
+            addExercise: string;
+            cancel: string;
+            startWorkout: string;
+            saveBlock: string;
+        };
+        removeExercise: {
+            title: string;
+            message: string;
+            confirm: string;
+            cancel: string;
+        };
+        validation: {
+            setsMin: string;
+            exercisesMin: string;
+            exerciseDurationMin: string;
+            exerciseRepsMin: string;
+        };
+    };
     settings: {
         title: string;
         sections: {

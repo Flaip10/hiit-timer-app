@@ -97,6 +97,84 @@ export const ptPT: I18nResource = {
             exerciseWithIndex: 'Exercício {{index}}',
         },
     },
+    editWorkout: {
+        title: {
+            edit: 'Editar treino',
+            create: 'Novo treino',
+        },
+        fields: {
+            name: 'Nome',
+            namePlaceholder: 'ex.: Condicionamento A',
+        },
+        defaults: {
+            newWorkout: 'Novo treino',
+        },
+        sections: {
+            blocks: 'Blocos',
+        },
+        hints: {
+            tapBlockToEdit: 'Toca num bloco para editar os detalhes.',
+        },
+        actions: {
+            addBlock: '＋ Adicionar bloco',
+            cancel: 'Cancelar',
+            save: 'Guardar',
+            create: 'Criar',
+        },
+        validation: {
+            nameRequired: 'O nome do treino é obrigatório.',
+            addBlock: 'Adiciona pelo menos um bloco.',
+        },
+        removeBlock: {
+            title: 'Remover bloco',
+            message: 'Isto irá eliminar permanentemente o bloco deste treino.',
+            confirm: 'Remover',
+            cancel: 'Cancelar',
+        },
+    },
+    editBlock: {
+        title: {
+            edit: 'Editar bloco',
+            quick: 'Treino rápido',
+        },
+        notFound: 'Bloco não encontrado.',
+        sections: {
+            setup: 'Configuração do bloco',
+            structure: 'Exercícios',
+            timing: 'Descanso',
+            exercises: 'Exercícios',
+        },
+        fields: {
+            blockTitle: 'Nome do bloco',
+            exerciseDurationSec: 'Duração',
+            restBetweenExercisesSec: 'Entre exercícios',
+            setsInBlock: 'Séries',
+            restBetweenSetsSec: 'Entre séries',
+        },
+        units: {
+            secondsShort: 's',
+        },
+        actions: {
+            addExercise: '＋ Adicionar exercício',
+            cancel: 'Cancelar',
+            startWorkout: 'Iniciar treino',
+            saveBlock: 'Guardar bloco',
+        },
+        removeExercise: {
+            title: 'Remover exercício',
+            message: 'Este exercício será removido do bloco.',
+            confirm: 'Remover',
+            cancel: 'Cancelar',
+        },
+        validation: {
+            setsMin: 'O bloco tem de ter pelo menos uma série.',
+            exercisesMin: 'Adiciona pelo menos um exercício.',
+            exerciseDurationMin:
+                'Exercício {{index}}: a duração tem de ser > 0 segundos.',
+            exerciseRepsMin:
+                'Exercício {{index}}: as repetições têm de ser > 0.',
+        },
+    },
     settings: {
         title: 'Definições',
         sections: {

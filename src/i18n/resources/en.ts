@@ -95,6 +95,84 @@ export const en: I18nResource = {
             exerciseWithIndex: 'Exercise {{index}}',
         },
     },
+    editWorkout: {
+        title: {
+            edit: 'Edit Workout',
+            create: 'New Workout',
+        },
+        fields: {
+            name: 'Name',
+            namePlaceholder: 'e.g., Conditioning A',
+        },
+        defaults: {
+            newWorkout: 'New Workout',
+        },
+        sections: {
+            blocks: 'Blocks',
+        },
+        hints: {
+            tapBlockToEdit: 'Tap a block to edit its details.',
+        },
+        actions: {
+            addBlock: '＋ Add Block',
+            cancel: 'Cancel',
+            save: 'Save',
+            create: 'Create',
+        },
+        validation: {
+            nameRequired: 'Workout name is required.',
+            addBlock: 'Add at least one block.',
+        },
+        removeBlock: {
+            title: 'Remove block',
+            message:
+                'This will permanently delete the block from this workout.',
+            confirm: 'Remove',
+            cancel: 'Cancel',
+        },
+    },
+    editBlock: {
+        title: {
+            edit: 'Edit Block',
+            quick: 'Quick Workout',
+        },
+        notFound: 'Block not found.',
+        sections: {
+            setup: 'Block setup',
+            structure: 'Exercises',
+            timing: 'Rest',
+            exercises: 'Exercises',
+        },
+        fields: {
+            blockTitle: 'Block name',
+            exerciseDurationSec: 'Duration',
+            restBetweenExercisesSec: 'Between exercises',
+            setsInBlock: 'Sets',
+            restBetweenSetsSec: 'Between sets',
+        },
+        units: {
+            secondsShort: 's',
+        },
+        actions: {
+            addExercise: '＋ Add Exercise',
+            cancel: 'Cancel',
+            startWorkout: 'Start Workout',
+            saveBlock: 'Save Block',
+        },
+        removeExercise: {
+            title: 'Remove exercise',
+            message: 'This exercise will be removed from the block.',
+            confirm: 'Remove',
+            cancel: 'Cancel',
+        },
+        validation: {
+            setsMin: 'Block must have at least one set.',
+            exercisesMin: 'Add at least one exercise.',
+            exerciseDurationMin:
+                'Exercise {{index}}: duration must be > 0 seconds.',
+            exerciseRepsMin: 'Exercise {{index}}: reps must be > 0.',
+        },
+    },
     settings: {
         title: 'Settings',
         sections: {

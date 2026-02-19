@@ -5,9 +5,11 @@ import type {
     ViewStyle,
     TextStyle,
 } from 'react-native';
+import type { TextTone } from '../Typography/AppText';
 
 export interface TextFieldProps extends TextInputProps {
     label?: string;
+    labelTone?: TextTone;
     helperText?: string;
     errorText?: string;
     autoHideErrorOnChange?: boolean;

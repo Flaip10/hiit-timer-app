@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -15,8 +15,11 @@ import { useBlockEditor } from './useBlockEditor';
 import { useBlockEditStyles } from './EditBlockScreen.styles';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
+import { useTranslation } from 'react-i18next';
+import type { BlockValidationError } from './helpers';
 
 const EditBlockScreen = () => {
+    const { t } = useTranslation();
     const { blockId, quick } = useLocalSearchParams<{
         blockId?: string;
         quick?: string;
@@ -51,27 +54,50 @@ const EditBlockScreen = () => {
         null
     );
 
+    const formatValidationError = useCallback(
+        (error: BlockValidationError): string => {
+            switch (error.key) {
+                case 'setsMin':
+                    return t('editBlock.validation.setsMin');
+                case 'exercisesMin':
+                    return t('editBlock.validation.exercisesMin');
+                case 'exerciseDurationMin':
+                    return t('editBlock.validation.exerciseDurationMin', {
+                        index: error.exerciseIndex ?? 1,
+                    });
+                case 'exerciseRepsMin':
+                    return t('editBlock.validation.exerciseRepsMin', {
+                        index: error.exerciseIndex ?? 1,
+                    });
+            }
+        },
+        [t]
+    );
+
     const errorBox = useMemo(
         () =>
             errors.length ? (
                 <View style={st.errorBox}>
                     {errors.map((e, i) => (
                         <AppText key={i} variant="bodySmall" tone="danger">
-                            • {e}
+                            • {formatValidationError(e)}
                         </AppText>
                     ))}
                 </View>
             ) : null,
-        [errors, st.errorBox]
+        [errors, formatValidationError, st.errorBox]
     );
 
     if (notFound || !block || labelIndex === null) {
         return (
-            <MainContainer title="Edit Block" scroll={false}>
+            <MainContainer title={t('editBlock.title.edit')} scroll={false}>
                 <AppText variant="body" tone="danger" style={st.err}>
-                    Block not found.
+                    {t('editBlock.notFound')}
                 </AppText>
-                <Button title="Back" onPress={() => router.back()} />
+                <Button
+                    title={t('common.actions.back')}
+                    onPress={() => router.back()}
+                />
             </MainContainer>
         );
     }
@@ -96,62 +122,119 @@ const EditBlockScreen = () => {
         }
     };
 
-    const blockLabel = `Block ${labelIndex}`;
+    const blockLabel = t('common.labels.blockWithIndex', {
+        index: labelIndex,
+    });
 
     return (
         <>
-            <MainContainer title={isQuick ? 'Quick Workout' : 'Edit Block'}>
+            <MainContainer
+                title={
+                    isQuick
+                        ? t('editBlock.title.quick')
+                        : t('editBlock.title.edit')
+                }
+            >
                 {/* Block setup section */}
-                <ScreenSection title="Block setup" topSpacing="none">
-                    <View style={st.sectionContentGap}>
-                        <TextField
-                            label="Block title"
-                            value={block.title ?? ''}
-                            onChangeText={onTitle}
-                            placeholder={blockLabel}
-                        />
+                <ScreenSection
+                    title={t('editBlock.sections.setup')}
+                    topSpacing="none"
+                    gap={18}
+                >
+                    <TextField
+                        label={t('editBlock.fields.blockTitle')}
+                        value={block.title ?? ''}
+                        onChangeText={onTitle}
+                        placeholder={blockLabel}
+                    />
 
-                        <Stepper
-                            label="Exercises in block"
-                            value={block.exercises.length}
-                            onChange={onNumExercises}
-                            min={1}
-                        />
-                        {/* Global Exercise Duration setter */}
-                        <Stepper
-                            label="Exercise duration (s)"
-                            value={block.exercises[0]?.value ?? 20}
-                            onChange={onExerciseLength}
-                            min={5}
-                            step={5}
-                        />
+                    <Stepper
+                        label={t('editBlock.fields.setsInBlock')}
+                        labelTone="primary"
+                        value={block.sets}
+                        onChange={onSets}
+                        formatValue={(next) =>
+                            t('common.units.set', { count: next })
+                        }
+                        min={1}
+                    />
 
-                        <Stepper
-                            label="Rest between exercises (s)"
-                            value={block.restBetweenExercisesSec}
-                            onChange={onRestBetweenExercises}
-                            min={0}
-                            step={5}
-                        />
+                    <View style={[st.setupGroup, st.setupGroupCard]}>
+                        <AppText
+                            variant="bodySmall"
+                            tone="primary"
+                            style={st.setupGroupLegend}
+                        >
+                            {t('editBlock.sections.structure')}
+                        </AppText>
 
-                        <Stepper
-                            label="Sets in block"
-                            value={block.sets}
-                            onChange={onSets}
-                            min={1}
-                        />
+                        <View style={st.setupGroupBody}>
+                            <Stepper
+                                value={block.exercises.length}
+                                onChange={onNumExercises}
+                                formatValue={(next) =>
+                                    t('common.units.exercise', { count: next })
+                                }
+                                min={1}
+                            />
 
-                        <Stepper
-                            label="Rest between sets (s)"
-                            value={block.restBetweenSetsSec}
-                            onChange={onRestBetweenSets}
-                            min={0}
-                            step={5}
-                        />
+                            <Stepper
+                                label={t('editBlock.fields.exerciseDurationSec')}
+                                labelTone="primary"
+                                value={block.exercises[0]?.value ?? 20}
+                                onChange={onExerciseLength}
+                                formatValue={(next) =>
+                                    `${next} ${t('editBlock.units.secondsShort')}`
+                                }
+                                min={5}
+                                step={5}
+                            />
+                        </View>
+                    </View>
+
+                    <View style={[st.setupGroup, st.setupGroupCard]}>
+                        <AppText
+                            variant="bodySmall"
+                            tone="primary"
+                            style={st.setupGroupLegend}
+                        >
+                            {t('editBlock.sections.timing')}
+                        </AppText>
+
+                        <View style={st.setupGroupBody}>
+                            <Stepper
+                                label={t(
+                                    'editBlock.fields.restBetweenExercisesSec'
+                                )}
+                                labelTone="primary"
+                                value={block.restBetweenExercisesSec}
+                                onChange={onRestBetweenExercises}
+                                formatValue={(next) =>
+                                    `${next} ${t('editBlock.units.secondsShort')}`
+                                }
+                                min={0}
+                                step={5}
+                            />
+
+                            <Stepper
+                                label={t('editBlock.fields.restBetweenSetsSec')}
+                                labelTone="primary"
+                                value={block.restBetweenSetsSec}
+                                onChange={onRestBetweenSets}
+                                formatValue={(next) =>
+                                    `${next} ${t('editBlock.units.secondsShort')}`
+                                }
+                                min={0}
+                                step={5}
+                            />
+                        </View>
                     </View>
                 </ScreenSection>
                 {/* Exercises section */}
-                <ScreenSection title="Exercises" topSpacing="large">
+                <ScreenSection
+                    title={t('editBlock.sections.exercises')}
+                    topSpacing="large"
+                >
                     <View style={st.exercisesGap}>
                         {block.exercises.map((ex, ei) => (
                             <ExerciseCard
@@ -167,7 +250,7 @@ const EditBlockScreen = () => {
                     {errorBox}
 
                     <Button
-                        title="＋ Add Exercise"
+                        title={t('editBlock.actions.addExercise')}
                         onPress={onAddExercise}
                         variant="secondary"
                     />
@@ -176,13 +259,17 @@ const EditBlockScreen = () => {
 
             <FooterBar>
                 <Button
-                    title="Cancel"
+                    title={t('editBlock.actions.cancel')}
                     variant="secondary"
                     onPress={() => router.back()}
                     flex={1}
                 />
                 <Button
-                    title={isQuick ? 'Start Workout' : 'Save Block'}
+                    title={
+                        isQuick
+                            ? t('editBlock.actions.startWorkout')
+                            : t('editBlock.actions.saveBlock')
+                    }
                     variant="primary"
                     onPress={onSave}
                     loading={saving}
@@ -192,10 +279,10 @@ const EditBlockScreen = () => {
 
             <ConfirmDialog
                 visible={exerciseToRemove !== null}
-                title="Remove exercise"
-                message="This will remove the exercise from this block."
-                confirmLabel="Remove"
-                cancelLabel="Cancel"
+                title={t('editBlock.removeExercise.title')}
+                message={t('editBlock.removeExercise.message')}
+                confirmLabel={t('editBlock.removeExercise.confirm')}
+                cancelLabel={t('editBlock.removeExercise.cancel')}
                 destructive
                 onConfirm={() => {
                     if (exerciseToRemove !== null) {

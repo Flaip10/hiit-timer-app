@@ -7,6 +7,7 @@ import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
 import { TextField } from '@src/components/ui/TextField/TextField';
 import { Stepper } from '@src/components/ui/Stepper/Stepper';
 import { useTheme } from '@src/theme/ThemeProvider';
+import { useTranslation } from 'react-i18next';
 
 import { useExerciseCardStyles } from './ExerciseCard.styles';
 
@@ -23,10 +24,11 @@ export const ExerciseCard: React.FC<Props> = ({
     onChange,
     onRemove,
 }) => {
+    const { t } = useTranslation();
     const { theme } = useTheme();
     const st = useExerciseCardStyles();
 
-    const label = `Exercise ${index + 1}`;
+    const label = t('common.labels.exerciseWithIndex', { index: index + 1 });
 
     const setName = (v: string) => {
         onChange({
@@ -82,7 +84,7 @@ export const ExerciseCard: React.FC<Props> = ({
         >
             <View style={st.body}>
                 <TextField
-                    label="Name"
+                    label={t('editWorkout.fields.name')}
                     value={exercise.name ?? ''}
                     placeholder={label}
                     onChangeText={setName}
@@ -91,9 +93,13 @@ export const ExerciseCard: React.FC<Props> = ({
 
                 <View style={st.durationRow}>
                     <Stepper
-                        label="Duration (sec)"
+                        label={t('editBlock.fields.exerciseDurationSec')}
+                        labelTone="primary"
                         value={exercise.value}
                         onChange={setDurationSec}
+                        formatValue={(next) =>
+                            `${next} ${t('editBlock.units.secondsShort')}`
+                        }
                         min={1}
                         step={5}
                     />

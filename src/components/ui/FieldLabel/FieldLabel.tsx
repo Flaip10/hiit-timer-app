@@ -10,6 +10,7 @@ import { AppText } from '../Typography/AppText';
 export const FieldLabel: React.FC<FieldLabelProps> = ({
     label,
     iconName = 'create-outline',
+    tone = 'secondary',
 }) => {
     const { theme } = useTheme();
     const st = useFieldLabelStyles();
@@ -24,7 +25,7 @@ export const FieldLabel: React.FC<FieldLabelProps> = ({
                 />
             </View>
 
-            <AppText variant="label" tone="secondary">
+            <AppText variant="label" tone={tone}>
                 {label}
             </AppText>
         </View>

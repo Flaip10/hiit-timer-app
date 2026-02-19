@@ -20,6 +20,7 @@ import {
     formatErrorList,
 } from '@src/core/validation/formErrors';
 import type { WorkoutEditError } from './EditWorkoutScreen.interfaces';
+import { useTranslation } from 'react-i18next';
 
 const createEmptyBlock = (): WorkoutBlock => ({
     id: uid(),
@@ -37,6 +38,7 @@ const createEmptyBlock = (): WorkoutBlock => ({
 });
 
 const EditWorkoutScreen = () => {
+    const { t } = useTranslation();
     const { id, fromImport } = useLocalSearchParams<{
         id?: string;
         fromImport?: string;
@@ -75,7 +77,7 @@ const EditWorkoutScreen = () => {
         };
     }, [clearDraft, id, fromImport, startDraftFromExisting, startDraftNew]);
 
-    const name = draft?.name ?? 'New Workout';
+    const name = draft?.name ?? t('editWorkout.defaults.newWorkout');
     const blocks = draft?.blocks ?? [];
 
     const onAddBlock = () => {
@@ -105,13 +107,13 @@ const EditWorkoutScreen = () => {
         if (!trimmedName) {
             errs.push({
                 field: 'name',
-                message: 'Workout name is required.',
+                message: t('editWorkout.validation.nameRequired'),
             });
         }
         if (blocks.length === 0) {
             errs.push({
                 field: 'blocks',
-                message: 'Add at least one block.',
+                message: t('editWorkout.validation.addBlock'),
             });
         }
         setErrors(errs);
@@ -152,11 +154,15 @@ const EditWorkoutScreen = () => {
     return (
         <>
             <MainContainer
-                title={isEditingExisting ? 'Edit Workout' : 'New Workout'}
+                title={
+                    isEditingExisting
+                        ? t('editWorkout.title.edit')
+                        : t('editWorkout.title.create')
+                }
                 gap={theme.layout.mainContainer.gap}
             >
                 <TextField
-                    label="Name"
+                    label={t('editWorkout.fields.name')}
                     value={name}
                     onChangeText={(value) => {
                         updateDraftMeta({ name: value });
@@ -165,15 +171,18 @@ const EditWorkoutScreen = () => {
                             prev.filter((e) => e.field !== 'name')
                         );
                     }}
-                    placeholder="e.g., Conditioning A"
+                    placeholder={t('editWorkout.fields.namePlaceholder')}
                     autoCapitalize="sentences"
                     returnKeyType="done"
                     errorText={nameError?.message}
                 />
 
-                <ScreenSection title="Blocks" gap={theme.layout.listItem.gap}>
+                <ScreenSection
+                    title={t('editWorkout.sections.blocks')}
+                    gap={theme.layout.listItem.gap}
+                >
                     <AppText variant="caption" tone="secondary">
-                        Tap a block to edit its details.
+                        {t('editWorkout.hints.tapBlockToEdit')}
                     </AppText>
 
                     <ErrorBanner message={bannerMessage} />
@@ -191,7 +200,7 @@ const EditWorkoutScreen = () => {
                     ))}
 
                     <Button
-                        title="＋ Add Block"
+                        title={t('editWorkout.actions.addBlock')}
                         onPress={onAddBlock}
                         variant="secondary"
                     />
@@ -200,13 +209,17 @@ const EditWorkoutScreen = () => {
 
             <FooterBar>
                 <Button
-                    title="Cancel"
+                    title={t('editWorkout.actions.cancel')}
                     variant="secondary"
                     onPress={() => router.back()}
                     flex={1}
                 />
                 <Button
-                    title={isEditingExisting ? 'Save' : 'Create'}
+                    title={
+                        isEditingExisting
+                            ? t('editWorkout.actions.save')
+                            : t('editWorkout.actions.create')
+                    }
                     variant="primary"
                     onPress={onSave}
                     loading={saving}
@@ -216,10 +229,10 @@ const EditWorkoutScreen = () => {
 
             <ConfirmDialog
                 visible={blockToRemove != null}
-                title="Remove block"
-                message="This will permanently delete the block from this workout."
-                confirmLabel="Remove"
-                cancelLabel="Cancel"
+                title={t('editWorkout.removeBlock.title')}
+                message={t('editWorkout.removeBlock.message')}
+                confirmLabel={t('editWorkout.removeBlock.confirm')}
+                cancelLabel={t('editWorkout.removeBlock.cancel')}
                 destructive
                 onConfirm={() => {
                     if (blockToRemove) {

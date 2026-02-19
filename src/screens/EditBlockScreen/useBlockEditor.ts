@@ -12,6 +12,7 @@ import {
     toPosInt,
     validateBlock,
     applyDurationToAll,
+    type BlockValidationError,
 } from './helpers';
 
 type UseBlockEditorArgs = {
@@ -21,7 +22,7 @@ type UseBlockEditorArgs = {
 
 export const useBlockEditor = ({ draft, blockId }: UseBlockEditorArgs) => {
     const [block, setBlock] = useState<WorkoutBlock | null>(null);
-    const [errors, setErrors] = useState<string[]>([]);
+    const [errors, setErrors] = useState<BlockValidationError[]>([]);
     const [saving, setSaving] = useState(false);
 
     // hydrate local block copy from draft
@@ -115,8 +116,7 @@ export const useBlockEditor = ({ draft, blockId }: UseBlockEditorArgs) => {
         setBlock((prev) => {
             if (!prev) return prev;
 
-            const fallback =
-                prev.exercises[0]?.value != null ? prev.exercises[0].value : 20;
+            const fallback = prev.exercises[0]?.value ?? 20;
 
             const sec = toPosInt(n, fallback);
             return applyDurationToAll(prev, sec);
@@ -145,10 +145,7 @@ export const useBlockEditor = ({ draft, blockId }: UseBlockEditorArgs) => {
                           {
                               id: uid(),
                               mode: 'time',
-                              value:
-                                  prev.exercises[0]?.value != null
-                                      ? prev.exercises[0].value
-                                      : 20,
+                              value: prev.exercises[0]?.value ?? 20,
                           },
                       ],
                   }
