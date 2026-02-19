@@ -19,6 +19,7 @@ import { ExerciseInfoCard } from './components/ExerciseInfoCard/ExerciseInfoCard
 import { NextExerciseCarousel } from './components/NextExerciseCarousel/NextExerciseCarousel';
 import { WorkoutBlockItem } from '@src/screens/EditWorkoutScreen/components/WorkoutBlockItem/WorkoutBlockItem';
 import { useRunPhaseSectionStyles } from './RunPhaseSection.styles';
+import { useTranslation } from 'react-i18next';
 
 const AnimatedAppText = Animated.createAnimatedComponent(AppText);
 
@@ -59,6 +60,7 @@ export const RunPhaseSection = ({
     runStats,
     totalDurationSec,
 }: RunPhaseSectionProps) => {
+    const { t } = useTranslation();
     const st = useRunPhaseSectionStyles();
 
     const isBlockPause = awaitingBlockContinue && !!currentBlock;
@@ -71,7 +73,7 @@ export const RunPhaseSection = ({
         return { transform: [{ scale: 1 + t * 0.08 }] };
     }, [isFinished]);
 
-    const pillLabel = isFinished ? 'Done' : phaseLabel;
+    const pillLabel = isFinished ? t('run.donePill') : phaseLabel;
 
     return (
         <View style={st.mainContainer}>
@@ -86,7 +88,7 @@ export const RunPhaseSection = ({
                     tone="muted"
                     style={st.blockPauseHint}
                 >
-                    Next Block:
+                    {t('run.section.nextBlock')}
                 </AppText>
                 {currentBlock && (
                     <WorkoutBlockItem
@@ -103,7 +105,7 @@ export const RunPhaseSection = ({
                 style={st.arcContainer}
                 delay={260}
             >
-                <PhasePill color={phaseColor} label={pillLabel} />
+                <PhasePill phase={phase} color={phaseColor} label={pillLabel} />
 
                 <View style={st.arcWrapper}>
                     <PhaseArc

@@ -13,6 +13,7 @@ import type { Phase } from '@src/core/timer';
 import useExerciseInfoCardStyles from './ExerciseInfoCard.styles';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
+import { useTranslation } from 'react-i18next';
 
 type ExerciseInfoCardProps = {
     phase: Phase;
@@ -28,6 +29,7 @@ export const ExerciseInfoCard = ({
     color,
     currentExerciseName,
 }: ExerciseInfoCardProps) => {
+    const { t } = useTranslation();
     const st = useExerciseInfoCardStyles();
     const { theme } = useTheme();
 
@@ -157,7 +159,7 @@ export const ExerciseInfoCard = ({
         >
             <View style={st.currentHeaderRow}>
                 <AppText variant="caption" style={st.currentTitle}>
-                    Exercise
+                    {t('run.section.exercise')}
                 </AppText>
             </View>
 

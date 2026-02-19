@@ -10,6 +10,7 @@ import { useRunFooterStyles } from './RunFooter.styles';
 import { HoldToConfirmButton } from '@src/components/ui/HoldToConfirmButton/HoldToConfirmButton';
 import { Button } from '@src/components/ui/Button/Button';
 import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
+import { useTranslation } from 'react-i18next';
 
 type RunFooterProps = {
     isFinished: boolean;
@@ -33,6 +34,14 @@ type RunFooterProps = {
     holdToContinueMs?: number;
 };
 
+interface PrimaryActionKeyMap {
+    Start: 'run.actions.start';
+    Pause: 'run.actions.pause';
+    Resume: 'run.actions.resume';
+    Continue: 'run.actions.continue';
+    Done: 'run.actions.done';
+}
+
 export const RunFooter = ({
     isFinished,
     phaseColor,
@@ -46,12 +55,20 @@ export const RunFooter = ({
     isBlockPause,
     holdToContinueMs = 1000,
 }: RunFooterProps) => {
+    const { t } = useTranslation();
     const st = useRunFooterStyles();
     const { theme } = useTheme();
 
     const shareIcon = (
         <AppIcon id="share" size={18} color={theme.palette.text.inverted} />
     );
+    const primaryLabelKeyByValue: PrimaryActionKeyMap = {
+        Start: 'run.actions.start',
+        Pause: 'run.actions.pause',
+        Resume: 'run.actions.resume',
+        Continue: 'run.actions.continue',
+        Done: 'run.actions.done',
+    };
 
     return (
         <>
@@ -61,13 +78,13 @@ export const RunFooter = ({
                 delay={260}
             >
                 <Button
-                    title="Back to home"
+                    title={t('run.actions.backToHome')}
                     onPress={onDone}
                     variant="secondary"
                     flex={1}
                 />
                 <Button
-                    title="Share "
+                    title={t('common.actions.share')}
                     onPress={onShare}
                     variant="primary"
                     icon={shareIcon}
@@ -80,7 +97,7 @@ export const RunFooter = ({
                 style={st.footerHoldWrapper}
             >
                 <HoldToConfirmButton
-                    title="Hold to start Block"
+                    title={t('run.actions.holdToStartBlock')}
                     variant="primary"
                     holdDurationMs={holdToContinueMs}
                     onConfirmed={onPrimary}
@@ -105,7 +122,7 @@ export const RunFooter = ({
                         />
                     </CircleIconButton>
                     <AppText variant="caption" style={st.footerIconLabel}>
-                        End
+                        {t('run.actions.end')}
                     </AppText>
                 </View>
 
@@ -124,7 +141,7 @@ export const RunFooter = ({
                         />
                     </CircleIconButton>
                     <AppText variant="caption" style={st.footerIconLabel}>
-                        {primaryLabel}
+                        {t(primaryLabelKeyByValue[primaryLabel])}
                     </AppText>
                 </View>
 
@@ -141,7 +158,7 @@ export const RunFooter = ({
                         />
                     </CircleIconButton>
                     <AppText variant="caption" style={st.footerIconLabel}>
-                        Skip
+                        {t('run.actions.skip')}
                     </AppText>
                 </View>
             </AppearingView>

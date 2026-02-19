@@ -13,6 +13,7 @@ import { formatDuration } from '../../helpers';
 import { useRunTopSectionStyles } from './RunTopSection.styles';
 import { SetProgressPills } from './components/SetProgressPills/SetProgressPills';
 import { DotIndicator } from './components/DotIndicator/DotIndicator';
+import { useTranslation } from 'react-i18next';
 
 type RunTopSectionProps = {
     workoutName: string;
@@ -49,6 +50,7 @@ export const RunTopSection = ({
     stepIndex,
     meta,
 }: RunTopSectionProps) => {
+    const { t } = useTranslation();
     const st = useRunTopSectionStyles();
     const { theme } = useTheme();
 
@@ -59,7 +61,8 @@ export const RunTopSection = ({
     );
     const currentBlockTitle = meta.blockTitles[blockIdx];
     const resolvedBlockTitle =
-        (currentBlockTitle ?? '').trim() || `Block ${blockIdx + 1}`;
+        (currentBlockTitle ?? '').trim() ||
+        t('common.labels.blockWithIndex', { index: blockIdx + 1 });
 
     const totalExercisesInBlock = meta.exercisesCountByBlock[blockIdx];
     const totalSetsInBlock = meta.plannedSetsByBlock[blockIdx];
@@ -158,7 +161,7 @@ export const RunTopSection = ({
                                     numberOfLines={1}
                                     ellipsizeMode="tail"
                                 >
-                                    Blocks
+                                    {t('run.top.blocks')}
                                 </AppText>
 
                                 <DotIndicator
@@ -178,7 +181,7 @@ export const RunTopSection = ({
                                     numberOfLines={1}
                                     ellipsizeMode="tail"
                                 >
-                                    Exercises
+                                    {t('run.top.exercises')}
                                 </AppText>
                                 <DotIndicator
                                     total={totalExercisesInBlock}
@@ -214,7 +217,7 @@ export const RunTopSection = ({
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
                             >
-                                Workout complete
+                                {t('run.top.completeTitle')}
                             </AppText>
                         </View>
 
@@ -246,8 +249,9 @@ export const RunTopSection = ({
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
                             >
-                                {totalBlocks} block
-                                {totalBlocks === 1 ? '' : 's'}
+                                {t('common.units.block', {
+                                    count: totalBlocks,
+                                })}
                             </AppText>
                         </View>
                     ) : null}
@@ -267,8 +271,9 @@ export const RunTopSection = ({
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
                             >
-                                {totalSetsInWorkout} set
-                                {totalSetsInWorkout === 1 ? '' : 's'}
+                                {t('common.units.set', {
+                                    count: totalSetsInWorkout,
+                                })}
                             </AppText>
                         </View>
                     ) : null}
@@ -288,8 +293,9 @@ export const RunTopSection = ({
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
                             >
-                                {totalExercisesInWorkout} exercise
-                                {totalExercisesInWorkout === 1 ? '' : 's'}
+                                {t('common.units.exercise', {
+                                    count: totalExercisesInWorkout,
+                                })}
                             </AppText>
                         </View>
                     ) : null}

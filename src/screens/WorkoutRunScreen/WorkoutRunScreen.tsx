@@ -15,7 +15,7 @@ import { ShareWorkoutModal } from '@src/components/modals/ShareWorkoutModal/Shar
 
 import useWorkoutRunStyles from './WorkoutRunScreen.styles';
 import { useWorkoutRun } from './hooks/useWorkoutRun';
-import { colorFor, labelFor } from './helpers';
+import { colorFor, phaseLabelKeyFor } from './helpers';
 import { RunTopSection } from './components/RunTopSection/RunTopSection';
 import { RunPhaseSection } from './components/RunPhaseSection/RunPhaseSection';
 import { RunFooter } from './components/RunFooter/RunFooter';
@@ -26,8 +26,10 @@ import { useSettingsStore } from '@src/state/useSettingsStore';
 import { prepareRunData } from '@src/core/timer';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useSystemBackHandler } from '@src/hooks/navigation/useSystemBackHandler';
+import { useTranslation } from 'react-i18next';
 
 export const WorkoutRunScreen = () => {
+    const { t } = useTranslation();
     useKeepAwake();
     const router = useRouter();
     const { theme } = useTheme();
@@ -172,19 +174,19 @@ export const WorkoutRunScreen = () => {
     if (!workout || plan.steps.length === 0) {
         return (
             <>
-                <MainContainer title="Run workout" scroll={false}>
+                <MainContainer title={t('run.title')} scroll={false}>
                     <View style={st.emptyContainer}>
                         <AppText variant="title2" style={st.emptyTitle}>
-                            No steps to run
+                            {t('run.emptyTitle')}
                         </AppText>
                         <AppText variant="bodySmall" style={st.emptyText}>
-                            This workout has no timed steps configured.
+                            {t('run.emptyDescription')}
                         </AppText>
                     </View>
                 </MainContainer>
                 <FooterBar>
                     <Button
-                        title="Back"
+                        title={t('common.actions.back')}
                         variant="secondary"
                         onPress={() => router.back()}
                         flex={1}
@@ -199,7 +201,7 @@ export const WorkoutRunScreen = () => {
     const phaseColor = isFinished
         ? theme.palette.accent.primary
         : colorFor(phase, !!isSetRest);
-    const phaseLabel = labelFor(phase, !!isSetRest);
+    const phaseLabel = t(phaseLabelKeyFor(phase, !!isSetRest));
 
     // ----- handlers --------
 
@@ -288,10 +290,10 @@ export const WorkoutRunScreen = () => {
                 {/* End-workout confirmation dialog */}
                 <ConfirmDialog
                     visible={endConfirmVisible}
-                    title="End workout?"
-                    message="Your progress so far will be saved in the summary."
-                    confirmLabel="End workout"
-                    cancelLabel="Keep going"
+                    title={t('run.confirmEnd.title')}
+                    message={t('run.confirmEnd.message')}
+                    confirmLabel={t('run.confirmEnd.confirm')}
+                    cancelLabel={t('run.confirmEnd.cancel')}
                     destructive
                     onConfirm={handleConfirmEnd}
                     onCancel={handleCancelEnd}

@@ -12,6 +12,7 @@ import { Watermark } from '@src/components/ui/Watermark/Watermark';
 import { AppIcon } from '@src/components/ui/Icon/AppIcon';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useShareWorkoutCardStyles } from './ShareWorkoutCard.styles';
+import { useTranslation } from 'react-i18next';
 
 export type ShareRunStats = {
     totalWorkSec: number;
@@ -39,16 +40,16 @@ type ShareBlockLine = {
     setsLabel: string;
 };
 
-const buildCompletedLabel = (): string => {
+const buildCompletedLabel = (locale: string | undefined): string => {
     const now = new Date();
 
-    const datePart = now.toLocaleDateString(undefined, {
+    const datePart = now.toLocaleDateString(locale, {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
     });
 
-    const timePart = now.toLocaleTimeString(undefined, {
+    const timePart = now.toLocaleTimeString(locale, {
         hour: '2-digit',
         minute: '2-digit',
     });
@@ -61,10 +62,12 @@ export const ShareWorkoutCard = ({
     shareRef,
     runStats,
 }: ShareWorkoutCardProps) => {
+    const { i18n, t } = useTranslation();
     const { theme } = useTheme();
     const st = useShareWorkoutCardStyles();
 
-    const completedLabel = buildCompletedLabel();
+    const locale = i18n.resolvedLanguage ?? i18n.language;
+    const completedLabel = buildCompletedLabel(locale);
 
     const elapsedSec =
         runStats.totalWorkSec +
@@ -87,20 +90,26 @@ export const ShareWorkoutCard = ({
                     const title =
                         block.title && block.title.trim().length > 0
                             ? block.title.trim()
-                            : `Block ${index + 1}`;
+                            : t('common.labels.blockWithIndex', {
+                                  index: index + 1,
+                              });
 
                     const exerciseNames = block.exercises.map(
                         (exercise, exIdx) => {
                             const trimmedName = exercise.name?.trim();
                             return trimmedName && trimmedName.length > 0
                                 ? trimmedName
-                                : `Exercise ${exIdx + 1}`;
+                                : t('common.labels.exerciseWithIndex', {
+                                      index: exIdx + 1,
+                                  });
                         }
                     );
 
                     const exercisesLine = exerciseNames.join(' • ');
 
-                    const setsLabel = `${completedSets} set${completedSets === 1 ? '' : 's'}`;
+                    const setsLabel = t('common.units.set', {
+                        count: completedSets,
+                    });
 
                     return {
                         id: block.id,
@@ -110,7 +119,7 @@ export const ShareWorkoutCard = ({
                     };
                 })
                 .filter((b): b is ShareBlockLine => b !== null),
-        [workout.blocks, runStats.completedSetsByBlock]
+        [workout.blocks, runStats.completedSetsByBlock, t]
     );
 
     return (
@@ -158,7 +167,7 @@ export const ShareWorkoutCard = ({
                 <View style={st.cardTitleBlock}>
                     <View style={st.titleRow}>
                         <AppText variant="title2" style={st.cardTitle}>
-                            Workout complete
+                            {t('run.shareCard.title')}
                         </AppText>
 
                         <AppText variant="title2" style={st.fireEmoji}>
@@ -232,7 +241,7 @@ export const ShareWorkoutCard = ({
                     <MetaCard
                         expandable={false}
                         topLeftContent={{
-                            text: 'Session stats',
+                            text: t('run.stats.title'),
                             icon: (
                                 <AppIcon
                                     id="stats"
@@ -259,7 +268,7 @@ export const ShareWorkoutCard = ({
                                             tone="muted"
                                             style={st.metaMetricLabel}
                                         >
-                                            Duration
+                                            {t('run.stats.duration')}
                                         </AppText>
                                         <AppText
                                             variant="bodySmall"
@@ -275,7 +284,7 @@ export const ShareWorkoutCard = ({
                                             tone="muted"
                                             style={st.metaMetricLabel}
                                         >
-                                            Sets
+                                            {t('run.stats.sets')}
                                         </AppText>
                                         <AppText
                                             variant="bodySmall"
@@ -291,7 +300,7 @@ export const ShareWorkoutCard = ({
                                             tone="muted"
                                             style={st.metaMetricLabel}
                                         >
-                                            Exercises
+                                            {t('run.stats.exercises')}
                                         </AppText>
                                         <AppText
                                             variant="bodySmall"

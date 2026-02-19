@@ -12,6 +12,7 @@ import Animated, {
 import type { Phase } from '@src/core/timer';
 import useNextExerciseCarouselStyles from './NextExerciseCarousel.styles';
 import { AppText } from '@src/components/ui/Typography/AppText';
+import { useTranslation } from 'react-i18next';
 
 const OUT_DURATION = 150;
 const IN_DURATION = 180;
@@ -27,6 +28,7 @@ export const NextExerciseCarousel: React.FC<NextExerciseCarouselProps> = ({
     label,
     phase,
 }) => {
+    const { t } = useTranslation();
     const st = useNextExerciseCarouselStyles();
 
     const [displayed, setDisplayed] = useState(label);
@@ -120,7 +122,7 @@ export const NextExerciseCarousel: React.FC<NextExerciseCarouselProps> = ({
         <Animated.View style={[st.nextCardWrapper, cardAnimatedStyle]}>
             <View style={st.nextCard}>
                 <AppText variant="captionSmall" style={st.nextTitle}>
-                    Next
+                    {t('run.section.next')}
                 </AppText>
 
                 <Animated.View style={textAnimatedStyle}>
