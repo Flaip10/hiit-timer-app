@@ -218,6 +218,10 @@ export const ptPT: I18nResource = {
         searchPlaceholder: 'Pesquisar treinos',
         newButton: '＋ Novo',
         createButton: '＋ Criar treino',
+        defaults: {
+            quickWorkoutName: 'Treino rápido',
+            quickBlockTitle: 'Bloco rápido',
+        },
         emptyTitle: 'Ainda não existem treinos',
         emptyDescription: 'Cria o teu primeiro treino para começar.',
         item: {

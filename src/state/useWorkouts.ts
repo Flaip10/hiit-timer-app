@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid/non-secure';
 import type { Workout, WorkoutBlock } from '@src/core/entities/entities';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import i18next from '@src/i18n';
 
 type WorkoutsState = {
     // saved workouts
@@ -75,11 +76,11 @@ const starterWorkout = (): Workout => ({
 
 const quickWorkout = (): Workout => ({
     id: uid(),
-    name: 'Quick Workout',
+    name: i18next.t('workouts.defaults.quickWorkoutName'),
     blocks: [
         {
             ...starterBlock(),
-            title: 'Quick Block',
+            title: i18next.t('workouts.defaults.quickBlockTitle'),
         },
     ],
     updatedAtMs: Date.now(),

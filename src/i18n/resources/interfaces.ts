@@ -212,6 +212,10 @@ export interface I18nResource {
         searchPlaceholder: string;
         newButton: string;
         createButton: string;
+        defaults: {
+            quickWorkoutName: string;
+            quickBlockTitle: string;
+        };
         emptyTitle: string;
         emptyDescription: string;
         item: {

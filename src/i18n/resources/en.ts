@@ -216,6 +216,10 @@ export const en: I18nResource = {
         searchPlaceholder: 'Search workouts',
         newButton: '＋ New',
         createButton: '＋ Create workout',
+        defaults: {
+            quickWorkoutName: 'Quick Workout',
+            quickBlockTitle: 'Quick Block',
+        },
         emptyTitle: 'No workouts yet',
         emptyDescription: 'Create your first workout to get started.',
         item: {
