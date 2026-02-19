@@ -12,8 +12,10 @@ import Animated, {
 
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { usePhasePillStyles } from './PhasePill.styles';
+import type { Phase } from '@src/core/timer';
 
 type PhasePillProps = {
+    phase: Phase;
     label: string;
     color: string;
     containerStyle?: ViewStyle;
@@ -21,6 +23,7 @@ type PhasePillProps = {
 };
 
 export const PhasePill = ({
+    phase,
     label,
     color,
     containerStyle,
@@ -32,8 +35,8 @@ export const PhasePill = ({
     const scale = useSharedValue(1);
 
     useEffect(() => {
-        // Ignore initial PREP label
-        if (label === 'Prepare') return;
+        // Ignore initial PREP phase
+        if (phase === 'PREP') return;
 
         // Cancel any in-flight animations before starting a new transition
         cancelAnimation(opacity);
@@ -62,7 +65,7 @@ export const PhasePill = ({
                 easing: Easing.inOut(Easing.quad),
             })
         );
-    }, [label, opacity, scale]);
+    }, [phase, label, opacity, scale]);
 
     const animatedStyle = useAnimatedStyle(() => {
         return {
