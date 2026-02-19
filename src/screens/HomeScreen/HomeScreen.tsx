@@ -12,12 +12,18 @@ import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSectio
 import SessionListItem from '../HistoryScreen/components/SessionListitem/SessionListItem';
 import { AppLogo } from '@src/components/ui/AppLogo/AppLogo';
 import { useTranslation } from 'react-i18next';
+import { useSystemBackHandler } from '@src/hooks/navigation/useSystemBackHandler';
 
 const HomeScreen = () => {
     const { t } = useTranslation();
     const router = useRouter();
     const { theme } = useTheme();
     const st = useStyles();
+
+    useSystemBackHandler({
+        onSystemBack: () => true,
+        isGestureBackDisabled: true,
+    });
 
     const recent = useRecentSessions(5);
 
