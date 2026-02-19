@@ -212,7 +212,7 @@ export const MetaCard: FC<MetaCardProps> = ({
                     ) : null}
                 </View>
 
-                {(actionButton || secondaryActionButton) && (
+                {(actionButton ?? secondaryActionButton) && (
                     <View style={st.actionButtonsContainer}>
                         {secondaryActionButton && (
                             <GuardedPressable

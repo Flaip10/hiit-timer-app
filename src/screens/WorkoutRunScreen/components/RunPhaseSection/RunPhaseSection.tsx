@@ -69,8 +69,8 @@ export const RunPhaseSection = ({
     const nextExerciseName = currentStep.nextName;
 
     const timerAnimatedStyle = useAnimatedStyle(() => {
-        const t = isFinished ? 0 : breathingPhase.value;
-        return { transform: [{ scale: 1 + t * 0.08 }] };
+        const breathingValue = isFinished ? 0 : breathingPhase.value;
+        return { transform: [{ scale: 1 + breathingValue * 0.08 }] };
     }, [isFinished]);
 
     const pillLabel = isFinished ? t('run.donePill') : phaseLabel;

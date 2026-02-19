@@ -16,4 +16,7 @@ export const st = StyleSheet.create({
         backgroundColor: '#0B0B0C',
         opacity: 0.75,
     },
+    hiddenContent: {
+        opacity: 0,
+    },
 });

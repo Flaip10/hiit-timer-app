@@ -213,7 +213,7 @@ export const WorkoutBlockItem = ({
                     <View style={st.body}>
                         <View style={st.exercisesContainer}>
                             {exercises.map((ex, i) => (
-                                <View key={ex.id ?? i} style={st.exerciseRow}>
+                                <View key={ex.id} style={st.exerciseRow}>
                                     <View style={st.exerciseIndexBubble}>
                                         <AppText
                                             variant="caption"

@@ -1,4 +1,4 @@
-import type { FC, ReactElement } from 'react';
+import type { FC } from 'react';
 import React, {
     useCallback,
     useEffect,
@@ -86,7 +86,7 @@ const MinHeightCollapse: FC<MinHeightCollapseProps> = ({
                 existingOnLayout?.(e);
             };
 
-            return React.cloneElement(child as ReactElement<ViewProps>, {
+            return React.cloneElement(child, {
                 onLayout: mergedOnLayout,
             });
         });
@@ -104,7 +104,7 @@ const MinHeightCollapse: FC<MinHeightCollapseProps> = ({
             style={[
                 st.container,
                 hasInitialisedRef.current && { height: heightAnim },
-                !contentVisible && { opacity: 0 },
+                !contentVisible && st.hiddenContent,
             ]}
         >
             {childrenWithOnLayout}

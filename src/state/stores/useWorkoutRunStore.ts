@@ -41,11 +41,11 @@ export const useWorkoutRunStore = create<WorkoutRunState>()(
         startRun: ({ steps, totalSets, snapshot }) =>
             set((s) => {
                 s.steps = steps;
-                s.totalSets = Math.max(1, totalSets || 1);
+                s.totalSets = Math.max(1, totalSets);
 
                 s.running = snapshot?.running ?? false;
                 s.remainingMs = snapshot?.remainingMs ?? 0;
-                s.currentStep = snapshot?.currentStep ?? steps[0] ?? null;
+                s.currentStep = snapshot?.currentStep ?? steps.at(0) ?? null;
             }),
 
         resetRun: () =>

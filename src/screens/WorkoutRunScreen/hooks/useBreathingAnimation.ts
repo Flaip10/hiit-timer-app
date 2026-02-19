@@ -27,7 +27,7 @@ export const useBreathingAnimation = ({
 
     // Run in the last 3 seconds of each step
     const isBreathingWindow = useMemo(() => {
-        if (!step || !step.durationSec) return false;
+        if (!step?.durationSec) return false;
         return remaining > 0 && remaining <= 3;
     }, [step, remaining]);
 

@@ -11,6 +11,8 @@ type ScreenSectionStyleProps = {
 
 const getTopMargin = (spacing?: ScreenSectionTopSpacing): number => {
     switch (spacing) {
+        case undefined:
+            return 0;
         case 'small':
             return 8;
         case 'medium':
@@ -18,8 +20,6 @@ const getTopMargin = (spacing?: ScreenSectionTopSpacing): number => {
         case 'large':
             return 24;
         case 'none':
-            return 0;
-        default:
             return 0;
     }
 };

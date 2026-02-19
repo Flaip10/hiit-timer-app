@@ -1,5 +1,6 @@
 import React from 'react';
-import { Text, ViewStyle, TextStyle } from 'react-native';
+import { Text } from 'react-native';
+import type { ViewStyle, TextStyle } from 'react-native';
 import GuardedPressable from '../GuardedPressable/GuardedPressable';
 
 type MiniButtonProps = {

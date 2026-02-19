@@ -32,7 +32,7 @@ const HistoryScreen = () => {
             .map((id) => sessions[id])
             .filter(Boolean)
             .filter((session) =>
-                session?.workoutNameSnapshot?.toLowerCase().includes(searchTerm)
+                session.workoutNameSnapshot?.toLowerCase().includes(searchTerm)
             );
     }, [order, search, sessions]);
 

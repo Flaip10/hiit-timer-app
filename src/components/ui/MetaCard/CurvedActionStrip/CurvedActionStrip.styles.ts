@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { createStyles } from '@src/theme/createStyles';
 import type { AppTheme } from '@src/theme/theme';
 
-export const useCurvedActionStripStyles = createStyles((theme: AppTheme) =>
+export const useCurvedActionStripStyles = createStyles((_theme: AppTheme) =>
     StyleSheet.create({
         touchArea: {
             position: 'absolute',

@@ -1,4 +1,5 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet } from 'react-native';
 import type { ReactNode } from 'react';
 import { useTheme } from '@src/theme/ThemeProvider';
 
@@ -15,13 +16,16 @@ export const ScreenShell = ({
 
     return (
         <SafeAreaView
-            style={{
-                flex: 1,
-                backgroundColor: theme.palette.background.primary,
-            }}
+            style={[st.container, { backgroundColor: theme.palette.background.primary }]}
             edges={hasTopBar ? ['left', 'right'] : ['top', 'left', 'right']}
         >
             {children}
         </SafeAreaView>
     );
 };
+
+const st = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+});
