@@ -127,7 +127,7 @@ export const ptPT: I18nResource = {
         },
         removeBlock: {
             title: 'Remover bloco',
-            message: 'Isto irá eliminar permanentemente o bloco deste treino.',
+            message: 'Este bloco será removido permanentemente do treino.',
             confirm: 'Remover',
             cancel: 'Cancelar',
         },
@@ -225,7 +225,7 @@ export const ptPT: I18nResource = {
         },
         confirmRemove: {
             title: 'Remover treino',
-            message: 'Isto irá eliminar o treino permanentemente.',
+            message: 'Este treino será removido permanentemente.',
             confirm: 'Remover',
             cancel: 'Cancelar',
         },
@@ -299,13 +299,13 @@ export const ptPT: I18nResource = {
         },
         confirmEnd: {
             title: 'Terminar treino?',
-            message: 'O teu progresso até agora será guardado no resumo.',
+            message: 'O teu progresso será guardado no resumo.',
             confirm: 'Terminar treino',
             cancel: 'Continuar',
         },
         actions: {
             backToHome: 'Voltar ao início',
-            holdToStartBlock: 'Manter para iniciar bloco',
+            holdToStartBlock: 'Manter pressionado para iniciar bloco',
             end: 'Terminar',
             skip: 'Saltar',
             start: 'Iniciar',

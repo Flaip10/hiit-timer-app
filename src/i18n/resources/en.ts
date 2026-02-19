@@ -294,7 +294,7 @@ export const en: I18nResource = {
         },
         confirmEnd: {
             title: 'End workout?',
-            message: 'Your progress so far will be saved in the summary.',
+            message: 'Your progress will be saved in the summary.',
             confirm: 'End workout',
             cancel: 'Keep going',
         },
