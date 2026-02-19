@@ -1,9 +1,18 @@
 import type { WorkoutBlock } from '@src/core/entities/entities';
 import { uid } from '@core/id';
 
+export interface BlockValidationError {
+    key:
+        | 'setsMin'
+        | 'exercisesMin'
+        | 'exerciseDurationMin'
+        | 'exerciseRepsMin';
+    exerciseIndex?: number;
+}
+
 // Parse a string/number → non-negative integer
 export const toPosInt = (s: string | number, fallback = 0): number => {
-    const n = typeof s === 'number' ? s : parseInt(String(s ?? ''), 10);
+    const n = typeof s === 'number' ? s : parseInt(String(s), 10);
     return Number.isFinite(n) && n >= 0 ? n : fallback;
 };
 
@@ -46,27 +55,35 @@ export const applyDurationToAll = (
 };
 
 // Block-level validation rules
-export const validateBlock = (block: WorkoutBlock | null): string[] => {
+export const validateBlock = (
+    block: WorkoutBlock | null
+): BlockValidationError[] => {
     if (!block) return [];
-    const errs: string[] = [];
+    const errors: BlockValidationError[] = [];
 
     if (block.sets <= 0) {
-        errs.push('Block must have at least one set.');
+        errors.push({ key: 'setsMin' });
     }
 
     if (block.exercises.length === 0) {
-        errs.push('Add at least one exercise.');
+        errors.push({ key: 'exercisesMin' });
     }
 
     block.exercises.forEach((ex, ei) => {
         if (ex.mode === 'time' && ex.value <= 0) {
-            errs.push(`Exercise ${ei + 1}: duration must be > 0 seconds.`);
+            errors.push({
+                key: 'exerciseDurationMin',
+                exerciseIndex: ei + 1,
+            });
         }
 
         if (ex.mode === 'reps' && ex.value <= 0) {
-            errs.push(`Exercise ${ei + 1}: reps must be > 0.`);
+            errors.push({
+                key: 'exerciseRepsMin',
+                exerciseIndex: ei + 1,
+            });
         }
     });
 
-    return errs;
+    return errors;
 };
