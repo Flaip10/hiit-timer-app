@@ -1,50 +1,65 @@
 {
-  "expo": {
-    "name": "ARC Timer",
-    "slug": "arc-timer",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "scheme": "arctimer",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "bundleIdentifier": "com.mendesfilipedev.arctimerapp",
-      "buildNumber": "1",
-      "supportsTablet": true,
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
-    },
-    "android": {
-      "package": "com.mendesfilipedev.arctimerapp",
-      "versionCode": 1,
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "74c08607-8e9d-40e7-8564-9a0ea37c5001"
-      }
-    },
-    "plugins": [
-      "expo-router",
-      "expo-audio",
-      "expo-font",
-      "expo-localization",
-      "expo-asset"
-    ]
-  }
+    "expo": {
+        "name": "ARC Timer",
+        "slug": "arc-timer",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/generated/classic/icon-light.png",
+        "userInterfaceStyle": "automatic",
+        "newArchEnabled": true,
+        "scheme": "arctimer",
+        "ios": {
+            "icon": {
+                "light": "./assets/generated/classic/icon-light.png",
+                "dark": "./assets/generated/classic/icon-dark.png",
+                "tinted": "./assets/generated/classic/icon-tinted.png"
+            },
+            "bundleIdentifier": "com.mendesfilipedev.arctimerapp",
+            "buildNumber": "1",
+            "supportsTablet": true,
+            "infoPlist": {
+                "ITSAppUsesNonExemptEncryption": false
+            }
+        },
+        "android": {
+            "icon": "./assets/generated/classic/icon-light.png",
+            "package": "com.mendesfilipedev.arctimerapp",
+            "versionCode": 1,
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/generated/classic/adaptive-foreground.png",
+                "monochromeImage": "./assets/generated/classic/adaptive-monochrome.png",
+                "backgroundColor": "#ffffff"
+            },
+            "edgeToEdgeEnabled": true,
+            "predictiveBackGestureEnabled": false
+        },
+        "web": {
+            "favicon": "./assets/favicon.png"
+        },
+        "extra": {
+            "eas": {
+                "projectId": "74c08607-8e9d-40e7-8564-9a0ea37c5001"
+            }
+        },
+        "plugins": [
+            "expo-router",
+            "expo-audio",
+            "expo-font",
+            "expo-localization",
+            "expo-asset",
+            [
+                "expo-splash-screen",
+                {
+                    "image": "./assets/generated/classic/splash-light.png",
+                    "imageWidth": 200,
+                    "resizeMode": "contain",
+                    "backgroundColor": "#F6F3EB",
+                    "dark": {
+                        "image": "./assets/generated/classic/splash-dark.png",
+                        "backgroundColor": "#000000"
+                    }
+                }
+            ]
+        ]
+    }
 }
