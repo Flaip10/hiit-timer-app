@@ -19,7 +19,7 @@ export const useSettingsStore = create<SettingsState>()(
     persist(
         (set) => ({
             isSoundEnabled: true,
-            accentPreference: 'violet',
+            accentPreference: 'classic',
 
             themePreference: 'system',
             setThemePreference: (preference) =>

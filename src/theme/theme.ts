@@ -4,9 +4,9 @@ import {
     buildDarkPalette,
     type ThemePalette,
     type AccentTokens,
+    CLASSIC_ACCENT,
 } from './palette';
 import { createLayout, type ThemeLayout } from './layout';
-import { VIOLET_ACCENT } from './palette';
 
 export type ThemeName = 'light' | 'dark';
 export type ThemePreference = ThemeName | 'system';
@@ -26,7 +26,7 @@ export const buildTheme = ({
     name,
     uiScale,
     insets,
-    accent = VIOLET_ACCENT,
+    accent = CLASSIC_ACCENT,
 }: {
     name: ThemeName;
     uiScale: number;
