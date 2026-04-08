@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useWorkout, useWorkouts } from '@state/useWorkouts';
+import { useWorkouts } from '@state/useWorkouts';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
 import { Button } from '@src/components/ui/Button/Button';
@@ -26,12 +26,17 @@ import { useTheme } from '@src/theme/ThemeProvider';
 import { useWorkoutSummaryStyles } from './WorkoutSummaryScreen.styles';
 import { WorkoutBlockItem } from '../EditWorkoutScreen/components/WorkoutBlockItem/WorkoutBlockItem';
 import { useTranslation } from 'react-i18next';
+import {
+    useMarketingDemoState,
+    useResolvedWorkout,
+} from '@src/demo/marketingDemo';
 
 const WorkoutSummaryScreen = () => {
     const { t } = useTranslation();
     const { id } = useLocalSearchParams<{ id?: string }>();
     const router = useRouter();
-    const workout = useWorkout(id);
+    const demoState = useMarketingDemoState();
+    const workout = useResolvedWorkout(id);
     const toggleFavorite = useWorkouts((state) => state.toggleFavorite);
     const { theme } = useTheme();
     const st = useWorkoutSummaryStyles();
@@ -97,7 +102,10 @@ const WorkoutSummaryScreen = () => {
                     gap={12}
                     rightAccessory={
                         <GuardedPressable
-                            onPress={() => toggleFavorite(workout.id)}
+                            onPress={() => {
+                                if (demoState.isEnabled) return;
+                                toggleFavorite(workout.id);
+                            }}
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                             style={st.favoriteToggle}
                         >

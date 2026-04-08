@@ -3,7 +3,7 @@ import { FlatList, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
-import { useAllWorkouts, useWorkouts } from '@state/useWorkouts';
+import { useWorkouts } from '@state/useWorkouts';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 import { WorkoutItem } from '@components/workouts/WorkoutItem';
 import { importWorkoutFromFile } from '@src/core/importWorkout/importWorkout';
@@ -16,6 +16,10 @@ import { Button } from '@src/components/ui/Button/Button';
 import { useWorkoutsScreenStyles } from './WorkoutsScreen.styles';
 import { SearchField } from '@src/components/ui/SearchField/SearchField';
 import { useTranslation } from 'react-i18next';
+import {
+    useMarketingDemoState,
+    useResolvedAllWorkouts,
+} from '@src/demo/marketingDemo';
 
 interface ImportErrorTranslationMap {
     INVALID_EXTENSION: 'workouts.import.errors.invalidExtension';
@@ -54,7 +58,8 @@ const EmptyWorkouts = ({ onPressButton }: { onPressButton: () => void }) => {
 const WorkoutsScreen = () => {
     const { t } = useTranslation();
     const router = useRouter();
-    const list = useAllWorkouts();
+    const demoState = useMarketingDemoState();
+    const list = useResolvedAllWorkouts();
     const { remove, startDraftFromImported, toggleFavorite } = useWorkouts();
 
     const [search, setSearch] = useState('');
@@ -156,7 +161,10 @@ const WorkoutsScreen = () => {
                         item={item}
                         onPress={() => router.push(`/workouts/${item.id}`)}
                         onRemove={() => setToRemove(item.id)}
-                        onToggleFavorite={() => toggleFavorite(item.id)}
+                        onToggleFavorite={() => {
+                            if (demoState.isEnabled) return;
+                            toggleFavorite(item.id);
+                        }}
                     />
                 )}
                 ListEmptyComponent={
@@ -181,6 +189,11 @@ const WorkoutsScreen = () => {
                 cancelLabel={t('workouts.confirmRemove.cancel')}
                 destructive
                 onConfirm={() => {
+                    if (demoState.isEnabled) {
+                        setToRemove(null);
+                        return;
+                    }
+
                     if (toRemove) remove(toRemove);
                     setToRemove(null);
                 }}

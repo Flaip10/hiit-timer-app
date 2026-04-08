@@ -23,6 +23,7 @@ const ICONS_BY_ROUTE: Record<
     string,
     React.ComponentProps<typeof Ionicons>['name']
 > = {
+    'screenshots/index': 'images-outline',
     index: 'home-outline',
     'workouts/index': 'barbell-outline',
     'history/index': 'time-outline',

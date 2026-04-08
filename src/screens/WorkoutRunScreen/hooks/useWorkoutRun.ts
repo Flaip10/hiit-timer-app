@@ -27,13 +27,27 @@ import { setKey } from '@src/core/timer/timer.utils';
 type UseWorkoutRunArgs = {
     plan: RunPlan;
     shouldAutoStart: boolean;
+    forcedSnapshot?: ForcedRunSnapshot;
 };
+
+export interface ForcedRunSnapshot {
+    stepIndex: number;
+    remainingSec: number;
+    running: boolean;
+    awaitingBlockContinue: boolean;
+    isFinished: boolean;
+    stats: WorkoutSessionStats;
+}
 
 /* -------------------------------------------------------------------------- */
 /* Hook                                                                       */
 /* -------------------------------------------------------------------------- */
 
-export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
+export const useWorkoutRun = ({
+    plan,
+    shouldAutoStart,
+    forcedSnapshot,
+}: UseWorkoutRunArgs) => {
     const { steps, meta } = plan;
 
     const engineRef = useRef<ReturnType<typeof createTimer> | null>(null);
@@ -170,6 +184,14 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
     /* ---------------------------------------------------------------------- */
 
     useEffect(() => {
+        if (forcedSnapshot) {
+            useWorkoutRunStore.getState().resetRun();
+
+            return () => {
+                useWorkoutRunStore.getState().resetRun();
+            };
+        }
+
         // (Re)initialize the run whenever the plan changes (meta.runKey).
         if (steps.length === 0) return;
 
@@ -223,6 +245,7 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
         shouldAutoStart,
         steps,
         syncStoreSnapshot,
+        forcedSnapshot,
     ]);
 
     /* ---------------------------------------------------------------------- */
@@ -230,6 +253,8 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
     /* ---------------------------------------------------------------------- */
 
     useEffect(() => {
+        if (forcedSnapshot) return;
+
         const sub = AppState.addEventListener('change', (s) => {
             if (s !== 'active') return;
             engineRef.current?.rebase();
@@ -242,7 +267,7 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
     /* Derived step state                                                      */
     /* ---------------------------------------------------------------------- */
 
-    const stepIndex = state.stepIndex;
+    const stepIndex = forcedSnapshot?.stepIndex ?? state.stepIndex;
     const step = steps[stepIndex] ?? null;
 
     const phase: Phase = step.label;
@@ -253,7 +278,15 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
         step.id.startsWith('rest-set-');
 
     const primaryLabel: 'Start' | 'Pause' | 'Resume' | 'Continue' | 'Done' =
-        state.finished
+        forcedSnapshot?.isFinished
+            ? 'Done'
+            : forcedSnapshot?.awaitingBlockContinue
+              ? 'Continue'
+              : forcedSnapshot?.running
+                ? 'Pause'
+                : forcedSnapshot
+                  ? 'Start'
+                  : state.finished
             ? 'Done'
             : state.awaitingBlockContinue
               ? 'Continue'
@@ -275,10 +308,12 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
     /* ---------------------------------------------------------------------- */
 
     const runStats = useMemo(() => {
+        if (forcedSnapshot) {
+            return forcedSnapshot.stats;
+        }
+
         const completedSetsByBlock = [...state.stats.completedSetsByBlock];
-        const completedExercisesByBlock = [
-            ...state.stats.completedExercisesByBlock,
-        ];
+        const completedExercisesByBlock = [...state.stats.completedExercisesByBlock];
 
         const completedSets = completedSetsByBlock.reduce((a, b) => a + b, 0);
         const completedExercises = completedExercisesByBlock.reduce(
@@ -317,7 +352,7 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
                 'floor'
             ),
         } satisfies WorkoutSessionStats;
-    }, [state.stats]);
+    }, [forcedSnapshot, state.stats]);
 
     /* ---------------------------------------------------------------------- */
     /* Breathing                                                               */
@@ -325,9 +360,9 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
 
     const { breathingPhase } = useBreathingAnimation({
         step,
-        isFinished: state.finished,
-        remaining: state.remainingSec,
-        running: state.running,
+        isFinished: forcedSnapshot?.isFinished ?? state.finished,
+        remaining: forcedSnapshot?.remainingSec ?? state.remainingSec,
+        running: forcedSnapshot?.running ?? state.running,
     });
 
     /* ---------------------------------------------------------------------- */
@@ -335,25 +370,30 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
     /* ---------------------------------------------------------------------- */
 
     const handleStart = useCallback(() => {
+        if (forcedSnapshot) return;
         engineRef.current?.start();
     }, []);
 
     const handlePause = useCallback(() => {
+        if (forcedSnapshot) return;
         engineRef.current?.pause();
-    }, []);
+    }, [forcedSnapshot]);
 
     const handleResume = useCallback(() => {
+        if (forcedSnapshot) return;
         engineRef.current?.resume();
-    }, []);
+    }, [forcedSnapshot]);
 
     const handleSkip = useCallback(() => {
+        if (forcedSnapshot) return;
         if (state.awaitingBlockContinue) return;
         engineRef.current?.skip();
-    }, [state.awaitingBlockContinue]);
+    }, [forcedSnapshot, state.awaitingBlockContinue]);
 
     const handleForceFinish = useCallback(() => {
+        if (forcedSnapshot) return;
         engineRef.current?.stop();
-    }, []);
+    }, [forcedSnapshot]);
 
     const handlePrimary = useCallback(() => {
         if (state.awaitingBlockContinue) {
@@ -389,17 +429,19 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
     const timer = useMemo(
         () => ({
             stepIndex,
-            remainingSec: state.remainingSec,
-            running: state.running,
+            remainingSec: forcedSnapshot?.remainingSec ?? state.remainingSec,
+            running: forcedSnapshot?.running ?? state.running,
             step,
             phase,
             isSetRest,
-            remainingBlockSec,
-            isFinished: state.finished,
+            remainingBlockSec:
+                forcedSnapshot?.isFinished === true ? 0 : remainingBlockSec,
+            isFinished: forcedSnapshot?.isFinished ?? state.finished,
             primaryLabel,
         }),
         [
             stepIndex,
+            forcedSnapshot,
             state.remainingSec,
             state.running,
             state.finished,
@@ -422,8 +464,11 @@ export const useWorkoutRun = ({ plan, shouldAutoStart }: UseWorkoutRunArgs) => {
     );
 
     const gates = useMemo(
-        () => ({ awaitingBlockContinue: state.awaitingBlockContinue }),
-        [state.awaitingBlockContinue]
+        () => ({
+            awaitingBlockContinue:
+                forcedSnapshot?.awaitingBlockContinue ?? state.awaitingBlockContinue,
+        }),
+        [forcedSnapshot, state.awaitingBlockContinue]
     );
 
     const breathing = useMemo(() => ({ breathingPhase }), [breathingPhase]);

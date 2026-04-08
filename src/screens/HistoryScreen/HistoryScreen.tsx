@@ -11,15 +11,19 @@ import { useStyles } from './HistoryScreen.styles';
 import SessionListItem from './components/SessionListitem/SessionListItem';
 import { SearchField } from '@src/components/ui/SearchField/SearchField';
 import { useTranslation } from 'react-i18next';
+import {
+    useMarketingDemoState,
+    useResolvedHistoryState,
+} from '@src/demo/marketingDemo';
 
 const HistoryScreen = () => {
     const { t } = useTranslation();
     const router = useRouter();
     const st = useStyles();
+    const demoState = useMarketingDemoState();
 
     const [search, setSearch] = useState('');
-    const order = useWorkoutHistory((s) => s.order);
-    const sessions = useWorkoutHistory((s) => s.sessions);
+    const { order, sessions } = useResolvedHistoryState();
     const clearAll = useWorkoutHistory((s) => s.clearAll);
 
     const [confirmClear, setConfirmClear] = useState(false);
@@ -86,6 +90,11 @@ const HistoryScreen = () => {
                 cancelLabel={t('history.clearConfirm.cancel')}
                 destructive
                 onConfirm={() => {
+                    if (demoState.isEnabled) {
+                        setConfirmClear(false);
+                        return;
+                    }
+
                     clearAll();
                     setConfirmClear(false);
                 }}

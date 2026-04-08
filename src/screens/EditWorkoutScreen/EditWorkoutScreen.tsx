@@ -21,6 +21,7 @@ import {
 } from '@src/core/validation/formErrors';
 import type { WorkoutEditError } from './EditWorkoutScreen.interfaces';
 import { useTranslation } from 'react-i18next';
+import { useMarketingDemoEditorWorkout } from '@src/demo/marketingDemo';
 
 const createEmptyBlock = (): WorkoutBlock => ({
     id: uid(),
@@ -43,12 +44,16 @@ const EditWorkoutScreen = () => {
         id?: string;
         fromImport?: string;
     }>();
+    const marketingDemoWorkout = useMarketingDemoEditorWorkout();
     const router = useRouter();
 
     const draft = useWorkouts((state) => state.draft);
     const startDraftNew = useWorkouts((state) => state.startDraftNew);
     const startDraftFromExisting = useWorkouts(
         (state) => state.startDraftFromExisting
+    );
+    const startDraftFromImported = useWorkouts(
+        (state) => state.startDraftFromImported
     );
     const updateDraftMeta = useWorkouts((state) => state.updateDraftMeta);
     const setDraftBlocks = useWorkouts((state) => state.setDraftBlocks);
@@ -63,6 +68,14 @@ const EditWorkoutScreen = () => {
 
     // initialise / cleanup draft
     useEffect(() => {
+        if (marketingDemoWorkout) {
+            startDraftFromImported(marketingDemoWorkout);
+
+            return () => {
+                clearDraft();
+            };
+        }
+
         // If we are importing, DO NOT touch the draft.
         if (fromImport === '1') return;
 
@@ -75,7 +88,15 @@ const EditWorkoutScreen = () => {
         return () => {
             clearDraft();
         };
-    }, [clearDraft, id, fromImport, startDraftFromExisting, startDraftNew]);
+    }, [
+        clearDraft,
+        id,
+        fromImport,
+        marketingDemoWorkout,
+        startDraftFromExisting,
+        startDraftFromImported,
+        startDraftNew,
+    ]);
 
     const name = draft?.name ?? t('editWorkout.defaults.newWorkout');
     const blocks = draft?.blocks ?? [];
@@ -120,7 +141,7 @@ const EditWorkoutScreen = () => {
         return errs.length === 0;
     };
 
-    const isEditingExisting = !!id;
+    const isEditingExisting = !!id || marketingDemoWorkout != null;
 
     const onSave = () => {
         if (saving) return;

@@ -7,12 +7,12 @@ import { HomeActionTile } from './components/HomeActionTile/HomeActionTile';
 import { useStyles } from './HomeScreen.styles';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useWorkouts } from '@src/state/useWorkouts';
-import { useRecentSessions } from '@src/state/stores/useWorkoutHistory';
 import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
 import SessionListItem from '../HistoryScreen/components/SessionListitem/SessionListItem';
 import { AppLogo } from '@src/components/ui/AppLogo/AppLogo';
 import { useTranslation } from 'react-i18next';
 import { useSystemBackHandler } from '@src/hooks/navigation/useSystemBackHandler';
+import { useResolvedRecentSessions } from '@src/demo/marketingDemo';
 
 const HomeScreen = () => {
     const { t } = useTranslation();
@@ -25,7 +25,7 @@ const HomeScreen = () => {
         isGestureBackDisabled: true,
     });
 
-    const recent = useRecentSessions(5);
+    const recent = useResolvedRecentSessions(5);
 
     const onOpenSession = (sessionId: string) => {
         router.push(`/history/${sessionId}`);

@@ -10,6 +10,7 @@ const DrawerLayout = () => {
 
     return (
         <Drawer
+            initialRouteName="screenshots/index"
             drawerContent={AppDrawerContent}
             screenOptions={{
                 headerShown: false,
@@ -26,6 +27,10 @@ const DrawerLayout = () => {
                 },
             }}
         >
+            <Drawer.Screen
+                name="screenshots/index"
+                options={{ title: 'Screenshot Hub' }}
+            />
             <Drawer.Screen name="index" options={{ title: t('drawer.home') }} />
             <Drawer.Screen
                 name="workouts/index"

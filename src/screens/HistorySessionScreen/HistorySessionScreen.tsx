@@ -13,12 +13,15 @@ import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIcon
 import { type ShareRunStats } from '@src/screens/WorkoutRunScreen/components/ShareWorkoutCard/ShareWorkoutCard';
 import { ShareWorkoutModal } from '@src/components/modals/ShareWorkoutModal/ShareWorkoutModal';
 
-import { useWorkout, useWorkouts } from '@state/useWorkouts';
-import { useWorkoutHistory } from '@src/state/stores/useWorkoutHistory';
+import { useWorkouts } from '@state/useWorkouts';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { formatWorkoutDuration } from '@core/workouts/summarizeWorkout';
 import { useHistorySessionStyles } from './HistorySessionScreen.styles';
 import { useTranslation } from 'react-i18next';
+import {
+    useResolvedHistorySession,
+    useResolvedWorkout,
+} from '@src/demo/marketingDemo';
 
 export type SessionStatsMetric = {
     key: string;
@@ -40,11 +43,9 @@ const HistorySessionScreen = () => {
 
     const [shareVisible, setShareVisible] = useState(false);
 
-    const session = useWorkoutHistory((s) =>
-        sessionId ? s.sessions[sessionId] : undefined
-    );
+    const session = useResolvedHistorySession(sessionId);
 
-    const savedWorkout = useWorkout(session?.workoutId);
+    const savedWorkout = useResolvedWorkout(session?.workoutId);
     const startDraftFromImported = useWorkouts((s) => s.startDraftFromImported);
 
     const hasSession = !!sessionId && !!session;

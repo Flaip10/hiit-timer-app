@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
 
-import { useWorkout, useWorkouts } from '@state/useWorkouts';
+import { useWorkouts } from '@state/useWorkouts';
 
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
@@ -27,6 +27,12 @@ import { prepareRunData } from '@src/core/timer';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useSystemBackHandler } from '@src/hooks/navigation/useSystemBackHandler';
 import { useTranslation } from 'react-i18next';
+import {
+    useMarketingDemoRunOverride,
+    useMarketingDemoState,
+    useResolvedWorkout,
+} from '@src/demo/marketingDemo';
+import type { ShareRunStats } from './components/ShareWorkoutCard/ShareWorkoutCard';
 
 export const WorkoutRunScreen = () => {
     const { t } = useTranslation();
@@ -45,17 +51,24 @@ export const WorkoutRunScreen = () => {
         mode?: 'quick';
         origin?: 'quick' | 'history';
     }>();
+    const demoState = useMarketingDemoState();
+    const demoRunOverride = useMarketingDemoRunOverride();
 
-    const savedWorkout = useWorkout(id);
+    const savedWorkout = useResolvedWorkout(id);
     const draftWorkout = useWorkouts((s) => s.draft);
 
-    const workout = mode === 'quick' ? draftWorkout : savedWorkout;
+    const workout =
+        demoRunOverride.workout ??
+        (mode === 'quick' ? draftWorkout : savedWorkout);
     const shouldAutoStart =
         autoStart === '1' || autoStart === 'true' || autoStart === 'yes';
 
     const clearDraft = useWorkouts((s) => s.clearDraft);
 
-    const plan = useMemo(() => prepareRunData(workout, 5), [workout]);
+    const plan = useMemo(
+        () => demoRunOverride.plan ?? prepareRunData(workout, 5),
+        [demoRunOverride.plan, workout]
+    );
 
     const meta = plan.meta;
 
@@ -76,7 +89,11 @@ export const WorkoutRunScreen = () => {
         breathing: { breathingPhase },
         controls: { handlePrimary, handleSkip, handleForceFinish },
         stats: runStats,
-    } = useWorkoutRun({ plan, shouldAutoStart });
+    } = useWorkoutRun({
+        plan,
+        shouldAutoStart,
+        forcedSnapshot: demoRunOverride.snapshot ?? undefined,
+    });
 
     const isSoundEnabled = useSettingsStore((s) => s.isSoundEnabled);
 
@@ -114,6 +131,7 @@ export const WorkoutRunScreen = () => {
     }, [meta.runKey]);
 
     useEffect(() => {
+        if (demoState.isEnabled) return;
         if (sessionSavedRef.current) return;
 
         // first transition into running => stamp start
@@ -148,7 +166,7 @@ export const WorkoutRunScreen = () => {
         });
 
         sessionSavedRef.current = true;
-    }, [running, isFinished, workout, runStats, mode, id]);
+    }, [demoState.isEnabled, running, isFinished, workout, runStats, mode, id]);
 
     // -------- Calculate total duration when finished --------
     const totalDurationSec = useMemo(() => {
@@ -158,8 +176,8 @@ export const WorkoutRunScreen = () => {
         const totalSec =
             runStats.totalWorkSec +
             runStats.totalRestSec +
-            runStats.totalPausedSec +
-            runStats.totalBlockPauseSec;
+            (runStats.totalPausedSec ?? 0) +
+            (runStats.totalBlockPauseSec ?? 0);
         return totalSec > 0 ? totalSec : undefined;
     }, [
         isFinished,
@@ -168,6 +186,20 @@ export const WorkoutRunScreen = () => {
         runStats.totalPausedSec,
         runStats.totalBlockPauseSec,
     ]);
+
+    const shareRunStats = useMemo<ShareRunStats>(
+        () => ({
+            totalWorkSec: runStats.totalWorkSec,
+            totalRestSec: runStats.totalRestSec,
+            totalPrepSec: runStats.totalPrepSec ?? 0,
+            totalPausedSec: runStats.totalPausedSec ?? 0,
+            totalBlockPauseSec: runStats.totalBlockPauseSec ?? 0,
+            completedSets: runStats.completedSets,
+            completedExercises: runStats.completedExercises,
+            completedSetsByBlock: runStats.completedSetsByBlock ?? [],
+        }),
+        [runStats]
+    );
 
     // -------- empty / not found state --------
 
@@ -283,7 +315,7 @@ export const WorkoutRunScreen = () => {
                         visible={shareVisible}
                         onClose={closeSharePreview}
                         workout={workout}
-                        runStats={runStats}
+                        runStats={shareRunStats}
                     />
                 )}
 
