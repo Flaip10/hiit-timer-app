@@ -5,24 +5,12 @@
 </p>
 
 <p align="center">
-  <a href="https://expo.dev/">
-    <img alt="Expo 54" src="https://img.shields.io/badge/Expo-54-1B1F23?logo=expo&logoColor=white" />
-  </a>
-  <a href="https://reactnative.dev/">
-    <img alt="React Native 0.81" src="https://img.shields.io/badge/React_Native-0.81-20232A?logo=react&logoColor=61DAFB" />
-  </a>
-  <a href="https://react.dev/">
-    <img alt="React 19" src="https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white" />
-  </a>
-  <a href="https://www.typescriptlang.org/">
-    <img alt="TypeScript 5.9" src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" />
-  </a>
-  <a href="https://zustand-demo.pmnd.rs/">
-    <img alt="Zustand 5.0" src="https://img.shields.io/badge/Zustand-5.0-4B3621" />
-  </a>
-  <a href="https://www.i18next.com/">
-    <img alt="i18next 25" src="https://img.shields.io/badge/i18next-25-26A69A" />
-  </a>
+  <img alt="Expo 54" src="https://img.shields.io/badge/Expo-54-1B1F23?logo=expo&logoColor=white" />
+  <img alt="React Native 0.81" src="https://img.shields.io/badge/React_Native-0.81-20232A?logo=react&logoColor=61DAFB" />
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white" />
+  <img alt="TypeScript 5.9" src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" />
+  <img alt="Zustand 5.0" src="https://img.shields.io/badge/Zustand-5.0-4B3621" />
+  <img alt="i18next 25" src="https://img.shields.io/badge/i18next-25-26A69A" />
 </p>
 
 ARC Timer is a React Native HIIT workout app built with Expo and Expo Router. It lets you create interval workouts, run them with a guided timer, save workout history, and import or export workouts with a custom `.arcw` file format.
@@ -43,7 +31,6 @@ ARC Timer is a React Native HIIT workout app built with Expo and Expo Router. It
 - [Import / Export](#import--export)
 - [Timer Engine](#timer-engine)
 - [Styling and Theming](#styling-and-theming)
-- [Notes for Contributors](#notes-for-contributors)
 - [Build Configuration](#build-configuration)
 - [License](#license)
 
@@ -209,12 +196,9 @@ The app uses a custom theme system under `src/theme/` with:
 - typography bootstrapped with Expo fonts
 - a theme provider that supports light, dark, and system preference
 
-## Notes for Contributors
+## Project Notes
 
-- The codebase is TypeScript-first
-- UI strings should remain translatable
-- Styling is generally colocated with screens/components
-- The project uses path aliases such as `@src`, `@components`, `@state`, and `@core`
+This repository exists primarily as a portfolio project. It showcases the app structure, UI, and implementation approach rather than serving as an open contribution-focused repository.
 
 ## Build Configuration
 
