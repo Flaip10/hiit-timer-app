@@ -1,8 +1,51 @@
 # ARC Timer
 
-![ARC Timer banner](./assets/readme/readme_image.png)
+<p align="center">
+  <img src="./assets/readme/readme_image.png" alt="ARC Timer banner" width="760" />
+</p>
+
+<p align="center">
+  <a href="https://expo.dev/">
+    <img alt="Expo" src="https://img.shields.io/badge/Expo-54-1B1F23?style=for-the-badge&logo=expo&logoColor=white" />
+  </a>
+  <a href="https://reactnative.dev/">
+    <img alt="React Native" src="https://img.shields.io/badge/React%20Native-0.81-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
+  </a>
+  <a href="https://react.dev/">
+    <img alt="React" src="https://img.shields.io/badge/React-19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
+  </a>
+  <a href="https://www.typescriptlang.org/">
+    <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+  </a>
+  <a href="https://zustand-demo.pmnd.rs/">
+    <img alt="Zustand" src="https://img.shields.io/badge/Zustand-5.0-4B3621?style=for-the-badge" />
+  </a>
+  <a href="https://www.i18next.com/">
+    <img alt="i18next" src="https://img.shields.io/badge/i18next-25-26A69A?style=for-the-badge" />
+  </a>
+</p>
 
 ARC Timer is a React Native HIIT workout app built with Expo and Expo Router. It lets you create interval workouts, run them with a guided timer, save workout history, and import or export workouts with a custom `.arcw` file format.
+
+## Contents
+
+- [Features](#features)
+- [Stack](#stack)
+- [Project Structure](#project-structure)
+- [Requirements](#requirements)
+- [Getting Started](#getting-started)
+- [Scripts](#scripts)
+- [App Flow](#app-flow)
+- [Workout Model](#workout-model)
+- [State and Persistence](#state-and-persistence)
+- [Localization](#localization)
+- [Routing](#routing)
+- [Import / Export](#import--export)
+- [Timer Engine](#timer-engine)
+- [Styling and Theming](#styling-and-theming)
+- [Notes for Contributors](#notes-for-contributors)
+- [Build Configuration](#build-configuration)
+- [License](#license)
 
 ## Features
 
