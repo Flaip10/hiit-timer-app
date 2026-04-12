@@ -6,22 +6,22 @@
 
 <p align="center">
   <a href="https://expo.dev/">
-    <img alt="Expo" src="https://img.shields.io/badge/Expo-54-1B1F23?style=for-the-badge&logo=expo&logoColor=white" />
+    <img alt="Expo 54" src="https://img.shields.io/badge/Expo-54-1B1F23?logo=expo&logoColor=white" />
   </a>
   <a href="https://reactnative.dev/">
-    <img alt="React Native" src="https://img.shields.io/badge/React%20Native-0.81-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
+    <img alt="React Native 0.81" src="https://img.shields.io/badge/React_Native-0.81-20232A?logo=react&logoColor=61DAFB" />
   </a>
   <a href="https://react.dev/">
-    <img alt="React" src="https://img.shields.io/badge/React-19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
+    <img alt="React 19" src="https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white" />
   </a>
   <a href="https://www.typescriptlang.org/">
-    <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+    <img alt="TypeScript 5.9" src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" />
   </a>
   <a href="https://zustand-demo.pmnd.rs/">
-    <img alt="Zustand" src="https://img.shields.io/badge/Zustand-5.0-4B3621?style=for-the-badge" />
+    <img alt="Zustand 5.0" src="https://img.shields.io/badge/Zustand-5.0-4B3621" />
   </a>
   <a href="https://www.i18next.com/">
-    <img alt="i18next" src="https://img.shields.io/badge/i18next-25-26A69A?style=for-the-badge" />
+    <img alt="i18next 25" src="https://img.shields.io/badge/i18next-25-26A69A" />
   </a>
 </p>
 
