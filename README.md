@@ -48,13 +48,26 @@ ARC Timer is a React Native HIIT workout application built with Expo and Expo Ro
 
 ## Implementation Details
 
-- Workouts are modeled around blocks, sets, exercises, and rest phases instead of a flat list of timer entries, and that structure is reused across editing, quick-start flows, execution, and import/export.
-- Workout runs are transformed into explicit execution steps before playback, keeping timer progression, countdown state, and phase transitions predictable and independent from the UI layer.
-- Saved workouts, ordering, favorites, settings, and session history are stored on-device through a local-first model.
-- Draft editing is separated from persisted workout data, isolating creation and edit flows from saved state.
-- Import and export rely on a versioned `.arcw` format with validation, providing a stable contract for workout sharing.
-- Localization is integrated through a structured i18n setup rather than treated as a late-stage string pass.
-- Animation concerns are handled independently from timer execution logic to maintain stable runtime behavior.
+- **Structured workout model**  
+  Blocks, sets, exercises, and rest phases are modeled explicitly and reused across editing, execution, and import/export.
+
+- **Planned timer execution**  
+  Workout runs are converted into explicit execution steps before playback, keeping progression and phase transitions predictable.
+
+- **Local-first persistence**  
+  Workouts, ordering, favorites, settings, and session history are stored on-device with Zustand and AsyncStorage.
+
+- **Isolated draft flow**  
+  Draft editing is kept separate from persisted workout data to isolate creation and edit flows from saved state.
+
+- **Versioned `.arcw` format**  
+  Import and export use a validated, versioned file contract for workout sharing.
+
+- **Structured localization**  
+  English and Portuguese (`pt-PT`) are integrated through a dedicated i18n setup.
+
+- **Separated animation layer**  
+  Animation concerns are handled independently from timer execution logic to keep runtime behavior stable.
 
 ## Technical Decisions
 
