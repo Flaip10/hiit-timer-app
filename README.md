@@ -13,75 +13,71 @@
   <img alt="i18next 25" src="https://img.shields.io/badge/i18next-25-26A69A" />
 </p>
 
-ARC Timer is a React Native HIIT workout app built with Expo and Expo Router. It lets you create interval workouts, run them with a guided timer, save workout history, and import or export workouts with a custom `.arcw` file format.
+ARC Timer is a React Native HIIT workout application built with Expo and Expo Router. It covers the full workout lifecycle on-device: structured workout definition, guided timer execution, session tracking, persisted preferences, and workout transfer through a custom `.arcw` file format.
 
 ## Contents
 
 - [Features](#features)
-- [Stack](#stack)
+- [Tech Stack](#tech-stack)
+- [Implementation Details](#implementation-details)
+- [Technical Decisions](#technical-decisions)
+- [Run Locally](#run-locally)
 - [Project Structure](#project-structure)
-- [Requirements](#requirements)
-- [Getting Started](#getting-started)
-- [Scripts](#scripts)
-- [App Flow](#app-flow)
-- [Workout Model](#workout-model)
-- [State and Persistence](#state-and-persistence)
-- [Localization](#localization)
-- [Routing](#routing)
-- [Import / Export](#import--export)
-- [Timer Engine](#timer-engine)
-- [Styling and Theming](#styling-and-theming)
-- [Build Configuration](#build-configuration)
 - [License](#license)
 
 ## Features
 
 - Create and edit workouts composed of blocks, sets, exercises, and rest periods
 - Start a quick workout flow without saving a workout first
-- Run workouts with a dedicated timer screen and audio cues
-- Persist workouts, settings, and session history with Zustand + AsyncStorage
+- Run workouts through a dedicated timer flow with audio cues and animated feedback
+- Persist workouts, settings, and session history locally with Zustand and AsyncStorage
 - Mark workouts as favorites
 - Import and export workouts via `.arcw` files
 - Support English and Portuguese (`pt-PT`)
 - Switch theme, accent color, and sound preferences
 
-## Stack
+## Tech Stack
 
-- Expo 54
-- React Native 0.81
-- React 19
-- Expo Router
-- TypeScript
-- Zustand
-- i18next / react-i18next
-- react-native-reanimated
+- **Application framework:** Expo, React Native, React 19
+- **Navigation:** Expo Router
+- **Language:** TypeScript
+- **State management:** Zustand
+- **Persistence:** AsyncStorage
+- **Localization:** i18next, react-i18next
+- **Animation:** React Native Reanimated
 
-## Project Structure
+## Implementation Details
 
-```text
-app/                  Expo Router routes
-src/components/       Shared UI, layout, modal, and navigation components
-src/screens/          Screen implementations
-src/core/             Timer engine, entities, import/export, workout logic
-src/state/            Zustand stores
-src/theme/            Theme, palette, typography, style helpers
-src/i18n/             Localization setup and translation resources
-assets/               Icons, splash assets, sounds, generated branding
-scripts/              Local maintenance and asset generation scripts
-```
+- Workouts are modeled around blocks, sets, exercises, and rest phases instead of a flat list of timer entries, and that structure is reused across editing, quick-start flows, execution, and import/export.
+- Workout runs are transformed into explicit execution steps before playback, keeping timer progression, countdown state, and phase transitions predictable and independent from the UI layer.
+- Saved workouts, ordering, favorites, settings, and session history are stored on-device through a local-first model.
+- Draft editing is separated from persisted workout data, isolating creation and edit flows from saved state.
+- Import and export rely on a versioned `.arcw` format with validation, providing a stable contract for workout sharing.
+- Localization is integrated through a structured i18n setup rather than treated as a late-stage string pass.
+- Animation concerns are handled independently from timer execution logic to maintain stable runtime behavior.
 
-## Requirements
+## Technical Decisions
 
-Before running the project, make sure you have:
+- **Expo Router for route structure**
+  - File-based routing keeps screen organization explicit and easy to inspect in a multi-flow mobile app.
 
-- Node.js with `npm`
-- Xcode and CocoaPods for iOS development
-- Android Studio / Android SDK for Android development
-- Expo CLI tooling available through `npx expo`
+- **Zustand for focused client-side state**
+  - Zustand keeps state logic direct while supporting persisted stores and isolated editing flows.
 
-This repo already contains `ios/` and `android/` directories, so it is currently set up as a prebuilt Expo app rather than a pure managed-only project.
+- **AsyncStorage for persistence**
+  - AsyncStorage meets the app's local-first requirements without adding storage complexity.
 
-## Getting Started
+- **Separate timer planning and timer engine layers**
+  - The run planner converts workouts into execution steps, while the timer engine handles progression and timing behavior.
+  - This separation keeps workout modeling concerns distinct from runtime countdown mechanics.
+
+- **Versioned `.arcw` import/export contract**
+    - The custom workout file format makes serialization explicit and leaves room for format evolution without relying on ad hoc JSON sharing.
+
+- **Domain logic outside screen components**
+    - Core timer, workout, validation, and serialization logic live outside screen implementations, keeping UI components focused on presentation and interaction.
+
+## Run Locally
 
 ```bash
 npm install
@@ -96,121 +92,20 @@ npm run android
 npm run web
 ```
 
-## Scripts
+## Project Structure
 
-- `npm run start` starts the Expo dev server
-- `npm run ios` runs the iOS app on a device/simulator
-- `npm run android` runs the Android app on a device/emulator
-- `npm run web` starts the web target
-- `npm run lint` runs ESLint for `.ts` and `.tsx`
-- `npm run typecheck` runs TypeScript without emitting files
-- `npm run assets:classic` regenerates branded icon/splash assets under `assets/generated/classic`
-- `npm run cleaner` reinstalls dependencies and regenerates native folders
-- `npm run cleaner:hard` performs a deeper cleanup, including removing `node_modules`
-- `npm run prebuild:clean` removes native folders and runs a clean Expo prebuild
-
-## App Flow
-
-The main user flows in the current app are:
-
-1. Home screen with quick access and recent sessions
-2. Workouts screen to create, import, search, favorite, edit, and delete workouts
-3. Block editor flow for building workout structure
-4. Workout run screen with timer phases, controls, and completion tracking
-5. History screens for reviewing past sessions
-6. Settings screen for theme, accent, sound, and language preferences
-
-## Workout Model
-
-At the core of the app, a workout is structured like this:
-
-- `Workout`
-  - `id`
-  - `name`
-  - `blocks`
-  - `updatedAtMs`
-  - optional `isFavorite`
-- `WorkoutBlock`
-  - `id`
-  - optional `title`
-  - `sets`
-  - `restBetweenSetsSec`
-  - `restBetweenExercisesSec`
-  - `exercises`
-- `Exercise`
-  - `id`
-  - optional `name`
-  - `mode`: `time` or `reps`
-  - `value`
-  - optional `tempo`
-
-Completed runs are stored as workout session snapshots, so history keeps the workout state as it existed when the session finished.
-
-## State and Persistence
-
-The app uses Zustand stores for local state:
-
-- `src/state/useWorkouts.ts` stores saved workouts and the current draft workout flow
-- `src/state/stores/useWorkoutHistory.ts` stores completed workout sessions
-- `src/state/useSettingsStore.ts` stores sound, theme, and accent preferences
-
-Persisted state is backed by AsyncStorage.
-
-## Localization
-
-Localization is initialized in `src/i18n/index.ts` with:
-
-- English: `src/i18n/resources/en.ts`
-- Portuguese (Portugal): `src/i18n/resources/ptPT.ts`
-
-The app resolves an initial language on bootstrap and exposes language switching from the settings screen.
-
-## Routing
-
-Routes are defined with Expo Router under `app/`, including:
-
-- `app/(drawer)/` for the main drawer-based area
-- `app/workouts/` for workout details and editing
-- `app/history/` for session details
-- `app/run/` for the active workout run flow
-
-## Import / Export
-
-Workout export uses a custom file format:
-
-- Extension: `.arcw`
-- Kind: `arc-timer/workout`
-- MIME type: `application/vnd.arctimer.workout+json`
-
-Exports are created from the current workout data and shared through the native share sheet. Imports are read via the document picker and validated before being loaded into the draft workflow.
-
-## Timer Engine
-
-The timer logic lives in `src/core/timer/`. The engine is step-based and uses scheduled boundaries for timing accuracy, while UI countdown updates are aligned separately from the core transition logic.
-
-## Styling and Theming
-
-The app uses a custom theme system under `src/theme/` with:
-
-- semantic colors and palette accents
-- typography bootstrapped with Expo fonts
-- a theme provider that supports light, dark, and system preference
-
-## Project Notes
-
-This repository exists primarily as a portfolio project. It showcases the app structure, UI, and implementation approach rather than serving as an open contribution-focused repository.
-
-## Build Configuration
-
-- App config: `app.json`
-- EAS config: `eas.json`
-- Babel aliases: `babel.config.js`
-
-Current app identifiers:
-
-- iOS bundle ID: `com.mendesfilipedev.arctimerapp`
-- Android package: `com.mendesfilipedev.arctimerapp`
+```text
+app/                  Expo Router routes
+src/components/       Shared UI and reusable building blocks
+src/screens/          Screen-level implementations
+src/core/             Timer logic, entities, import/export, domain helpers
+src/state/            Zustand stores
+src/theme/            Theme, palette, typography, style helpers
+src/i18n/             Localization setup and translations
+assets/               Icons, splash assets, sounds, readme media
+scripts/              Local utility and asset generation scripts
+```
 
 ## License
 
-No license file is currently included in this repository.
+This project is licensed under the MIT License.
