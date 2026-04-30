@@ -3,13 +3,12 @@ module.exports = function (api) {
     return {
         presets: ['babel-preset-expo'],
         plugins: [
-            // your other plugins would go here (if any)require.resolve('expo-router/babel'),
             [
                 'module-resolver',
                 {
-                    root: ['.'],
                     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
                     alias: {
+                        '@assets': './assets',
                         '@src': './src',
                         '@screens': './src/screens',
                         '@components': './src/components',
