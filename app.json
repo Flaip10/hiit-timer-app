@@ -16,7 +16,7 @@
             },
             "bundleIdentifier": "com.mendesfilipedev.arctimerapp",
             "buildNumber": "1",
-            "supportsTablet": true,
+            "supportsTablet": false,
             "infoPlist": {
                 "ITSAppUsesNonExemptEncryption": false
             }
@@ -43,7 +43,13 @@
         },
         "plugins": [
             "expo-router",
-            "expo-audio",
+            [
+                "expo-audio",
+                {
+                    "microphonePermission": false,
+                    "recordAudioAndroid": false
+                }
+            ],
             "expo-font",
             "expo-localization",
             "expo-asset",
