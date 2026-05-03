@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
 #### Workout Builder
 
 - Create, edit, search, favorite and delete saved workouts
-- Build workouts from blocks, sets, timed exercises, rep-based exercises and rest periods
+- Build workouts from blocks, sets, timed exercises and rest periods
 - Edit individual workout blocks with validation for sets, exercises, duration and reps
 - Start a quick workout without saving it first
 
