@@ -23,6 +23,7 @@
         "ios:pods": "cd ios && pod install && cd ..",
         "ios:open": "open ios/*.xcworkspace",
         "ios:release": "expo run:ios -d --configuration Release",
+        "android:release:device": "expo run:android -d --variant release",
         "android:clean": "cd android && ./gradlew clean && cd ..",
         "android:release:apk": "cd android && ./gradlew assembleRelease && cd ..",
         "android:install:release": "adb install -r android/app/build/outputs/apk/release/app-release.apk",
