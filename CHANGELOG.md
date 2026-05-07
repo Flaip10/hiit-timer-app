@@ -56,4 +56,4 @@ All notable changes to this project will be documented in this file.
 - Dedicated workout summary screens with overview metrics and block details
 - Responsive mobile layouts designed for compact screens and long workout names
 
-[v1.0.0]: https://github.com/Flaip10/hiit-timer-app/releases/tag/v1.0.0
+[v1.0.0]: https://github.com/filipe-mendes-dev/arc-timer/releases/tag/v1.0.0
