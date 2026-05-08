@@ -1,69 +1,127 @@
 import { StyleSheet } from 'react-native';
 import { createStyles } from '@src/theme/createStyles';
 import type { AppTheme } from '@src/theme/theme';
+import type { RunLayoutMode } from '../../hooks/useRunLayoutMode';
 
-export const ARC_SIZE = 280;
+export const DEFAULT_ARC_SIZE = 280;
 
-export const useRunPhaseSectionStyles = createStyles((theme: AppTheme) =>
-    StyleSheet.create({
-        mainContainer: {
-            flex: 1,
-            width: '100%',
-        },
+interface RunPhaseSectionStyleProps {
+    layoutMode: RunLayoutMode;
+}
 
-        // ===== Block pause (between blocks) =====
-        blockPauseContainer: {
-            flex: 1,
-            width: '100%',
-            paddingHorizontal: 16,
-            paddingBottom: 30,
-            justifyContent: 'center',
-            gap: 16,
-        },
-        blockPauseHint: {
-            textAlign: 'center',
-            color: theme.palette.text.muted,
-        },
+interface RunPhaseSectionMetrics {
+    arcSize: number;
+    arcContainerPaddingTop: number;
+    arcWrapperPaddingTop: number;
+    exerciseGap: number;
+    timerFontSize: number;
+}
 
-        // ===== Arc + phase content =====
-        arcContainer: {
-            flex: 1,
-            paddingTop: 30,
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-        },
+export const metricsForRunLayout = (
+    mode: RunLayoutMode,
+): RunPhaseSectionMetrics => {
+    if (mode === 'minimal') {
+        return {
+            arcSize: 210,
+            arcContainerPaddingTop: 6,
+            arcWrapperPaddingTop: 22,
+            exerciseGap: 6,
+            timerFontSize: 68,
+        };
+    }
 
-        arcWrapper: {
-            width: ARC_SIZE,
-            height: ARC_SIZE,
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
+    if (mode === 'compact') {
+        return {
+            arcSize: 240,
+            arcContainerPaddingTop: 18,
+            arcWrapperPaddingTop: 42,
+            exerciseGap: 8,
+            timerFontSize: 80,
+        };
+    }
 
-            paddingTop: 60,
-        },
+    return {
+        arcSize: DEFAULT_ARC_SIZE,
+        arcContainerPaddingTop: 24,
+        arcWrapperPaddingTop: 60,
+        exerciseGap: 10,
+        timerFontSize: 96,
+    };
+};
 
-        timer: {
-            position: 'absolute',
-            color: theme.palette.text.primary,
-            fontSize: 96,
-            fontVariant: ['tabular-nums'],
-            marginTop: 60,
-        },
+export const useRunPhaseSectionStyles = createStyles(
+    (theme: AppTheme, props: RunPhaseSectionStyleProps) => {
+        const metrics = metricsForRunLayout(props.layoutMode);
 
-        // Exercises Info
-        exerciseInfoContainer: {
-            width: '100%',
-            paddingHorizontal: 10,
-            gap: 12,
-        },
+        return StyleSheet.create({
+            mainContainer: {
+                flex: 1,
+                width: '100%',
+            },
 
-        // Finishing zone
-        finishedContainer: {
-            flex: 1,
-            width: '100%',
-            gap: 16,
-            justifyContent: 'center',
-        },
-    })
+            // ===== Block pause (between blocks) =====
+            blockPauseContainer: {
+                flex: 1,
+                width: '100%',
+                paddingHorizontal: 16,
+                paddingBottom: 30,
+                justifyContent: 'center',
+                gap: 16,
+            },
+            blockPauseHint: {
+                textAlign: 'center',
+                color: theme.palette.text.muted,
+            },
+
+            // ===== Arc + phase content =====
+            arcContainer: {
+                flex: 1,
+                paddingTop: metrics.arcContainerPaddingTop,
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+            },
+
+            arcWrapper: {
+                width: metrics.arcSize,
+                height: metrics.arcSize,
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+
+                paddingTop: metrics.arcWrapperPaddingTop,
+            },
+
+            timer: {
+                position: 'absolute',
+                color: theme.palette.text.primary,
+                fontSize: metrics.timerFontSize,
+                fontVariant: ['tabular-nums'],
+                marginTop: metrics.arcWrapperPaddingTop,
+            },
+
+            phasePillCompact: {
+                paddingVertical: 4,
+                paddingHorizontal: 14,
+            },
+
+            phasePillTextCompact: {
+                fontSize: 14,
+            },
+
+            // Exercises Info
+            exerciseInfoContainer: {
+                width: '100%',
+                paddingHorizontal: 10,
+                gap: metrics.exerciseGap,
+            },
+
+            // Finishing zone
+            finishedContainer: {
+                flex: 1,
+                width: '100%',
+                gap: 16,
+                justifyContent: 'center',
+            },
+        });
+    },
 );

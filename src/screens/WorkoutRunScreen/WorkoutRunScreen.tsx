@@ -27,6 +27,7 @@ import { prepareRunData } from '@src/core/timer';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useSystemBackHandler } from '@src/hooks/navigation/useSystemBackHandler';
 import { useTranslation } from 'react-i18next';
+import { RunLayoutProvider } from './context/RunLayoutContext';
 
 export const WorkoutRunScreen = () => {
     const { t } = useTranslation();
@@ -241,7 +242,7 @@ export const WorkoutRunScreen = () => {
     };
 
     return (
-        <>
+        <RunLayoutProvider>
             <MainContainer scroll={false}>
                 {/* TOP SECTION */}
                 <RunTopSection
@@ -315,7 +316,7 @@ export const WorkoutRunScreen = () => {
                     isBlockPause={awaitingBlockContinue}
                 />
             </FooterBar>
-        </>
+        </RunLayoutProvider>
     );
 };
 

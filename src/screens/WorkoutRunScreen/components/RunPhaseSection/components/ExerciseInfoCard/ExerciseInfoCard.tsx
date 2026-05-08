@@ -14,11 +14,13 @@ import useExerciseInfoCardStyles from './ExerciseInfoCard.styles';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useTranslation } from 'react-i18next';
+import type { RunLayoutMode } from '../../../../hooks/useRunLayoutMode';
 
 type ExerciseInfoCardProps = {
     phase: Phase;
     color: string;
     currentExerciseName: string;
+    layoutMode: RunLayoutMode;
 };
 
 const NAME_OUT_DURATION = 150;
@@ -28,9 +30,10 @@ export const ExerciseInfoCard = ({
     phase,
     color,
     currentExerciseName,
+    layoutMode,
 }: ExerciseInfoCardProps) => {
     const { t } = useTranslation();
-    const st = useExerciseInfoCardStyles();
+    const st = useExerciseInfoCardStyles({ layoutMode });
     const { theme } = useTheme();
 
     // Name being shown

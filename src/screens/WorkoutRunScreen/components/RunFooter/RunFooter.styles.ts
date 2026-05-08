@@ -2,21 +2,50 @@ import { StyleSheet } from 'react-native';
 import { createStyles } from '@src/theme/createStyles';
 import type { AppTheme } from '@src/theme/theme';
 import { colors } from '@src/theme/colors';
+import type { RunLayoutMode } from '../../hooks/useRunLayoutMode';
 
-export const useRunFooterStyles = createStyles((theme: AppTheme) =>
-    StyleSheet.create({
+interface RunFooterStyleProps {
+    layoutMode: RunLayoutMode;
+}
+
+const footerMetricsFor = (mode: RunLayoutMode) => {
+    if (mode === 'minimal') {
+        return {
+            rowPaddingHorizontal: 24,
+            wrapperGap: 4,
+        };
+    }
+
+    if (mode === 'compact') {
+        return {
+            rowPaddingHorizontal: 28,
+            wrapperGap: 6,
+        };
+    }
+
+    return {
+        rowPaddingHorizontal: 32,
+        wrapperGap: 8,
+    };
+};
+
+export const useRunFooterStyles = createStyles(
+    (theme: AppTheme, props: RunFooterStyleProps) => {
+        const metrics = footerMetricsFor(props.layoutMode);
+
+        return StyleSheet.create({
         footerIconRow: {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
             width: '100%',
-            paddingHorizontal: 32,
+            paddingHorizontal: metrics.rowPaddingHorizontal,
         },
 
         footerIconWrapper: {
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 8,
+            gap: metrics.wrapperGap,
         },
 
         footerIconLabel: {
@@ -57,5 +86,6 @@ export const useRunFooterStyles = createStyles((theme: AppTheme) =>
             fontWeight: '600',
             textAlign: 'center',
         },
-    })
+        });
+    }
 );

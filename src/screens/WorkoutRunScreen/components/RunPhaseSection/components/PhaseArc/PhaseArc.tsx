@@ -13,7 +13,7 @@ import Reanimated, {
 } from 'react-native-reanimated';
 
 import { useTheme } from '@src/theme/ThemeProvider';
-import { ARC_SIZE } from '../../RunPhaseSection.styles';
+import { DEFAULT_ARC_SIZE } from '../../RunPhaseSection.styles';
 import type { Step } from '@src/core/timer';
 
 const AnimatedPath = Reanimated.createAnimatedComponent(Path);
@@ -21,11 +21,9 @@ const AnimatedPath = Reanimated.createAnimatedComponent(Path);
 const SVG_PADDING = 10;
 
 const ARC_STROKE = 17;
-const ARC_RADIUS = (ARC_SIZE - ARC_STROKE) / 2;
 
 const ARC_SWEEP_DEG = 240;
 const ARC_SWEEP_RAD = (ARC_SWEEP_DEG * Math.PI) / 180;
-const ARC_LENGTH = ARC_RADIUS * ARC_SWEEP_RAD;
 
 const GLOW_DELAY = 0;
 
@@ -64,6 +62,7 @@ type PhaseArcProps = {
     breathingPhase?: SharedValue<number>;
     currentStep: Step;
     isRunning: boolean;
+    size?: number;
 };
 
 export const PhaseArc = ({
@@ -72,17 +71,22 @@ export const PhaseArc = ({
     breathingPhase,
     currentStep,
     isRunning,
+    size = DEFAULT_ARC_SIZE,
 }: PhaseArcProps) => {
     const { theme } = useTheme();
     const trackColor = theme.palette.background.card;
     // const trackColor = theme.palette.accent.soft;
 
     // Arc Dimensions consts
-    const cx = ARC_SIZE / 2;
-    const cy = ARC_SIZE / 2;
+    const strokeScale = size / DEFAULT_ARC_SIZE;
+    const strokeWidth = ARC_STROKE * strokeScale;
+    const cx = size / 2;
+    const cy = size / 2;
+    const arcRadius = (size - strokeWidth) / 2;
+    const arcLength = arcRadius * ARC_SWEEP_RAD;
     const startAngle = -120;
     const endAngle = 120;
-    const arcPath = describeArc(cx, cy, ARC_RADIUS, startAngle, endAngle);
+    const arcPath = describeArc(cx, cy, arcRadius, startAngle, endAngle);
 
     // Main Arc animation consts
     const arcProgress = useSharedValue(0);
@@ -227,7 +231,7 @@ export const PhaseArc = ({
         const progress = clamp(arcProgress.value, 0, 1);
 
         return {
-            strokeDashoffset: ARC_LENGTH * (1 - progress),
+            strokeDashoffset: arcLength * (1 - progress),
         };
     });
 
@@ -235,7 +239,7 @@ export const PhaseArc = ({
         const progress = clamp(glowProgress.value, 0, 1);
 
         return {
-            strokeDashoffset: ARC_LENGTH * (1 - progress),
+            strokeDashoffset: arcLength * (1 - progress),
             opacity: glowOpacity.value * 0.9,
         };
     });
@@ -245,24 +249,24 @@ export const PhaseArc = ({
         const breath = clamp(breathingPhase ? breathingPhase.value : 0, 0, 1);
 
         return {
-            strokeDashoffset: ARC_LENGTH * (1 - progress),
+            strokeDashoffset: arcLength * (1 - progress),
             opacity: breath * 0.6,
         };
     });
 
     return (
         <Svg
-            width={ARC_SIZE + SVG_PADDING * 2}
-            height={ARC_SIZE + SVG_PADDING * 2}
+            width={size + SVG_PADDING * 2}
+            height={size + SVG_PADDING * 2}
             viewBox={`${-SVG_PADDING} ${-SVG_PADDING} ${
-                ARC_SIZE + SVG_PADDING * 2
-            } ${ARC_SIZE + SVG_PADDING * 2}`}
+                size + SVG_PADDING * 2
+            } ${size + SVG_PADDING * 2}`}
         >
             {/* Background track */}
             <Path
                 d={arcPath}
                 stroke={trackColor}
-                strokeWidth={ARC_STROKE}
+                strokeWidth={strokeWidth}
                 fill="transparent"
                 strokeLinecap="round"
             />
@@ -271,10 +275,10 @@ export const PhaseArc = ({
             <AnimatedPath
                 d={arcPath}
                 stroke={color}
-                strokeWidth={ARC_STROKE + 8}
+                strokeWidth={strokeWidth + 8 * strokeScale}
                 fill="transparent"
                 strokeLinecap="round"
-                strokeDasharray={`${ARC_LENGTH} ${ARC_LENGTH}`}
+                strokeDasharray={`${arcLength} ${arcLength}`}
                 animatedProps={breathingPhase ? breathingProps : mainProps}
             />
 
@@ -282,10 +286,10 @@ export const PhaseArc = ({
             <AnimatedPath
                 d={arcPath}
                 stroke={color}
-                strokeWidth={ARC_STROKE + 8}
+                strokeWidth={strokeWidth + 8 * strokeScale}
                 fill="transparent"
                 strokeLinecap="round"
-                strokeDasharray={`${ARC_LENGTH} ${ARC_LENGTH}`}
+                strokeDasharray={`${arcLength} ${arcLength}`}
                 animatedProps={glowProps}
             />
 
@@ -293,10 +297,10 @@ export const PhaseArc = ({
             <AnimatedPath
                 d={arcPath}
                 stroke={color}
-                strokeWidth={ARC_STROKE}
+                strokeWidth={strokeWidth}
                 fill="transparent"
                 strokeLinecap="round"
-                strokeDasharray={`${ARC_LENGTH} ${ARC_LENGTH}`}
+                strokeDasharray={`${arcLength} ${arcLength}`}
                 animatedProps={mainProps}
             />
         </Svg>

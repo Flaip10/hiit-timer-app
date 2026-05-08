@@ -18,8 +18,12 @@ import { PhaseArc } from './components/PhaseArc/PhaseArc';
 import { ExerciseInfoCard } from './components/ExerciseInfoCard/ExerciseInfoCard';
 import { NextExerciseCarousel } from './components/NextExerciseCarousel/NextExerciseCarousel';
 import { WorkoutBlockItem } from '@src/screens/EditWorkoutScreen/components/WorkoutBlockItem/WorkoutBlockItem';
-import { useRunPhaseSectionStyles } from './RunPhaseSection.styles';
+import {
+    metricsForRunLayout,
+    useRunPhaseSectionStyles,
+} from './RunPhaseSection.styles';
 import { useTranslation } from 'react-i18next';
+import { useRunLayout } from '../../context/RunLayoutContext';
 
 const AnimatedAppText = Animated.createAnimatedComponent(AppText);
 
@@ -61,9 +65,12 @@ export const RunPhaseSection = ({
     totalDurationSec,
 }: RunPhaseSectionProps) => {
     const { t } = useTranslation();
-    const st = useRunPhaseSectionStyles();
+    const { mode, shouldShowNextExercise } = useRunLayout();
+    const st = useRunPhaseSectionStyles({ layoutMode: mode });
+    const metrics = metricsForRunLayout(mode);
 
     const isBlockPause = awaitingBlockContinue && !!currentBlock;
+    const isCompact = mode !== 'default';
 
     const currentExerciseName = currentStep.name;
     const nextExerciseName = currentStep.nextName;
@@ -105,7 +112,13 @@ export const RunPhaseSection = ({
                 style={st.arcContainer}
                 delay={260}
             >
-                <PhasePill phase={phase} color={phaseColor} label={pillLabel} />
+                <PhasePill
+                    phase={phase}
+                    color={phaseColor}
+                    label={pillLabel}
+                    containerStyle={isCompact ? st.phasePillCompact : undefined}
+                    textStyle={isCompact ? st.phasePillTextCompact : undefined}
+                />
 
                 <View style={st.arcWrapper}>
                     <PhaseArc
@@ -114,6 +127,7 @@ export const RunPhaseSection = ({
                         color={phaseColor}
                         finished={isFinished}
                         breathingPhase={breathingPhase}
+                        size={metrics.arcSize}
                     />
                     <AnimatedAppText
                         variant="title1"
@@ -136,13 +150,17 @@ export const RunPhaseSection = ({
                             phase={phase}
                             color={phaseColor}
                             currentExerciseName={currentExerciseName}
+                            layoutMode={mode}
                         />
                     )}
 
-                    {nextExerciseName && nextExerciseName.length > 0 && (
+                    {shouldShowNextExercise &&
+                        nextExerciseName &&
+                        nextExerciseName.length > 0 && (
                         <NextExerciseCarousel
                             phase={phase}
                             label={nextExerciseName}
+                            layoutMode={mode}
                         />
                     )}
                 </AppearingView>

@@ -14,6 +14,7 @@ import { useRunTopSectionStyles } from './RunTopSection.styles';
 import { SetProgressPills } from './components/SetProgressPills/SetProgressPills';
 import { DotIndicator } from './components/DotIndicator/DotIndicator';
 import { useTranslation } from 'react-i18next';
+import { useRunLayout } from '../../context/RunLayoutContext';
 
 type RunTopSectionProps = {
     workoutName: string;
@@ -51,7 +52,8 @@ export const RunTopSection = ({
     meta,
 }: RunTopSectionProps) => {
     const { t } = useTranslation();
-    const st = useRunTopSectionStyles();
+    const { mode } = useRunLayout();
+    const st = useRunTopSectionStyles({ layoutMode: mode });
     const { theme } = useTheme();
 
     const totalBlocks = meta.totalBlocks;
