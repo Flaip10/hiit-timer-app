@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [v1.0.1] - 2026-05-08
+
+### Fixed
+
+- Prevent `Stepper` text from clipping under larger font settings by replacing fixed height with flexible minimum height
+- Improve Workout Run screen usability when large font/display settings previously pushed exercise details behind the footer
+
 ## [v1.0.0] - 2026-05-03
 
 ### Added
@@ -57,3 +64,4 @@ All notable changes to this project will be documented in this file.
 - Responsive mobile layouts designed for compact screens and long workout names
 
 [v1.0.0]: https://github.com/filipe-mendes-dev/arc-timer/releases/tag/v1.0.0
+[v1.0.1]: https://github.com/filipe-mendes-dev/arc-timer/releases/tag/v1.0.1
