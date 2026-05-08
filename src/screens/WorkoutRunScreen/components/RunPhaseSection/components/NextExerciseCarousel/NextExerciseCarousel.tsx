@@ -13,6 +13,7 @@ import type { Phase } from '@src/core/timer';
 import useNextExerciseCarouselStyles from './NextExerciseCarousel.styles';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTranslation } from 'react-i18next';
+import type { RunLayoutMode } from '../../../../hooks/useRunLayoutMode';
 
 const OUT_DURATION = 150;
 const IN_DURATION = 180;
@@ -22,14 +23,16 @@ const DIM_DELAY = 100;
 type NextExerciseCarouselProps = {
     phase: Phase;
     label: string;
+    layoutMode: RunLayoutMode;
 };
 
 export const NextExerciseCarousel: React.FC<NextExerciseCarouselProps> = ({
     label,
     phase,
+    layoutMode,
 }) => {
     const { t } = useTranslation();
-    const st = useNextExerciseCarouselStyles();
+    const st = useNextExerciseCarouselStyles({ layoutMode });
 
     const [displayed, setDisplayed] = useState(label);
 

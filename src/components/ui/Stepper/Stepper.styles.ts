@@ -13,9 +13,9 @@ export const useStepperStyles = createStyles(
                 gap: 6,
             },
             row: {
-                height: 41,
+                minHeight: 41,
                 flexDirection: 'row',
-                alignItems: 'center',
+                alignItems: 'stretch',
                 borderRadius: 999,
                 backgroundColor: theme.palette.background.card,
                 borderWidth: 1,
@@ -39,7 +39,8 @@ export const useStepperStyles = createStyles(
 
             // MiniButton styles (used by Stepper's +/- buttons)
             miniButton: {
-                height: '100%',
+                minHeight: 41,
+                alignSelf: 'stretch',
                 borderRadius: 999,
                 paddingHorizontal: 25,
                 alignItems: 'center',

@@ -11,6 +11,7 @@ import { HoldToConfirmButton } from '@src/components/ui/HoldToConfirmButton/Hold
 import { Button } from '@src/components/ui/Button/Button';
 import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
 import { useTranslation } from 'react-i18next';
+import { useRunLayout } from '../../context/RunLayoutContext';
 
 type RunFooterProps = {
     isFinished: boolean;
@@ -56,8 +57,15 @@ export const RunFooter = ({
     holdToContinueMs = 1000,
 }: RunFooterProps) => {
     const { t } = useTranslation();
-    const st = useRunFooterStyles();
+    const { mode } = useRunLayout();
+    const st = useRunFooterStyles({ layoutMode: mode });
     const { theme } = useTheme();
+    const secondaryButtonSize = mode === 'minimal' ? 46 : 56;
+    const primaryButtonSize =
+        mode === 'minimal' ? 60 : mode === 'compact' ? 68 : 76;
+    const secondaryIconSize = mode === 'minimal' ? 20 : 22;
+    const primaryIconSize =
+        mode === 'minimal' ? 26 : mode === 'compact' ? 28 : 30;
 
     const shareIcon = (
         <AppIcon id="share" size={18} color={theme.palette.text.inverted} />
@@ -113,11 +121,12 @@ export const RunFooter = ({
                     <CircleIconButton
                         onPress={onRequestEnd}
                         variant="secondary"
+                        size={secondaryButtonSize}
                         disabled={isBlockPause}
                     >
                         <Ionicons
                             name="stop"
-                            size={22}
+                            size={secondaryIconSize}
                             color={theme.palette.button.text.secondary}
                         />
                     </CircleIconButton>
@@ -131,12 +140,12 @@ export const RunFooter = ({
                         onPress={onPrimary}
                         variant="primary"
                         backgroundColor={phaseColor}
-                        size={76}
+                        size={primaryButtonSize}
                         disabled={isBlockPause}
                     >
                         <Ionicons
                             name={running ? 'pause' : 'play'}
-                            size={30}
+                            size={primaryIconSize}
                             color={theme.palette.text.inverted}
                         />
                     </CircleIconButton>
@@ -149,11 +158,12 @@ export const RunFooter = ({
                     <CircleIconButton
                         onPress={onSkip}
                         variant="secondary"
+                        size={secondaryButtonSize}
                         disabled={isBlockPause}
                     >
                         <Ionicons
                             name="play-skip-forward"
-                            size={22}
+                            size={secondaryIconSize}
                             color={theme.palette.button.text.secondary}
                         />
                     </CircleIconButton>
