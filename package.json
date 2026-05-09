@@ -78,6 +78,7 @@
   "devDependencies": {
     "@react-native/eslint-config": "^0.82.1",
     "@types/react": "~19.1.0",
+    "babel-plugin-inline-import": "^3.0.0",
     "babel-plugin-module-resolver": "^5.0.2",
     "drizzle-kit": "^0.31.10",
     "eslint": "^8.57.1",
