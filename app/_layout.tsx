@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -10,8 +11,8 @@ const SPLASH_MIN_DURATION_MS = 1000;
 const splashStartedAtMs = Date.now();
 
 SplashScreen.setOptions({
-    duration: 1000,
-    fade: true,
+    duration: Platform.OS === 'ios' ? 1000 : 0,
+    fade: Platform.OS === 'ios',
 });
 
 SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
@@ -66,6 +67,10 @@ const RootLayout = () => {
                     initialRouteName="(drawer)" // <— ensure we start at the drawer
                     screenOptions={{
                         headerShown: false,
+                        animation:
+                            Platform.OS === 'android'
+                                ? 'slide_from_right'
+                                : 'default',
                         contentStyle: { backgroundColor: '#0B0B0C' },
                     }}
                 >
