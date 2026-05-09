@@ -1,8 +1,8 @@
 ---
 name: Research / Investigation
 about: Explore or investigate a technical topic
-title: ''
-labels: ['type: research']
+title: ""
+labels: [".research"]
 ---
 
 ## Objective
