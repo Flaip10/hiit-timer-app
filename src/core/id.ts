@@ -1,2 +1,3 @@
-export const uid = (): string =>
-    Math.random().toString(36).slice(2) + Date.now().toString(36);
+import { nanoid } from 'nanoid/non-secure';
+
+export const uid = (): string => nanoid(12);
