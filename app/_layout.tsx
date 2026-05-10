@@ -7,6 +7,7 @@ import { ThemeProvider } from '@src/theme/ThemeProvider';
 import { useAppFonts } from '@src/theme/typography';
 import { initializeI18n } from '@src/i18n';
 import { initializeDatabase } from '@src/db';
+import { AppQueryProvider } from '@src/data/QueryProvider';
 
 const SPLASH_MIN_DURATION_MS = 1000;
 const splashStartedAtMs = Date.now();
@@ -78,42 +79,44 @@ const RootLayout = () => {
     if (!isBootstrapReady) return null;
 
     return (
-        <ThemeProvider>
-            <SafeAreaProvider>
-                <Stack
-                    initialRouteName="(drawer)" // <— ensure we start at the drawer
-                    screenOptions={{
-                        headerShown: false,
-                        animation:
-                            Platform.OS === 'android'
-                                ? 'slide_from_right'
-                                : 'default',
-                        contentStyle: { backgroundColor: '#0B0B0C' },
-                    }}
-                >
-                    <Stack.Screen
-                        name="(drawer)"
-                        options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                        name="history/[sessionId]"
-                        options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                        name="workouts/[id]"
-                        options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                        name="workouts/edit"
-                        options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                        name="workouts/edit-block"
-                        options={{ headerShown: false }}
-                    />
-                </Stack>
-            </SafeAreaProvider>
-        </ThemeProvider>
+        <AppQueryProvider>
+            <ThemeProvider>
+                <SafeAreaProvider>
+                    <Stack
+                        initialRouteName="(drawer)" // <— ensure we start at the drawer
+                        screenOptions={{
+                            headerShown: false,
+                            animation:
+                                Platform.OS === 'android'
+                                    ? 'slide_from_right'
+                                    : 'default',
+                            contentStyle: { backgroundColor: '#0B0B0C' },
+                        }}
+                    >
+                        <Stack.Screen
+                            name="(drawer)"
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="history/[sessionId]"
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="workouts/[id]"
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="workouts/edit"
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="workouts/edit-block"
+                            options={{ headerShown: false }}
+                        />
+                    </Stack>
+                </SafeAreaProvider>
+            </ThemeProvider>
+        </AppQueryProvider>
     );
 };
 
