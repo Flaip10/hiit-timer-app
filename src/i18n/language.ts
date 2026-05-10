@@ -20,7 +20,7 @@ export const normalizeLanguageCode = (
 };
 
 export const getDeviceLanguage = (): LanguageCode => {
-    const languageTag = getLocales()[0]?.languageTag || '';
+    const languageTag = getLocales()[0].languageTag;
     return normalizeLanguageCode(languageTag) ?? 'en';
 };
 
