@@ -6,6 +6,7 @@
         "app/**/*.ts",
         "app/**/*.tsx",
         "drizzle.config.ts",
+        "app.config.ts",
         "index.ts",
         "index.tsx"
     ],
