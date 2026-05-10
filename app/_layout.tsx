@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '@src/theme/ThemeProvider';
 import { useAppFonts } from '@src/theme/typography';
 import { initializeI18n } from '@src/i18n';
+import { initializeDatabase } from '@src/db';
 
 const SPLASH_MIN_DURATION_MS = 1000;
 const splashStartedAtMs = Date.now();
@@ -22,7 +23,12 @@ SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
 const RootLayout = () => {
     const [fontsLoaded] = useAppFonts();
     const [isI18nReady, setIsI18nReady] = useState(false);
-    const isBootstrapReady = fontsLoaded && isI18nReady;
+    const [isDatabaseReady, setIsDatabaseReady] = useState(false);
+    const [databaseError, setDatabaseError] = useState<unknown | null>(null);
+    const isDatabaseBootstrapComplete =
+        isDatabaseReady || databaseError != null;
+    const isBootstrapReady =
+        fontsLoaded && isI18nReady && isDatabaseBootstrapComplete;
 
     useEffect(() => {
         initializeI18n()
@@ -31,6 +37,17 @@ const RootLayout = () => {
             })
             .finally(() => {
                 setIsI18nReady(true);
+            });
+    }, []);
+
+    useEffect(() => {
+        initializeDatabase()
+            .then(() => {
+                setIsDatabaseReady(true);
+            })
+            .catch((error: unknown) => {
+                console.error('database init failed', error);
+                setDatabaseError(error);
             });
     }, []);
 
