@@ -2,17 +2,26 @@ import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 export const workoutsTable = sqliteTable('workouts', {
     id: text('id').primaryKey(),
-    name: text('name').notNull(),
-    updatedAtMs: integer('updated_at_ms').notNull(),
+    currentVersionId: text('current_version_id').notNull(),
+    createdAtMs: integer('created_at_ms').notNull(),
     isFavorite: integer('is_favorite', { mode: 'boolean' }).notNull().default(false),
     sortIndex: integer('sort_index').notNull(),
 });
 
+export const workoutVersionsTable = sqliteTable('workout_versions', {
+    id: text('id').primaryKey(),
+    workoutId: text('workout_id').references(() => workoutsTable.id, {
+        onDelete: 'set null',
+    }),
+    name: text('name').notNull(),
+    updatedAtMs: integer('updated_at_ms').notNull(),
+});
+
 export const workoutBlocksTable = sqliteTable('workout_blocks', {
     id: text('id').primaryKey(),
-    workoutId: text('workout_id')
+    workoutVersionId: text('workout_version_id')
         .notNull()
-        .references(() => workoutsTable.id, { onDelete: 'cascade' }),
+        .references(() => workoutVersionsTable.id, { onDelete: 'cascade' }),
     sortIndex: integer('sort_index').notNull(),
     title: text('title'),
     sets: integer('sets').notNull(),
@@ -36,10 +45,14 @@ export const workoutSessionsTable = sqliteTable('workout_sessions', {
     id: text('id').primaryKey(),
     startedAtMs: integer('started_at_ms').notNull(),
     endedAtMs: integer('ended_at_ms').notNull(),
-    workoutId: text('workout_id'),
+    workoutId: text('workout_id').references(() => workoutsTable.id, {
+        onDelete: 'set null',
+    }),
+    workoutVersionId: text('workout_version_id')
+        .notNull()
+        .references(() => workoutVersionsTable.id, { onDelete: 'restrict' }),
     workoutNameSnapshot: text('workout_name_snapshot'),
     totalDurationSec: integer('total_duration_sec'),
-    workoutSnapshotJson: text('workout_snapshot_json').notNull(),
     statsJson: text('stats_json'),
     sortIndex: integer('sort_index').notNull(),
 });
