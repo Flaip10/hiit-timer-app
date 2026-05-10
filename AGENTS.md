@@ -63,6 +63,7 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 - Never create Drizzle migration files or Drizzle snapshot files by hand.
 - Update `src/db/schema.ts`, then use the project’s Drizzle migration generation command.
 - If generated SQL needs custom data migration logic, call it out explicitly and keep Drizzle metadata generator-owned.
+- Do not read generated migration SQL or snapshot files unless required for a specific migration/debugging task; they are large and waste context.
 
 ---
 
