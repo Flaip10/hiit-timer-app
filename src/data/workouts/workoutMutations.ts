@@ -5,23 +5,39 @@ import { workoutRepository } from '@src/db/repositories/workoutRepository';
 
 import { workoutKeys } from './workoutKeys';
 
+interface UpsertWorkoutArgs {
+    workout: Workout;
+    sourceWorkoutVersionId?: string;
+}
+
+const isUpsertWorkoutArgs = (
+    value: Workout | UpsertWorkoutArgs,
+): value is UpsertWorkoutArgs => 'workout' in value;
+
 export const useUpsertWorkout = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (workout: Workout) => {
-            workoutRepository.upsert(workout, -workout.updatedAtMs);
-            return workout;
+        mutationFn: async (args: Workout | UpsertWorkoutArgs) => {
+            const workout = isUpsertWorkoutArgs(args) ? args.workout : args;
+            const sourceWorkoutVersionId = isUpsertWorkoutArgs(args)
+                ? args.sourceWorkoutVersionId
+                : undefined;
+
+            if (sourceWorkoutVersionId) {
+                workoutRepository.upsertRestoredWorkout({
+                    workout,
+                    sortIndex: -workout.updatedAtMs,
+                    sourceWorkoutVersionId,
+                });
+            } else {
+                workoutRepository.upsert(workout, -workout.updatedAtMs);
+            }
         },
-        onSuccess: async (workout) => {
-            await Promise.all([
-                queryClient.invalidateQueries({
-                    queryKey: workoutKeys.all,
-                }),
-                queryClient.invalidateQueries({
-                    queryKey: workoutKeys.detail(workout.id),
-                }),
-            ]);
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({
+                queryKey: workoutKeys.all,
+            });
         },
     });
 };
@@ -56,17 +72,11 @@ export const useToggleFavoriteWorkout = () => {
             };
 
             workoutRepository.upsert(nextWorkout, -nextWorkout.updatedAtMs);
-            return nextWorkout;
         },
-        onSuccess: async (workout) => {
-            await Promise.all([
-                queryClient.invalidateQueries({
-                    queryKey: workoutKeys.all,
-                }),
-                queryClient.invalidateQueries({
-                    queryKey: workoutKeys.detail(workout.id),
-                }),
-            ]);
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({
+                queryKey: workoutKeys.all,
+            });
         },
     });
 };

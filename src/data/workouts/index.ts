@@ -4,4 +4,8 @@ export {
     useToggleFavoriteWorkout,
     useUpsertWorkout,
 } from './workoutMutations';
-export { useWorkout, useWorkouts } from './workoutQueries';
+export {
+    useWorkout,
+    useWorkoutCurrentVersionId,
+    useWorkouts,
+} from './workoutQueries';

@@ -18,3 +18,12 @@ export const useWorkout = (id?: string) =>
         enabled: !!id,
         initialData: () => (id ? workoutRepository.getById(id) : null),
     });
+
+export const useWorkoutCurrentVersionId = (id?: string) =>
+    useQuery({
+        queryKey: workoutKeys.currentVersionId(id ?? 'missing'),
+        queryFn: () => (id ? workoutRepository.getCurrentVersionId(id) : null),
+        enabled: !!id,
+        initialData: () =>
+            id ? workoutRepository.getCurrentVersionId(id) : null,
+    });
