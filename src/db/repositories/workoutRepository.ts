@@ -12,6 +12,7 @@ import {
     workoutsTable,
 } from '../schema';
 import {
+    groupExercisesByBlockId,
     workoutFromDbRows,
     workoutToVersionDbRows,
     workoutsFromDbRows,
@@ -19,9 +20,7 @@ import {
 } from '../mappers/workoutMapper';
 import { hasSameWorkoutContent } from '../mappers/workoutContent';
 
-const getExercisesForBlocks = (
-    blockIds: string[]
-): WorkoutExerciseRow[] =>
+const getExercisesForBlocks = (blockIds: string[]): WorkoutExerciseRow[] =>
     blockIds.length > 0
         ? db
               .select()
@@ -34,7 +33,7 @@ const getExercisesForBlocks = (
 export const insertWorkoutVersion = (
     workout: Workout,
     versionId: string,
-    workoutId: string | null
+    workoutId: string | null,
 ): void => {
     const rows = workoutToVersionDbRows(workout, versionId, workoutId);
 
@@ -91,7 +90,7 @@ export const deleteWorkoutVersionIfOrphan = (versionId: string): void => {
 
 export const getWorkoutByVersionId = (
     versionId: string,
-    args?: { workoutId?: string; isFavorite?: boolean }
+    args?: { workoutId?: string; isFavorite?: boolean },
 ): Workout | null => {
     const version = db
         .select()
@@ -108,13 +107,14 @@ export const getWorkoutByVersionId = (
         .all();
 
     const exercises = getExercisesForBlocks(blocks.map((block) => block.id));
+    const exercisesByBlockId = groupExercisesByBlockId(exercises);
 
-    return workoutFromDbRows(version, blocks, exercises, args);
+    return workoutFromDbRows(version, blocks, exercisesByBlockId, args);
 };
 
 export const createWorkoutVersion = (
     workout: Workout,
-    workoutId: string | null
+    workoutId: string | null,
 ): string => {
     const versionId = uid();
     insertWorkoutVersion(workout, versionId, workoutId);
@@ -128,11 +128,11 @@ export const workoutRepository = {
             .from(workoutsTable)
             .innerJoin(
                 workoutVersionsTable,
-                eq(workoutsTable.currentVersionId, workoutVersionsTable.id)
+                eq(workoutsTable.currentVersionId, workoutVersionsTable.id),
             )
             .orderBy(
                 desc(workoutsTable.isFavorite),
-                desc(workoutVersionsTable.updatedAtMs)
+                desc(workoutVersionsTable.updatedAtMs),
             )
             .all();
 
@@ -149,25 +149,51 @@ export const workoutRepository = {
             .all();
 
         const exerciseRows = getExercisesForBlocks(
-            blockRows.map((block) => block.id)
+            blockRows.map((block) => block.id),
         );
 
         return workoutsFromDbRows(rows, blockRows, exerciseRows);
     },
 
     getById: (id: string): Workout | null => {
-        const workout = db
+        const row = db
             .select()
             .from(workoutsTable)
+            .innerJoin(
+                workoutVersionsTable,
+                eq(workoutsTable.currentVersionId, workoutVersionsTable.id),
+            )
             .where(eq(workoutsTable.id, id))
             .get();
 
-        if (!workout) return null;
+        if (!row) return null;
 
-        return getWorkoutByVersionId(workout.currentVersionId, {
-            workoutId: workout.id,
-            isFavorite: workout.isFavorite,
-        });
+        const blocks = db
+            .select()
+            .from(workoutBlocksTable)
+            .where(
+                eq(
+                    workoutBlocksTable.workoutVersionId,
+                    row.workout_versions.id,
+                ),
+            )
+            .orderBy(asc(workoutBlocksTable.sortIndex))
+            .all();
+
+        const exercises = getExercisesForBlocks(
+            blocks.map((block) => block.id),
+        );
+        const exercisesByBlockId = groupExercisesByBlockId(exercises);
+
+        return workoutFromDbRows(
+            row.workout_versions,
+            blocks,
+            exercisesByBlockId,
+            {
+                workoutId: row.workouts.id,
+                isFavorite: row.workouts.isFavorite,
+            },
+        );
     },
 
     getCurrentVersionId: (id: string): string | null => {
@@ -178,17 +204,6 @@ export const workoutRepository = {
             .get();
 
         return workout?.currentVersionId ?? null;
-    },
-
-    doesWorkoutUseVersion: (args: {
-        workoutId: string;
-        workoutVersionId: string;
-    }): boolean => {
-        const currentVersionId = workoutRepository.getCurrentVersionId(
-            args.workoutId
-        );
-
-        return currentVersionId === args.workoutVersionId;
     },
 
     upsert: (workout: Workout, sortIndex: number): void => {
@@ -221,10 +236,10 @@ export const workoutRepository = {
             {
                 workoutId: workout.id,
                 isFavorite: existingWorkout.isFavorite,
-            }
+            },
         );
         const shouldCreateVersion =
-            currentWorkout == null ||
+            currentWorkout === null ||
             !hasSameWorkoutContent(currentWorkout, workout);
         const nextVersionId = shouldCreateVersion
             ? uid()
@@ -257,22 +272,29 @@ export const workoutRepository = {
         sortIndex: number;
         sourceWorkoutVersionId: string;
     }): void => {
-        const sourceWorkout = getWorkoutByVersionId(args.sourceWorkoutVersionId);
-        const canReuseSourceVersion =
-            sourceWorkout != null &&
-            hasSameWorkoutContent(sourceWorkout, args.workout);
+        const sourceVersionWorkout = getWorkoutByVersionId(
+            args.sourceWorkoutVersionId,
+        );
+        const shouldReuseSourceVersion =
+            sourceVersionWorkout !== null &&
+            hasSameWorkoutContent(sourceVersionWorkout, args.workout);
 
-        if (!canReuseSourceVersion) {
+        if (!shouldReuseSourceVersion) {
             workoutRepository.upsert(args.workout, args.sortIndex);
             return;
         }
 
         const existingWorkout = db
-            .select()
+            .select({ id: workoutsTable.id })
             .from(workoutsTable)
             .where(eq(workoutsTable.id, args.workout.id))
             .get();
-        const previousVersionId = existingWorkout?.currentVersionId;
+
+        if (existingWorkout) {
+            throw new Error(
+                `Cannot restore workout ${args.workout.id}: already exists`
+            );
+        }
 
         db.insert(workoutsTable)
             .values({
@@ -282,29 +304,12 @@ export const workoutRepository = {
                 isFavorite: args.workout.isFavorite === true,
                 sortIndex: args.sortIndex,
             })
-            .onConflictDoUpdate({
-                target: workoutsTable.id,
-                set: {
-                    currentVersionId: args.sourceWorkoutVersionId,
-                    createdAtMs:
-                        existingWorkout?.createdAtMs ?? args.workout.updatedAtMs,
-                    isFavorite: args.workout.isFavorite === true,
-                    sortIndex: args.sortIndex,
-                },
-            })
             .run();
 
         workoutRepository.relinkSessionsForVersion({
             workoutId: args.workout.id,
             workoutVersionId: args.sourceWorkoutVersionId,
         });
-
-        if (
-            previousVersionId != null &&
-            previousVersionId !== args.sourceWorkoutVersionId
-        ) {
-            deleteWorkoutVersionIfOrphan(previousVersionId);
-        }
     },
 
     remove: (id: string): void => {
@@ -349,7 +354,12 @@ export const workoutRepository = {
     }): void => {
         db.update(workoutSessionsTable)
             .set({ workoutId: args.workoutId })
-            .where(eq(workoutSessionsTable.workoutVersionId, args.workoutVersionId))
+            .where(
+                eq(
+                    workoutSessionsTable.workoutVersionId,
+                    args.workoutVersionId,
+                ),
+            )
             .run();
         db.update(workoutVersionsTable)
             .set({ workoutId: args.workoutId })
