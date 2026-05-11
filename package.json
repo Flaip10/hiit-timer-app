@@ -84,6 +84,7 @@
     "eslint": "^8.57.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.0",
+    "expo-drizzle-studio-plugin": "^0.2.1",
     "typescript": "~5.9.2"
   },
   "private": true,
