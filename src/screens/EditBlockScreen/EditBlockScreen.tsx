@@ -10,7 +10,7 @@ import { Button } from '@src/components/ui/Button/Button';
 import { TextField } from '@src/components/ui/TextField/TextField';
 import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
 
-import { useWorkouts } from '@state/useWorkouts';
+import { useWorkoutDraftStore } from '@src/state/stores/useWorkoutDraftStore';
 import { useBlockEditor } from './useBlockEditor';
 import { useBlockEditStyles } from './EditBlockScreen.styles';
 import { AppText } from '@src/components/ui/Typography/AppText';
@@ -27,8 +27,10 @@ const EditBlockScreen = () => {
     const isQuick = quick === '1' || quick === 'true' || quick === 'yes';
     const router = useRouter();
 
-    const draft = useWorkouts((state) => state.draft);
-    const updateDraftBlock = useWorkouts((state) => state.updateDraftBlock);
+    const draft = useWorkoutDraftStore((state) => state.draft);
+    const updateDraftBlock = useWorkoutDraftStore(
+        (state) => state.updateDraftBlock
+    );
 
     const {
         block,
