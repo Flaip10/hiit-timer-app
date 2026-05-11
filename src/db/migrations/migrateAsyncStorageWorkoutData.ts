@@ -3,28 +3,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Workout } from '@src/core/entities/entities';
 import type { WorkoutSession } from '@src/core/entities/workoutSession.interfaces';
 
+import { createWorkoutContentKey } from '../mappers/workoutContent';
+import { isRecord, isWorkout, isWorkoutSession } from '../mappers/jsonGuards';
 import {
-    isRecord,
-    isStringList,
-    isWorkout,
-    isWorkoutSession,
-} from '../mappers/jsonGuards';
-import { workoutRepository } from '../repositories/workoutRepository';
+    createWorkoutVersion,
+    workoutRepository,
+} from '../repositories/workoutRepository';
 import { workoutSessionRepository } from '../repositories/workoutSessionRepository';
 
 const WORKOUTS_STORAGE_KEY = 'workouts-storage';
 const WORKOUT_HISTORY_STORAGE_KEY = 'workout-history-storage-v1';
 const SQLITE_WORKOUT_MIGRATION_KEY = 'sqlite-workout-migration-v1';
-
-interface PersistedWorkoutsState {
-    workouts: Record<string, Workout>;
-    order: string[];
-}
-
-interface PersistedWorkoutHistoryState {
-    sessions: Record<string, WorkoutSession>;
-    order: string[];
-}
 
 interface MigrationCounts {
     workouts: number;
@@ -37,7 +26,7 @@ export interface AsyncStorageWorkoutMigrationResult {
 }
 
 const readPersistedState = (raw: string | null): unknown | null => {
-    if (raw == null) return null;
+    if (raw === null) return null;
 
     const parsed = JSON.parse(raw) as unknown;
     if (!isRecord(parsed)) return null;
@@ -45,9 +34,11 @@ const readPersistedState = (raw: string | null): unknown | null => {
     return parsed.state ?? null;
 };
 
-const readPersistedWorkouts = (raw: string | null): PersistedWorkoutsState => {
+const readPersistedWorkouts = (
+    raw: string | null,
+): Record<string, Workout> => {
     const state = readPersistedState(raw);
-    if (!isRecord(state)) return { workouts: {}, order: [] };
+    if (!isRecord(state)) return {};
 
     const workouts: Record<string, Workout> = {};
     const sourceWorkouts = isRecord(state.workouts) ? state.workouts : {};
@@ -58,17 +49,14 @@ const readPersistedWorkouts = (raw: string | null): PersistedWorkoutsState => {
         }
     });
 
-    return {
-        workouts,
-        order: isStringList(state.order) ? state.order : [],
-    };
+    return workouts;
 };
 
 const readPersistedWorkoutHistory = (
-    raw: string | null
-): PersistedWorkoutHistoryState => {
+    raw: string | null,
+): Record<string, WorkoutSession> => {
     const state = readPersistedState(raw);
-    if (!isRecord(state)) return { sessions: {}, order: [] };
+    if (!isRecord(state)) return {};
 
     const sessions: Record<string, WorkoutSession> = {};
     const sourceSessions = isRecord(state.sessions) ? state.sessions : {};
@@ -79,37 +67,7 @@ const readPersistedWorkoutHistory = (
         }
     });
 
-    return {
-        sessions,
-        order: isStringList(state.order) ? state.order : [],
-    };
-};
-
-const getOrderedIds = <
-    TItem extends { updatedAtMs?: number; startedAtMs?: number },
->(
-    items: Record<string, TItem>,
-    persistedOrder: string[]
-): string[] => {
-    const seen = new Set<string>();
-    const orderedIds = persistedOrder.filter((id) => {
-        if (seen.has(id) || !(id in items)) return false;
-        seen.add(id);
-        return true;
-    });
-
-    const missingIds = Object.keys(items)
-        .filter((id) => !seen.has(id))
-        .sort((leftId, rightId) => {
-            const left = items[leftId];
-            const right = items[rightId];
-            const leftMs = left.updatedAtMs ?? left.startedAtMs ?? 0;
-            const rightMs = right.updatedAtMs ?? right.startedAtMs ?? 0;
-
-            return rightMs - leftMs;
-        });
-
-    return [...orderedIds, ...missingIds];
+    return sessions;
 };
 
 const assertAllIdsWereCopied = (args: {
@@ -120,7 +78,7 @@ const assertAllIdsWereCopied = (args: {
     const missingIds = args.expectedIds.filter((id) => !args.actualIds.has(id));
     if (missingIds.length > 0) {
         throw new Error(
-            `${args.label} migration verification failed for ${missingIds.length} ids`
+            `${args.label} migration verification failed for ${missingIds.length} ids`,
         );
     }
 };
@@ -131,8 +89,21 @@ const writeMigrationMarker = async (counts: MigrationCounts): Promise<void> => {
         JSON.stringify({
             migratedAtMs: Date.now(),
             counts,
-        })
+        }),
     );
+};
+
+const resolveMigratedSessionWorkoutId = (args: {
+    session: WorkoutSession;
+    activeWorkoutIds: Set<string>;
+}): string | undefined => {
+    const { session, activeWorkoutIds } = args;
+
+    if (!session.workoutId) return undefined;
+
+    return activeWorkoutIds.has(session.workoutId)
+        ? session.workoutId
+        : undefined;
 };
 
 export const migrateAsyncStorageWorkoutData =
@@ -143,7 +114,7 @@ export const migrateAsyncStorageWorkoutData =
             AsyncStorage.getItem(SQLITE_WORKOUT_MIGRATION_KEY),
         ]);
 
-        if (existingMarker != null) {
+        if (existingMarker !== null) {
             return {
                 didRun: false,
                 counts: { workouts: 0, sessions: 0 },
@@ -153,21 +124,54 @@ export const migrateAsyncStorageWorkoutData =
         const persistedWorkouts = readPersistedWorkouts(workoutsRaw);
         const persistedHistory = readPersistedWorkoutHistory(historyRaw);
 
-        const workoutIds = getOrderedIds(
-            persistedWorkouts.workouts,
-            persistedWorkouts.order
-        );
-        const sessionIds = getOrderedIds(
-            persistedHistory.sessions,
-            persistedHistory.order
-        );
+        const workoutIds = Object.keys(persistedWorkouts);
+        const sessionIds = Object.keys(persistedHistory);
+        const versionIdByContent = new Map<string, string>();
 
         workoutIds.forEach((id, index) => {
-            workoutRepository.upsert(persistedWorkouts.workouts[id], index);
+            const workout = persistedWorkouts[id];
+
+            workoutRepository.upsert(workout, index);
+
+            const currentVersionId = workoutRepository.getCurrentVersionId(id);
+            if (currentVersionId !== null) {
+                versionIdByContent.set(
+                    createWorkoutContentKey(workout),
+                    currentVersionId,
+                );
+            }
         });
 
-        sessionIds.forEach((id, index) => {
-            workoutSessionRepository.upsert(persistedHistory.sessions[id], index);
+        const activeWorkoutIds = workoutRepository.readExistingIds(workoutIds);
+
+        sessionIds.forEach((id) => {
+            const session = persistedHistory[id];
+            const contentKey = createWorkoutContentKey(session.workoutSnapshot);
+            const existingVersionId = versionIdByContent.get(contentKey);
+            const workoutId = resolveMigratedSessionWorkoutId({
+                session,
+                activeWorkoutIds,
+            });
+            const workoutVersionId =
+                existingVersionId ??
+                createWorkoutVersion(
+                    session.workoutSnapshot,
+                    workoutId ?? null,
+                );
+
+            const sessionToMigrate: WorkoutSession = {
+                ...session,
+                workoutId,
+                workoutVersionId,
+                workoutNameSnapshot:
+                    session.workoutNameSnapshot ?? session.workoutSnapshot.name,
+            };
+
+            workoutSessionRepository.upsert(sessionToMigrate);
+
+            if (existingVersionId === undefined) {
+                versionIdByContent.set(contentKey, workoutVersionId);
+            }
         });
 
         assertAllIdsWereCopied({
