@@ -4,7 +4,9 @@ import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
 
-import { useWorkout, useWorkouts } from '@state/useWorkouts';
+import { useWorkoutDraftStore } from '@src/state/stores/useWorkoutDraftStore';
+import { useWorkout } from '@src/data/workouts';
+import { useAddWorkoutSession } from '@src/data/workoutSessions';
 
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
@@ -21,7 +23,6 @@ import { RunPhaseSection } from './components/RunPhaseSection/RunPhaseSection';
 import { RunFooter } from './components/RunFooter/RunFooter';
 
 import useStepBeeps from './hooks/useStepBeeps';
-import { useWorkoutHistory } from '@src/state/stores/useWorkoutHistory';
 import { useSettingsStore } from '@src/state/useSettingsStore';
 import { prepareRunData } from '@src/core/timer';
 import { useTheme } from '@src/theme/ThemeProvider';
@@ -40,21 +41,24 @@ export const WorkoutRunScreen = () => {
     const [shareVisible, setShareVisible] = useState(false);
     const [endConfirmVisible, setEndConfirmVisible] = useState(false);
 
-    const { id, autoStart, mode, origin } = useLocalSearchParams<{
+    const { id, autoStart, mode } = useLocalSearchParams<{
         id?: string;
         autoStart?: string;
         mode?: 'quick';
-        origin?: 'quick' | 'history';
     }>();
 
-    const savedWorkout = useWorkout(id);
-    const draftWorkout = useWorkouts((s) => s.draft);
+    const { data: savedWorkout } = useWorkout(id);
+    const draftWorkout = useWorkoutDraftStore((s) => s.draft);
+    const sourceWorkoutVersionId = useWorkoutDraftStore(
+        (s) => s.sourceWorkoutVersionId,
+    );
+    const addWorkoutSession = useAddWorkoutSession();
 
     const workout = mode === 'quick' ? draftWorkout : savedWorkout;
     const shouldAutoStart =
         autoStart === '1' || autoStart === 'true' || autoStart === 'yes';
 
-    const clearDraft = useWorkouts((s) => s.clearDraft);
+    const clearDraft = useWorkoutDraftStore((s) => s.clearDraft);
 
     const plan = useMemo(() => prepareRunData(workout, 5), [workout]);
 
@@ -135,21 +139,23 @@ export const WorkoutRunScreen = () => {
         if (totalSec < MIN_SESSION_SEC) return;
         if (!workout) return;
 
-        const workoutId =
-            mode !== 'quick' && typeof id === 'string' && id.length > 0
-                ? id
-                : undefined;
-
-        useWorkoutHistory.getState().addSession({
-            workoutSnapshot: workout,
-            workoutId,
+        addWorkoutSession.mutate({
+            workout,
+            sourceWorkoutVersionId: sourceWorkoutVersionId ?? undefined,
             startedAtMs,
             endedAtMs,
             stats: runStats,
         });
 
         sessionSavedRef.current = true;
-    }, [running, isFinished, workout, runStats, mode, id]);
+    }, [
+        addWorkoutSession,
+        running,
+        isFinished,
+        workout,
+        sourceWorkoutVersionId,
+        runStats,
+    ]);
 
     // -------- Calculate total duration when finished --------
     const totalDurationSec = useMemo(() => {
@@ -233,7 +239,7 @@ export const WorkoutRunScreen = () => {
         allowNextBack();
         router.replace('/(drawer)');
 
-        const shouldClearDraft = mode === 'quick' && origin === 'quick';
+        const shouldClearDraft = mode === 'quick';
         if (shouldClearDraft) {
             requestAnimationFrame(() => {
                 clearDraft();
