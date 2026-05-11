@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Workout } from '@src/core/entities/entities';
 import { workoutRepository } from '@src/db/repositories/workoutRepository';
 
+import { workoutSessionKeys } from '../workoutSessions';
 import { workoutKeys } from './workoutKeys';
 
 interface UpsertWorkoutArgs {
@@ -34,10 +35,21 @@ export const useUpsertWorkout = () => {
                 workoutRepository.upsert(workout, -workout.updatedAtMs);
             }
         },
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({
-                queryKey: workoutKeys.all,
-            });
+        onSuccess: async (_data, args) => {
+            const sourceWorkoutVersionId = isUpsertWorkoutArgs(args)
+                ? args.sourceWorkoutVersionId
+                : undefined;
+
+            await Promise.all([
+                queryClient.invalidateQueries({
+                    queryKey: workoutKeys.all,
+                }),
+                sourceWorkoutVersionId
+                    ? queryClient.invalidateQueries({
+                          queryKey: workoutSessionKeys.all,
+                      })
+                    : Promise.resolve(),
+            ]);
         },
     });
 };

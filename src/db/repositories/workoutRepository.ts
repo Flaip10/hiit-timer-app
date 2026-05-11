@@ -296,19 +296,21 @@ export const workoutRepository = {
             );
         }
 
-        db.insert(workoutsTable)
-            .values({
-                id: args.workout.id,
-                currentVersionId: args.sourceWorkoutVersionId,
-                createdAtMs: args.workout.updatedAtMs,
-                isFavorite: args.workout.isFavorite === true,
-                sortIndex: args.sortIndex,
-            })
-            .run();
+        db.transaction(() => {
+            db.insert(workoutsTable)
+                .values({
+                    id: args.workout.id,
+                    currentVersionId: args.sourceWorkoutVersionId,
+                    createdAtMs: Date.now(),
+                    isFavorite: args.workout.isFavorite === true,
+                    sortIndex: args.sortIndex,
+                })
+                .run();
 
-        workoutRepository.relinkSessionsForVersion({
-            workoutId: args.workout.id,
-            workoutVersionId: args.sourceWorkoutVersionId,
+            workoutRepository.relinkSessionsForVersion({
+                workoutId: args.workout.id,
+                workoutVersionId: args.sourceWorkoutVersionId,
+            });
         });
     },
 
