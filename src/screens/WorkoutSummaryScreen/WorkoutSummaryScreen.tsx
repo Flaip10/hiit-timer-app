@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useWorkout, useWorkouts } from '@state/useWorkouts';
+import { useToggleFavoriteWorkout, useWorkout } from '@src/data/workouts';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
 import { Button } from '@src/components/ui/Button/Button';
@@ -31,12 +31,15 @@ const WorkoutSummaryScreen = () => {
     const { t } = useTranslation();
     const { id } = useLocalSearchParams<{ id?: string }>();
     const router = useRouter();
-    const workout = useWorkout(id);
-    const toggleFavorite = useWorkouts((state) => state.toggleFavorite);
+    const { data: workout } = useWorkout(id);
+    const toggleFavoriteWorkout = useToggleFavoriteWorkout();
     const { theme } = useTheme();
     const st = useWorkoutSummaryStyles();
 
-    const summary = useMemo(() => summarizeWorkout(workout), [workout]);
+    const summary = useMemo(
+        () => summarizeWorkout(workout ?? undefined),
+        [workout]
+    );
 
     const [exportError, setExportError] = useState<string | null>(null);
     const [exporting, setExporting] = useState(false);
@@ -97,7 +100,7 @@ const WorkoutSummaryScreen = () => {
                     gap={12}
                     rightAccessory={
                         <GuardedPressable
-                            onPress={() => toggleFavorite(workout.id)}
+                            onPress={() => toggleFavoriteWorkout.mutate(workout)}
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                             style={st.favoriteToggle}
                         >
