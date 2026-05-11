@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 export const workoutsTable = sqliteTable('workouts', {
     id: text('id').primaryKey(),
@@ -15,7 +15,9 @@ export const workoutVersionsTable = sqliteTable('workout_versions', {
     }),
     name: text('name').notNull(),
     updatedAtMs: integer('updated_at_ms').notNull(),
-});
+}, (table) => [
+    index('workout_versions_workout_id_idx').on(table.workoutId),
+]);
 
 export const workoutBlocksTable = sqliteTable('workout_blocks', {
     id: text('id').primaryKey(),
@@ -27,7 +29,12 @@ export const workoutBlocksTable = sqliteTable('workout_blocks', {
     sets: integer('sets').notNull(),
     restBetweenSetsSec: integer('rest_between_sets_sec').notNull(),
     restBetweenExercisesSec: integer('rest_between_exercises_sec').notNull(),
-});
+}, (table) => [
+    index('workout_blocks_version_sort_idx').on(
+        table.workoutVersionId,
+        table.sortIndex
+    ),
+]);
 
 export const workoutExercisesTable = sqliteTable('workout_exercises', {
     id: text('id').primaryKey(),
@@ -39,7 +46,12 @@ export const workoutExercisesTable = sqliteTable('workout_exercises', {
     mode: text('mode', { enum: ['time', 'reps'] }).notNull(),
     value: integer('value').notNull(),
     tempo: text('tempo'),
-});
+}, (table) => [
+    index('workout_exercises_block_sort_idx').on(
+        table.blockId,
+        table.sortIndex
+    ),
+]);
 
 export const workoutSessionsTable = sqliteTable('workout_sessions', {
     id: text('id').primaryKey(),
@@ -55,4 +67,7 @@ export const workoutSessionsTable = sqliteTable('workout_sessions', {
     totalDurationSec: integer('total_duration_sec'),
     statsJson: text('stats_json'),
     sortIndex: integer('sort_index').notNull(),
-});
+}, (table) => [
+    index('workout_sessions_version_idx').on(table.workoutVersionId),
+    index('workout_sessions_workout_id_idx').on(table.workoutId),
+]);
