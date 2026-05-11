@@ -13,8 +13,9 @@ import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIcon
 import { type ShareRunStats } from '@src/screens/WorkoutRunScreen/components/ShareWorkoutCard/ShareWorkoutCard';
 import { ShareWorkoutModal } from '@src/components/modals/ShareWorkoutModal/ShareWorkoutModal';
 
-import { useWorkout, useWorkouts } from '@state/useWorkouts';
-import { useWorkoutHistory } from '@src/state/stores/useWorkoutHistory';
+import { useWorkoutDraftStore } from '@src/state/stores/useWorkoutDraftStore';
+import { useWorkout, useWorkoutCurrentVersionId } from '@src/data/workouts';
+import { useWorkoutSession } from '@src/data/workoutSessions';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { formatWorkoutDuration } from '@core/workouts/summarizeWorkout';
 import { useHistorySessionStyles } from './HistorySessionScreen.styles';
@@ -40,12 +41,14 @@ const HistorySessionScreen = () => {
 
     const [shareVisible, setShareVisible] = useState(false);
 
-    const session = useWorkoutHistory((s) =>
-        sessionId ? s.sessions[sessionId] : undefined
+    const { data: session } = useWorkoutSession(sessionId);
+    const { data: savedWorkout } = useWorkout(session?.workoutId);
+    const { data: savedWorkoutVersionId } = useWorkoutCurrentVersionId(
+        session?.workoutId
     );
-
-    const savedWorkout = useWorkout(session?.workoutId);
-    const startDraftFromImported = useWorkouts((s) => s.startDraftFromImported);
+    const startDraftFromImported = useWorkoutDraftStore(
+        (s) => s.startDraftFromImported
+    );
 
     const hasSession = !!sessionId && !!session;
 
@@ -225,14 +228,7 @@ const HistorySessionScreen = () => {
     const savedWorkoutMatchesSessionVersion = (() => {
         if (!canOpenSavedWorkout) return false;
 
-        const savedUpdatedAt = savedWorkout.updatedAtMs;
-        const sessionUpdatedAt = session.workoutSnapshot.updatedAtMs;
-
-        return (
-            Number.isFinite(savedUpdatedAt) &&
-            Number.isFinite(sessionUpdatedAt) &&
-            savedUpdatedAt === sessionUpdatedAt
-        );
+        return savedWorkoutVersionId === session.workoutVersionId;
     })();
 
     const handleRunAgain = () => {
@@ -244,10 +240,13 @@ const HistorySessionScreen = () => {
             return;
         }
 
-        startDraftFromImported(session.workoutSnapshot);
+        startDraftFromImported(
+            session.workoutSnapshot,
+            session.workoutVersionId
+        );
         router.push({
             pathname: '/run',
-            params: { autoStart: '1', mode: 'quick', origin: 'history' },
+            params: { autoStart: '1', mode: 'quick' },
         });
     };
 
@@ -260,7 +259,10 @@ const HistorySessionScreen = () => {
         // open the session snapshot (as draft) when:
         // - workout doesn't exist anymore
         // - workout exists but is a different version
-        startDraftFromImported(session.workoutSnapshot);
+        startDraftFromImported(
+            session.workoutSnapshot,
+            session.workoutVersionId
+        );
         router.push('/workouts/edit?fromImport=1');
     };
 
