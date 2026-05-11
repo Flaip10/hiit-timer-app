@@ -117,6 +117,12 @@ export const isWorkoutSession = (value: unknown): value is WorkoutSession => {
     if (!isWorkout(value.workoutSnapshot)) return false;
     if (value.workoutId !== undefined && !isString(value.workoutId)) return false;
     if (
+        value.workoutVersionId !== undefined &&
+        !isString(value.workoutVersionId)
+    ) {
+        return false;
+    }
+    if (
         value.workoutNameSnapshot !== undefined &&
         !isString(value.workoutNameSnapshot)
     ) {

@@ -8,7 +8,6 @@ import type {
     workoutBlocksTable,
     workoutExercisesTable,
     workoutVersionsTable,
-    workoutsTable,
 } from '../schema';
 
 export interface WorkoutRow {
@@ -46,8 +45,7 @@ export interface WorkoutExerciseRow {
     tempo: string | null;
 }
 
-export interface WorkoutDbRows {
-    workout: typeof workoutsTable.$inferInsert;
+interface WorkoutVersionDbRows {
     version: typeof workoutVersionsTable.$inferInsert;
     blocks: (typeof workoutBlocksTable.$inferInsert)[];
     exercises: (typeof workoutExercisesTable.$inferInsert)[];
@@ -115,7 +113,7 @@ export const workoutToVersionDbRows = (
     workout: Workout,
     workoutVersionId: string,
     workoutId: string | null
-): Omit<WorkoutDbRows, 'workout'> => {
+): WorkoutVersionDbRows => {
     const blocks = workout.blocks.map((block, blockIndex) => ({
         id: block.id,
         workoutVersionId,
@@ -185,5 +183,25 @@ export const workoutsFromDbRows = (
                 isFavorite: row.workouts.isFavorite,
             }
         )
+    );
+};
+
+export const workoutsByVersionIdFromDbRows = (
+    versions: WorkoutVersionRow[],
+    blocks: WorkoutBlockRow[],
+    exercises: WorkoutExerciseRow[]
+): Map<string, Workout> => {
+    const blocksByVersionId = groupBlocksByVersionId(blocks);
+    const exercisesByBlockId = groupExercisesByBlockId(exercises);
+
+    return new Map(
+        versions.map((version) => [
+            version.id,
+            workoutFromDbRows(
+                version,
+                blocksByVersionId.get(version.id) ?? [],
+                exercisesByBlockId
+            ),
+        ])
     );
 };
