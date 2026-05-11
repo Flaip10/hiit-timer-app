@@ -66,7 +66,6 @@ export const workoutSessionsTable = sqliteTable('workout_sessions', {
     workoutNameSnapshot: text('workout_name_snapshot'),
     totalDurationSec: integer('total_duration_sec'),
     statsJson: text('stats_json'),
-    sortIndex: integer('sort_index').notNull(),
 }, (table) => [
     index('workout_sessions_version_idx').on(table.workoutVersionId),
     index('workout_sessions_workout_id_idx').on(table.workoutId),
