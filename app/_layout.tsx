@@ -3,11 +3,13 @@ import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
 import { ThemeProvider } from '@src/theme/ThemeProvider';
 import { useAppFonts } from '@src/theme/typography';
 import { initializeI18n } from '@src/i18n';
 import { initializeDatabase } from '@src/db';
 import { AppQueryProvider } from '@src/data/QueryProvider';
+import { sqliteDb } from '@src/db/client';
 
 const SPLASH_MIN_DURATION_MS = 1000;
 const splashStartedAtMs = Date.now();
@@ -22,6 +24,8 @@ SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
 });
 
 const RootLayout = () => {
+    useDrizzleStudio(__DEV__ ? sqliteDb : null);
+
     const [fontsLoaded] = useAppFonts();
     const [isI18nReady, setIsI18nReady] = useState(false);
     const [isDatabaseReady, setIsDatabaseReady] = useState(false);
