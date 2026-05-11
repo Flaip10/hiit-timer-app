@@ -3,6 +3,7 @@ import type {
     Workout,
     WorkoutBlock,
 } from '@src/core/entities/entities';
+import { uid } from '@src/core/id';
 
 import type {
     workoutBlocksTable,
@@ -114,27 +115,39 @@ export const workoutToVersionDbRows = (
     workoutVersionId: string,
     workoutId: string | null
 ): WorkoutVersionDbRows => {
-    const blocks = workout.blocks.map((block, blockIndex) => ({
-        id: block.id,
-        workoutVersionId,
-        sortIndex: blockIndex,
-        title: block.title ?? null,
-        sets: block.sets,
-        restBetweenSetsSec: block.restBetweenSetsSec,
-        restBetweenExercisesSec: block.restBetweenExercisesSec,
-    }));
+    const blockDbIdByWorkoutBlockId = new Map<string, string>();
 
-    const exercises = workout.blocks.flatMap((block) =>
-        block.exercises.map((exercise, exerciseIndex) => ({
-            id: exercise.id,
-            blockId: block.id,
+    const blocks = workout.blocks.map((block, blockIndex) => {
+        const blockDbId = uid();
+        blockDbIdByWorkoutBlockId.set(block.id, blockDbId);
+
+        return {
+            id: blockDbId,
+            workoutVersionId,
+            sortIndex: blockIndex,
+            title: block.title ?? null,
+            sets: block.sets,
+            restBetweenSetsSec: block.restBetweenSetsSec,
+            restBetweenExercisesSec: block.restBetweenExercisesSec,
+        };
+    });
+
+    const exercises = workout.blocks.flatMap((block) => {
+        const blockDbId = blockDbIdByWorkoutBlockId.get(block.id);
+        if (!blockDbId) {
+            throw new Error(`Missing DB block ID for workout block ${block.id}`);
+        }
+
+        return block.exercises.map((exercise, exerciseIndex) => ({
+            id: uid(),
+            blockId: blockDbId,
             sortIndex: exerciseIndex,
             name: exercise.name ?? null,
             mode: exercise.mode,
             value: exercise.value,
             tempo: exercise.tempo ?? null,
-        }))
-    );
+        }));
+    });
 
     return {
         version: {
