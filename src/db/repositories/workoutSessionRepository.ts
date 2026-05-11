@@ -31,9 +31,11 @@ import {
     getWorkoutByVersionId,
     workoutRepository,
 } from './workoutRepository';
+import { hasSameWorkoutContent } from '../mappers/workoutContent';
 
 export interface CreateWorkoutSessionArgs {
     workout: Workout;
+    sourceWorkoutVersionId?: string;
     startedAtMs: number;
     endedAtMs: number;
     stats?: WorkoutSessionStats;
@@ -147,6 +149,14 @@ const buildWorkoutSession = (
             ? args.workout.updatedAtMs
             : endedAtMs,
     };
+    const sourceVersionWorkout = args.sourceWorkoutVersionId
+        ? getWorkoutByVersionId(args.sourceWorkoutVersionId)
+        : null;
+    const workoutVersionId =
+        sourceVersionWorkout !== null &&
+        hasSameWorkoutContent(sourceVersionWorkout, workoutSnapshot)
+            ? args.sourceWorkoutVersionId
+            : undefined;
 
     return {
         id: uid(),
@@ -156,6 +166,7 @@ const buildWorkoutSession = (
         workoutId: workoutRepository.getCurrentVersionId(args.workout.id)
             ? args.workout.id
             : undefined,
+        workoutVersionId,
         workoutNameSnapshot: workoutSnapshot.name,
         totalDurationSec: resolveSessionDurationSec({
             startedAtMs: args.startedAtMs,
