@@ -90,5 +90,15 @@
         "typescript": "~5.9.2"
     },
     "private": true,
-    "packageManager": "npm@11.6.2"
+    "engines": {
+        "npm": ">=11.10.0"
+    },
+    "devEngines": {
+        "packageManager": {
+            "name": "npm",
+            "version": ">=11.10.0",
+            "onFail": "error"
+        }
+    },
+    "packageManager": "npm@11.14.1"
 }
