@@ -9,6 +9,7 @@
         "app/**/*.tsx",
         "drizzle.config.ts",
         "app.config.ts",
+        "jest.setup.ts",
         "index.ts",
         "index.tsx"
     ],
