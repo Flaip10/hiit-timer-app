@@ -185,17 +185,21 @@ export const createWorkoutSessionRepository = (
             hasSameWorkoutContent(sourceVersionWorkout, workoutSnapshot)
                 ? buildArgs.sourceWorkoutVersionId
                 : undefined;
+        const currentWorkoutVersionId =
+            workoutRepository.getCurrentVersionId(buildArgs.workout.id);
+        const workoutId =
+            currentWorkoutVersionId !== null &&
+            (workoutVersionId === undefined ||
+                currentWorkoutVersionId === workoutVersionId)
+                ? buildArgs.workout.id
+                : undefined;
 
         return {
             id: uid(),
             startedAtMs: buildArgs.startedAtMs,
             endedAtMs,
             workoutSnapshot,
-            workoutId: workoutRepository.getCurrentVersionId(
-                buildArgs.workout.id,
-            )
-                ? buildArgs.workout.id
-                : undefined,
+            workoutId,
             workoutVersionId,
             workoutNameSnapshot: workoutSnapshot.name,
             totalDurationSec: resolveSessionDurationSec({
