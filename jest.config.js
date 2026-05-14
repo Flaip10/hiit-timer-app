@@ -1,5 +1,13 @@
 module.exports = {
     preset: 'jest-expo',
+    // collectCoverageFrom: [
+    //     'src/**/*.{ts,tsx}',
+    //     '!src/**/*.d.ts',
+    //     '!src/**/styles.ts',
+    //     '!src/**/*.styles.ts',
+    // ],
+    coverageDirectory: 'coverage',
+    coverageReporters: ['text', 'html', 'lcov'],
     testMatch: [
         '<rootDir>/tests/**/*.test.ts',
         '<rootDir>/tests/**/*.test.tsx',
