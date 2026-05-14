@@ -3,7 +3,7 @@ import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 
 import * as schema from '@src/db/schema';
-import type { RepositoryDb } from '@src/db/repositories/workoutRepository';
+import type { RepositoryDb } from '@src/db/repositories/workoutRepositoryFactory';
 
 export interface TestDb {
     close: () => void;
