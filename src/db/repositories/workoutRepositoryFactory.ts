@@ -432,6 +432,18 @@ export const createWorkoutRepository = (
                 );
             }
 
+            const sourceVersion = repositoryDb
+                .select({ workoutId: workoutVersionsTable.workoutId })
+                .from(workoutVersionsTable)
+                .where(eq(workoutVersionsTable.id, restoreArgs.sourceWorkoutVersionId))
+                .get();
+
+            if (sourceVersion?.workoutId) {
+                throw new Error(
+                    `Cannot restore workout ${restoreArgs.workout.id}: source version already belongs to workout ${sourceVersion.workoutId}`,
+                );
+            }
+
             repositoryDb.transaction(() => {
                 repositoryDb
                     .insert(workoutsTable)
