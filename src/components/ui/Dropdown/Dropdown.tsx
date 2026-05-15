@@ -91,14 +91,10 @@ export const Dropdown = ({
     const dropdownContent = useMemo(() => {
         if (!visible || !anchorLayout) return null;
 
-        const surfaceLayout = resolvedLayout ?? {
-            opacity: 0,
-            top: 0,
-            left: 0,
-            width: matchAnchorWidth ? anchorLayout.width : undefined,
-        };
-
         shouldMeasureDropdownRef.current = resolvedLayout == null;
+        const measuringWidth = matchAnchorWidth
+            ? { width: anchorLayout.width }
+            : null;
 
         return (
             <View style={st.dropdownContent} pointerEvents="box-none">
@@ -106,14 +102,32 @@ export const Dropdown = ({
                     <Pressable style={st.dismissLayer} onPress={onClose} />
                 ) : null}
 
-                <Animated.View
-                    entering={entering}
-                    exiting={exiting}
-                    onLayout={onDropdownLayout}
-                    style={[st.surface, surfaceLayout, surfaceStyle]}
-                >
-                    {children}
-                </Animated.View>
+                {resolvedLayout ? (
+                    <View style={[st.surfaceWrapper, resolvedLayout]}>
+                        <Animated.View
+                            entering={entering}
+                            exiting={exiting}
+                            style={[st.surface, surfaceStyle]}
+                        >
+                            {children}
+                        </Animated.View>
+                    </View>
+                ) : (
+                    <View
+                        style={[
+                            st.surfaceWrapper,
+                            st.surfaceMeasuringWrapper,
+                            measuringWidth,
+                        ]}
+                    >
+                        <View
+                            onLayout={onDropdownLayout}
+                            style={[st.surface, surfaceStyle]}
+                        >
+                            {children}
+                        </View>
+                    </View>
+                )}
             </View>
         );
     }, [
@@ -128,6 +142,8 @@ export const Dropdown = ({
         st.dismissLayer,
         st.dropdownContent,
         st.surface,
+        st.surfaceMeasuringWrapper,
+        st.surfaceWrapper,
         resolvedLayout,
         surfaceStyle,
         visible,

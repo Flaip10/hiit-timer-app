@@ -18,8 +18,15 @@ export const useDropdownStyles = createStyles((theme) =>
         dismissLayer: {
             ...StyleSheet.absoluteFill,
         },
-        surface: {
+        surfaceWrapper: {
             position: 'absolute',
+        },
+        surfaceMeasuringWrapper: {
+            top: 0,
+            left: 0,
+            opacity: 0,
+        },
+        surface: {
             backgroundColor: theme.palette.background.primary,
             borderWidth: 1,
             borderColor: theme.palette.border.subtle,
