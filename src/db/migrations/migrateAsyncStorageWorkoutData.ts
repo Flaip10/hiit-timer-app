@@ -20,6 +20,11 @@ interface MigrationCounts {
     sessions: number;
 }
 
+interface VersionByContentEntry {
+    versionId: string;
+    workoutId: string | null;
+}
+
 export interface AsyncStorageWorkoutMigrationResult {
     didRun: boolean;
     counts: MigrationCounts;
@@ -106,6 +111,32 @@ const resolveMigratedSessionWorkoutId = (args: {
         : undefined;
 };
 
+const addVersionByContentEntry = (args: {
+    entriesByContent: Map<string, VersionByContentEntry[]>;
+    contentKey: string;
+    entry: VersionByContentEntry;
+}): void => {
+    const currentEntries = args.entriesByContent.get(args.contentKey) ?? [];
+
+    args.entriesByContent.set(args.contentKey, [
+        ...currentEntries,
+        args.entry,
+    ]);
+};
+
+const findReusableVersionId = (args: {
+    entriesByContent: Map<string, VersionByContentEntry[]>;
+    contentKey: string;
+    workoutId?: string;
+}): string | undefined => {
+    const entries = args.entriesByContent.get(args.contentKey) ?? [];
+
+    return entries.find(
+        (entry) =>
+            entry.workoutId === null || entry.workoutId === args.workoutId,
+    )?.versionId;
+};
+
 export const migrateAsyncStorageWorkoutData =
     async (): Promise<AsyncStorageWorkoutMigrationResult> => {
         const [workoutsRaw, historyRaw, existingMarker] = await Promise.all([
@@ -126,7 +157,7 @@ export const migrateAsyncStorageWorkoutData =
 
         const workoutIds = Object.keys(persistedWorkouts);
         const sessionIds = Object.keys(persistedHistory);
-        const versionIdByContent = new Map<string, string>();
+        const entriesByContent = new Map<string, VersionByContentEntry[]>();
 
         workoutIds.forEach((id, index) => {
             const workout = persistedWorkouts[id];
@@ -135,10 +166,14 @@ export const migrateAsyncStorageWorkoutData =
 
             const currentVersionId = workoutRepository.getCurrentVersionId(id);
             if (currentVersionId !== null) {
-                versionIdByContent.set(
-                    createWorkoutContentKey(workout),
-                    currentVersionId,
-                );
+                addVersionByContentEntry({
+                    entriesByContent,
+                    contentKey: createWorkoutContentKey(workout),
+                    entry: {
+                        versionId: currentVersionId,
+                        workoutId: id,
+                    },
+                });
             }
         });
 
@@ -147,10 +182,14 @@ export const migrateAsyncStorageWorkoutData =
         sessionIds.forEach((id) => {
             const session = persistedHistory[id];
             const contentKey = createWorkoutContentKey(session.workoutSnapshot);
-            const existingVersionId = versionIdByContent.get(contentKey);
             const workoutId = resolveMigratedSessionWorkoutId({
                 session,
                 activeWorkoutIds,
+            });
+            const existingVersionId = findReusableVersionId({
+                entriesByContent,
+                contentKey,
+                workoutId,
             });
             const workoutVersionId =
                 existingVersionId ??
@@ -170,7 +209,14 @@ export const migrateAsyncStorageWorkoutData =
             workoutSessionRepository.upsert(sessionToMigrate);
 
             if (existingVersionId === undefined) {
-                versionIdByContent.set(contentKey, workoutVersionId);
+                addVersionByContentEntry({
+                    entriesByContent,
+                    contentKey,
+                    entry: {
+                        versionId: workoutVersionId,
+                        workoutId: workoutId ?? null,
+                    },
+                });
             }
         });
 
