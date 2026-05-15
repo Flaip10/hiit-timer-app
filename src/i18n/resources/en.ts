@@ -82,6 +82,13 @@ export const en: I18nResource = {
             openWorkout: 'Open workout',
             saveWorkout: 'Save workout',
             runAgain: 'Run again',
+            delete: 'Delete',
+        },
+        deleteConfirm: {
+            title: 'Delete session',
+            message: 'This workout session will be permanently deleted.',
+            confirm: 'Delete',
+            cancel: 'Cancel',
         },
         hints: {
             noSavedWorkout: 'No saved workout found for this session.',

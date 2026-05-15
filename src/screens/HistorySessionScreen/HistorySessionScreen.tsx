@@ -12,10 +12,14 @@ import { AppIcon } from '@src/components/ui/Icon/AppIcon';
 import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
 import { type ShareRunStats } from '@src/screens/WorkoutRunScreen/components/ShareWorkoutCard/ShareWorkoutCard';
 import { ShareWorkoutModal } from '@src/components/modals/ShareWorkoutModal/ShareWorkoutModal';
+import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 
 import { useWorkoutDraftStore } from '@src/state/stores/useWorkoutDraftStore';
 import { useWorkout, useWorkoutCurrentVersionId } from '@src/data/workouts';
-import { useWorkoutSession } from '@src/data/workoutSessions';
+import {
+    useRemoveWorkoutSession,
+    useWorkoutSession,
+} from '@src/data/workoutSessions';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { formatWorkoutDuration } from '@core/workouts/summarizeWorkout';
 import { useHistorySessionStyles } from './HistorySessionScreen.styles';
@@ -40,15 +44,17 @@ const HistorySessionScreen = () => {
     const st = useHistorySessionStyles();
 
     const [shareVisible, setShareVisible] = useState(false);
+    const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
 
     const { data: session } = useWorkoutSession(sessionId);
     const { data: savedWorkout } = useWorkout(session?.workoutId);
     const { data: savedWorkoutVersionId } = useWorkoutCurrentVersionId(
-        session?.workoutId
+        session?.workoutId,
     );
     const startDraftFromImported = useWorkoutDraftStore(
-        (s) => s.startDraftFromImported
+        (s) => s.startDraftFromImported,
     );
+    const removeWorkoutSession = useRemoveWorkoutSession();
 
     const hasSession = !!sessionId && !!session;
 
@@ -112,7 +118,7 @@ const HistorySessionScreen = () => {
     const pausedText =
         stats != null
             ? formatWorkoutDuration(
-                  (stats.totalPausedSec ?? 0) + (stats.totalBlockPauseSec ?? 0)
+                  (stats.totalPausedSec ?? 0) + (stats.totalBlockPauseSec ?? 0),
               )
             : '—';
 
@@ -147,7 +153,7 @@ const HistorySessionScreen = () => {
             setsByBlock.length,
             exByBlock.length,
             workByBlock.length,
-            restByBlock.length
+            restByBlock.length,
         );
 
         return Array.from({ length: count }, (_, i) => {
@@ -171,7 +177,7 @@ const HistorySessionScreen = () => {
     })();
 
     const hasCompletedBlocks = perBlock.some(
-        (b) => b.completedSets > 0 || b.completedExercises > 0
+        (b) => b.completedSets > 0 || b.completedExercises > 0,
     );
 
     const metrics: SessionStatsMetric[] = [
@@ -242,7 +248,7 @@ const HistorySessionScreen = () => {
 
         startDraftFromImported(
             session.workoutSnapshot,
-            session.workoutVersionId
+            session.workoutVersionId,
         );
         router.push({
             pathname: '/run',
@@ -261,7 +267,7 @@ const HistorySessionScreen = () => {
         // - workout exists but is a different version
         startDraftFromImported(
             session.workoutSnapshot,
-            session.workoutVersionId
+            session.workoutVersionId,
         );
         router.push('/workouts/edit?fromImport=1');
     };
@@ -276,11 +282,42 @@ const HistorySessionScreen = () => {
         setShareVisible(false);
     };
 
+    const openDeleteConfirm = () => {
+        setDeleteConfirmVisible(true);
+    };
+
+    const closeDeleteConfirm = () => {
+        setDeleteConfirmVisible(false);
+    };
+
+    const handleDeleteSession = () => {
+        removeWorkoutSession.mutate(session.id, {
+            onSuccess: () => {
+                setDeleteConfirmVisible(false);
+                router.back();
+            },
+        });
+    };
+
+    const topBarOptions = [
+        {
+            id: 'delete-session',
+            label: t('historySession.actions.delete'),
+            icon: 'trash',
+            destructive: true,
+            onPress: openDeleteConfirm,
+        },
+    ] as const;
+
     // -------- UI --------
 
     return (
         <>
-            <MainContainer title={t('historySession.title')} gap={0}>
+            <MainContainer
+                title={t('historySession.title')}
+                gap={0}
+                topBarOptions={topBarOptions}
+            >
                 {/* Header Section */}
                 <ScreenSection topSpacing="small" gap={6}>
                     <View style={st.headerRow}>
@@ -412,7 +449,7 @@ const HistorySessionScreen = () => {
                                                         {value}
                                                     </AppText>
                                                 </View>
-                                            )
+                                            ),
                                         )}
                                     </View>
                                 ))}
@@ -432,7 +469,7 @@ const HistorySessionScreen = () => {
                             .filter(
                                 (b) =>
                                     b.completedSets > 0 ||
-                                    b.completedExercises > 0
+                                    b.completedExercises > 0,
                             )
                             .map((b) => (
                                 <MetaCard
@@ -468,7 +505,7 @@ const HistorySessionScreen = () => {
                                                     style={st.blockStatLabel}
                                                 >
                                                     {t(
-                                                        'historySession.blockStats.sets'
+                                                        'historySession.blockStats.sets',
                                                     )}
                                                 </AppText>
                                                 <AppText
@@ -490,7 +527,7 @@ const HistorySessionScreen = () => {
                                                     style={st.blockStatLabel}
                                                 >
                                                     {t(
-                                                        'historySession.blockStats.exercises'
+                                                        'historySession.blockStats.exercises',
                                                     )}
                                                 </AppText>
                                                 <AppText
@@ -513,7 +550,7 @@ const HistorySessionScreen = () => {
                                                     style={st.blockStatLabel}
                                                 >
                                                     {t(
-                                                        'historySession.blockStats.work'
+                                                        'historySession.blockStats.work',
                                                     )}
                                                 </AppText>
                                                 <AppText
@@ -525,7 +562,7 @@ const HistorySessionScreen = () => {
                                                     }
                                                 >
                                                     {formatWorkoutDuration(
-                                                        b.workSec
+                                                        b.workSec,
                                                     )}
                                                 </AppText>
                                             </View>
@@ -537,12 +574,12 @@ const HistorySessionScreen = () => {
                                                     style={st.blockStatLabel}
                                                 >
                                                     {t(
-                                                        'historySession.blockStats.rest'
+                                                        'historySession.blockStats.rest',
                                                     )}
                                                 </AppText>
                                                 <AppText variant="bodySmall">
                                                     {formatWorkoutDuration(
-                                                        b.restSec
+                                                        b.restSec,
                                                     )}
                                                 </AppText>
                                             </View>
@@ -593,7 +630,7 @@ const HistorySessionScreen = () => {
                                     style={st.linkHint}
                                 >
                                     {t(
-                                        'historySession.hints.workoutEditedSinceSession'
+                                        'historySession.hints.workoutEditedSinceSession',
                                     )}
                                 </AppText>
                             )}
@@ -622,6 +659,17 @@ const HistorySessionScreen = () => {
                 onClose={closeSharePreview}
                 workout={session.workoutSnapshot}
                 runStats={runStats}
+            />
+
+            <ConfirmDialog
+                visible={deleteConfirmVisible}
+                title={t('historySession.deleteConfirm.title')}
+                message={t('historySession.deleteConfirm.message')}
+                confirmLabel={t('historySession.deleteConfirm.confirm')}
+                cancelLabel={t('historySession.deleteConfirm.cancel')}
+                destructive
+                onConfirm={handleDeleteSession}
+                onCancel={closeDeleteConfirm}
             />
         </>
     );

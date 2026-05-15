@@ -3,7 +3,11 @@ import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useToggleFavoriteWorkout, useWorkout } from '@src/data/workouts';
+import {
+    useRemoveWorkout,
+    useToggleFavoriteWorkout,
+    useWorkout,
+} from '@src/data/workouts';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
 import { Button } from '@src/components/ui/Button/Button';
@@ -15,6 +19,7 @@ import { ErrorBanner } from '@src/components/ui/ErrorBanner/ErrorBanner';
 import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
 import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
 import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
+import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 
 import {
     summarizeWorkout,
@@ -32,6 +37,7 @@ const WorkoutSummaryScreen = () => {
     const { id } = useLocalSearchParams<{ id?: string }>();
     const router = useRouter();
     const { data: workout } = useWorkout(id);
+    const removeWorkout = useRemoveWorkout();
     const toggleFavoriteWorkout = useToggleFavoriteWorkout();
     const { theme } = useTheme();
     const st = useWorkoutSummaryStyles();
@@ -43,6 +49,7 @@ const WorkoutSummaryScreen = () => {
 
     const [exportError, setExportError] = useState<string | null>(null);
     const [exporting, setExporting] = useState(false);
+    const [confirmRemoveVisible, setConfirmRemoveVisible] = useState(false);
 
     if (!id || !workout) {
         return (
@@ -90,9 +97,40 @@ const WorkoutSummaryScreen = () => {
         setExporting(false);
     };
 
+    const openRemoveConfirm = () => {
+        setConfirmRemoveVisible(true);
+    };
+
+    const closeRemoveConfirm = () => {
+        setConfirmRemoveVisible(false);
+    };
+
+    const handleRemoveWorkout = () => {
+        removeWorkout.mutate(workout.id, {
+            onSuccess: () => {
+                setConfirmRemoveVisible(false);
+                router.back();
+            },
+        });
+    };
+
+    const topBarOptions = [
+        {
+            id: 'remove-workout',
+            label: t('common.actions.remove'),
+            icon: 'trash',
+            destructive: true,
+            onPress: openRemoveConfirm,
+        },
+    ] as const;
+
     return (
         <>
-            <MainContainer title={workout.name} gap={0}>
+            <MainContainer
+                title={workout.name}
+                gap={0}
+                topBarOptions={topBarOptions}
+            >
                 {/* Overview Section */}
                 <ScreenSection
                     title={t('workoutSummary.overview')}
@@ -282,6 +320,17 @@ const WorkoutSummaryScreen = () => {
                     }
                 />
             </FooterBar>
+
+            <ConfirmDialog
+                visible={confirmRemoveVisible}
+                title={t('workouts.confirmRemove.title')}
+                message={t('workouts.confirmRemove.message')}
+                confirmLabel={t('workouts.confirmRemove.confirm')}
+                cancelLabel={t('workouts.confirmRemove.cancel')}
+                destructive
+                onConfirm={handleRemoveWorkout}
+                onCancel={closeRemoveConfirm}
+            />
         </>
     );
 };

@@ -9,7 +9,9 @@ export const SLOT_W = 22;
 
 export const useStyles = createStyles((theme) =>
     StyleSheet.create({
-        root: { backgroundColor: theme.palette.accent.primary },
+        root: {
+            backgroundColor: theme.palette.accent.primary,
+        },
 
         bar: {
             backgroundColor: theme.palette.background.primary,
@@ -54,13 +56,15 @@ export const useStyles = createStyles((theme) =>
         },
 
         leftAction: {
+            left: 0,
             paddingHorizontal: 20,
             alignItems: 'flex-start',
         },
 
         rightAction: {
+            right: 0,
             paddingHorizontal: 20,
             alignItems: 'flex-end',
         },
-    })
+    }),
 );

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
 import { StatusBar, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -10,27 +10,8 @@ import { AppIcon } from '@src/components/ui/Icon/AppIcon';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { PILL_H, useStyles } from './TopBar.styles';
 import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
-
-type Props = {
-    title?: string;
-    right?: React.ReactNode;
-    forceBack?: boolean;
-};
-
-type TopPillPathParams = {
-    h: number;
-
-    // independent (text container width)
-    middleW: number;
-
-    // proportional to height (side curvature zone)
-    // if omitted, defaults to 2*h (matches your 80 when h=40)
-    sideW?: number;
-
-    // curve ratios inside sideW (from your template)
-    cpTopRatio?: number; // 44/80
-    cpBottomRatio?: number; // 41/80
-};
+import { TopBarOptionsMenu } from './TopBarOptionsMenu/TopBarOptionsMenu';
+import type { TopBarProps, TopPillPathParams } from './TopBar.interfaces';
 
 export const buildTopPillPath = ({
     h,
@@ -68,21 +49,29 @@ export const buildTopPillPath = ({
     ].join(' ');
 };
 
-export const TopBar = ({ title, right, forceBack = false }: Props) => {
+export const TopBar = ({
+    title,
+    leftMode = 'auto',
+    options = [],
+}: TopBarProps) => {
     const nav = useNavigation();
     const router = useRouter();
     const segments = useSegments();
     const { theme, themeName } = useTheme();
     const st = useStyles();
+    const optionsAnchorRef = useRef<View | null>(null);
 
     const isInDrawer = segments[0] === '(drawer)';
-    const canGoBack =
-        forceBack || (typeof nav.canGoBack === 'function' && nav.canGoBack());
+    const canGoBack = typeof nav.canGoBack === 'function' && nav.canGoBack();
 
-    const showHamburger = isInDrawer;
-    const showBack = !isInDrawer && canGoBack;
+    const showHamburger =
+        leftMode === 'drawer' || (leftMode === 'auto' && isInDrawer);
+    const showBack =
+        leftMode === 'back' ||
+        (leftMode === 'auto' && !isInDrawer && canGoBack);
 
     const [centerW, setCenterW] = useState(0);
+    const [optionsVisible, setOptionsVisible] = useState(false);
 
     const onCenterLayout = (e: LayoutChangeEvent) => {
         const w = Math.floor(e.nativeEvent.layout.width);
@@ -111,9 +100,18 @@ export const TopBar = ({ title, right, forceBack = false }: Props) => {
         nav.dispatch(DrawerActions.openDrawer());
     };
 
+    const openOptions = () => {
+        setOptionsVisible(true);
+    };
+
+    const closeOptions = () => {
+        setOptionsVisible(false);
+    };
+
     const iconColor = theme.palette.text.primary;
     const barStyle = themeName === 'dark' ? 'light-content' : 'dark-content';
     const titleMaxWidth = Math.max(0, centerW - Math.round(PILL_H * 3));
+    const hasOptions = options.length > 0;
 
     return (
         <View style={[st.root, { paddingTop: theme.insets.top }]}>
@@ -166,13 +164,24 @@ export const TopBar = ({ title, right, forceBack = false }: Props) => {
                     </GuardedPressable>
                 ) : null}
 
-                <View
-                    style={[st.action, st.rightAction]}
-                    pointerEvents="box-none"
-                >
-                    {right ?? null}
-                </View>
+                {hasOptions ? (
+                    <GuardedPressable
+                        ref={optionsAnchorRef}
+                        collapsable={false}
+                        onPress={openOptions}
+                        style={[st.action, st.rightAction]}
+                    >
+                        <AppIcon id="options" size={22} color={iconColor} />
+                    </GuardedPressable>
+                ) : null}
             </View>
+
+            <TopBarOptionsMenu
+                visible={optionsVisible}
+                anchorRef={optionsAnchorRef}
+                options={options}
+                onClose={closeOptions}
+            />
         </View>
     );
 };

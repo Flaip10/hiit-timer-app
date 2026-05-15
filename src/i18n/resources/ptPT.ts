@@ -82,6 +82,13 @@ export const ptPT: I18nResource = {
             openWorkout: 'Abrir treino',
             saveWorkout: 'Guardar treino',
             runAgain: 'Repetir treino',
+            delete: 'Eliminar',
+        },
+        deleteConfirm: {
+            title: 'Eliminar sessão',
+            message: 'Esta sessão de treino será eliminada permanentemente.',
+            confirm: 'Eliminar',
+            cancel: 'Cancelar',
         },
         hints: {
             noSavedWorkout:

@@ -10,7 +10,7 @@ export const useModalStyles = createStyles(
     (theme: AppTheme, { solidBackground = false }: ModalStyleProps) =>
         StyleSheet.create({
             backdrop: {
-                ...StyleSheet.absoluteFillObject,
+                ...StyleSheet.absoluteFill,
                 backgroundColor: solidBackground
                     ? theme.palette.background.primary
                     : theme.palette.overlay.scrim,
@@ -22,5 +22,5 @@ export const useModalStyles = createStyles(
                 flex: 1,
                 justifyContent: 'center',
             },
-        })
+        }),
 );

@@ -119,6 +119,16 @@ const ICON_MAP = {
         name: 'menu',
         defaultSize: 22,
     },
+    options: {
+        lib: 'ion',
+        name: 'ellipsis-vertical',
+        defaultSize: 22,
+    },
+    trash: {
+        lib: 'ion',
+        name: 'trash-outline',
+        defaultSize: 18,
+    },
     star: {
         lib: 'ion',
         name: 'star',
