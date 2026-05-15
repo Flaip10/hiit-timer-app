@@ -30,6 +30,7 @@ const RootLayout = () => {
     const [fontsLoaded] = useAppFonts();
     const [isI18nReady, setIsI18nReady] = useState(false);
     const [isDatabaseReady, setIsDatabaseReady] = useState(false);
+    const [isDatabaseInitializing, setIsDatabaseInitializing] = useState(false);
     const [databaseError, setDatabaseError] = useState<unknown | null>(null);
     const [databaseBootstrapAttempt, setDatabaseBootstrapAttempt] = useState(0);
     const isBootstrapReady = fontsLoaded && isI18nReady && isDatabaseReady;
@@ -48,15 +49,19 @@ const RootLayout = () => {
 
     useEffect(() => {
         setIsDatabaseReady(false);
-        setDatabaseError(null);
+        setIsDatabaseInitializing(true);
 
         initializeDatabase()
             .then(() => {
                 setIsDatabaseReady(true);
+                setDatabaseError(null);
             })
             .catch((error: unknown) => {
                 console.error('database init failed', error);
                 setDatabaseError(error);
+            })
+            .finally(() => {
+                setIsDatabaseInitializing(false);
             });
     }, [databaseBootstrapAttempt]);
 
@@ -93,6 +98,7 @@ const RootLayout = () => {
             <ThemeProvider>
                 <SafeAreaProvider>
                     <DatabaseBootstrapErrorScreen
+                        isRetrying={isDatabaseInitializing}
                         onRetry={retryDatabaseBootstrap}
                     />
                 </SafeAreaProvider>

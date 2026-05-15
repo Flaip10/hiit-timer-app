@@ -1,18 +1,19 @@
-import { StyleSheet } from 'react-native';
+import { createStyles } from '@src/theme/createStyles';
 
-export const st = StyleSheet.create({
+export const useStyles = createStyles((theme) => ({
     button: {
-        marginTop: 20,
+        marginTop: theme.layout.mainContainer.gap,
         minWidth: 160,
     },
     container: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 16,
+        paddingHorizontal: theme.layout.screen.paddingHorizontal,
+        backgroundColor: theme.palette.background.primary,
     },
     description: {
-        marginTop: 12,
+        marginTop: theme.layout.listItem.gap,
         maxWidth: 320,
     },
-});
+}));

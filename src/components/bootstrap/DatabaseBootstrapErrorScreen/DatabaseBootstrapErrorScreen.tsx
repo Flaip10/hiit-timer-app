@@ -4,16 +4,19 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@src/components/ui/Button/Button';
 import { AppText } from '@src/components/ui/Typography/AppText';
 
-import { st } from './styles';
+import { useStyles } from './styles';
 
 interface DatabaseBootstrapErrorScreenProps {
+    isRetrying: boolean;
     onRetry: () => void;
 }
 
 export const DatabaseBootstrapErrorScreen = ({
+    isRetrying,
     onRetry,
 }: DatabaseBootstrapErrorScreenProps) => {
     const { t } = useTranslation();
+    const st = useStyles();
 
     return (
         <View style={st.container}>
@@ -30,6 +33,7 @@ export const DatabaseBootstrapErrorScreen = ({
             </AppText>
             <Button
                 title={t('bootstrap.databaseError.retry')}
+                loading={isRetrying}
                 onPress={onRetry}
                 variant="primary"
                 style={st.button}
