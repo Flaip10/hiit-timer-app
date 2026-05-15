@@ -10,6 +10,7 @@ import { initializeI18n } from '@src/i18n';
 import { initializeDatabase } from '@src/db';
 import { AppQueryProvider } from '@src/data/QueryProvider';
 import { sqliteDb } from '@src/db/client';
+import { DatabaseBootstrapErrorScreen } from '@src/components/bootstrap/DatabaseBootstrapErrorScreen/DatabaseBootstrapErrorScreen';
 
 const SPLASH_MIN_DURATION_MS = 1000;
 const splashStartedAtMs = Date.now();
@@ -30,10 +31,10 @@ const RootLayout = () => {
     const [isI18nReady, setIsI18nReady] = useState(false);
     const [isDatabaseReady, setIsDatabaseReady] = useState(false);
     const [databaseError, setDatabaseError] = useState<unknown | null>(null);
-    const isDatabaseBootstrapComplete =
-        isDatabaseReady || databaseError != null;
-    const isBootstrapReady =
-        fontsLoaded && isI18nReady && isDatabaseBootstrapComplete;
+    const [databaseBootstrapAttempt, setDatabaseBootstrapAttempt] = useState(0);
+    const isBootstrapReady = fontsLoaded && isI18nReady && isDatabaseReady;
+    const shouldShowDatabaseBootstrapError =
+        fontsLoaded && isI18nReady && databaseError != null;
 
     useEffect(() => {
         initializeI18n()
@@ -46,6 +47,9 @@ const RootLayout = () => {
     }, []);
 
     useEffect(() => {
+        setIsDatabaseReady(false);
+        setDatabaseError(null);
+
         initializeDatabase()
             .then(() => {
                 setIsDatabaseReady(true);
@@ -54,10 +58,10 @@ const RootLayout = () => {
                 console.error('database init failed', error);
                 setDatabaseError(error);
             });
-    }, []);
+    }, [databaseBootstrapAttempt]);
 
     useEffect(() => {
-        if (isBootstrapReady) {
+        if (isBootstrapReady || shouldShowDatabaseBootstrapError) {
             const hideSplash = async () => {
                 const elapsedMs = Date.now() - splashStartedAtMs;
                 const remainingMs = Math.max(
@@ -78,7 +82,23 @@ const RootLayout = () => {
                 console.error('splash hide failed', error);
             });
         }
-    }, [isBootstrapReady]);
+    }, [isBootstrapReady, shouldShowDatabaseBootstrapError]);
+
+    const retryDatabaseBootstrap = () => {
+        setDatabaseBootstrapAttempt((attempt) => attempt + 1);
+    };
+
+    if (shouldShowDatabaseBootstrapError) {
+        return (
+            <ThemeProvider>
+                <SafeAreaProvider>
+                    <DatabaseBootstrapErrorScreen
+                        onRetry={retryDatabaseBootstrap}
+                    />
+                </SafeAreaProvider>
+            </ThemeProvider>
+        );
+    }
 
     if (!isBootstrapReady) return null;
 

@@ -33,6 +33,13 @@ export interface I18nResource {
         settings: string;
         quickAccess: string;
     };
+    bootstrap: {
+        databaseError: {
+            title: string;
+            description: string;
+            retry: string;
+        };
+    };
     home: {
         title: string;
         welcome: string;
