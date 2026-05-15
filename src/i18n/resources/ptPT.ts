@@ -35,6 +35,14 @@ export const ptPT: I18nResource = {
         settings: 'Definições',
         quickAccess: 'Acesso rápido',
     },
+    bootstrap: {
+        databaseError: {
+            title: 'Algo correu mal',
+            description:
+                'Arc Timer não conseguiu preparar os teus dados. Reinicia a app ou tenta novamente.',
+            retry: 'Tentar novamente',
+        },
+    },
     home: {
         title: 'Início',
         welcome: 'Bem-vindo',

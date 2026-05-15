@@ -6,8 +6,8 @@ import { AppText } from '@src/components/ui/Typography/AppText';
 import { HomeActionTile } from './components/HomeActionTile/HomeActionTile';
 import { useStyles } from './HomeScreen.styles';
 import { useTheme } from '@src/theme/ThemeProvider';
-import { useWorkouts } from '@src/state/useWorkouts';
-import { useRecentSessions } from '@src/state/stores/useWorkoutHistory';
+import { useWorkoutDraftStore } from '@src/state/stores/useWorkoutDraftStore';
+import { useRecentWorkoutSessions } from '@src/data/workoutSessions';
 import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
 import SessionListItem from '../HistoryScreen/components/SessionListitem/SessionListItem';
 import { AppLogo } from '@src/components/ui/AppLogo/AppLogo';
@@ -25,7 +25,7 @@ const HomeScreen = () => {
         isGestureBackDisabled: true,
     });
 
-    const recent = useRecentSessions(5);
+    const { data: recent = [] } = useRecentWorkoutSessions(5);
 
     const onOpenSession = (sessionId: string) => {
         router.push(`/history/${sessionId}`);
@@ -62,9 +62,10 @@ const HomeScreen = () => {
                     icon="play"
                     variant="primary"
                     onPress={() => {
-                        useWorkouts.getState().startDraftQuick();
+                        useWorkoutDraftStore.getState().startDraftQuick();
 
-                        const b0 = useWorkouts.getState().draft?.blocks[0];
+                        const b0 =
+                            useWorkoutDraftStore.getState().draft?.blocks[0];
                         if (!b0) return;
 
                         router.push(

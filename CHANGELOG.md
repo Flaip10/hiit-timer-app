@@ -6,6 +6,20 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Add SQLite persistence for workouts and workout sessions using Drizzle and Expo SQLite
+- Add one-time migration from the previous AsyncStorage workout and history stores
+- Add workout version tracking so historical sessions keep stable workout snapshots after edits or deletion
+- Add React Query data hooks for workout and session reads, mutations and cache invalidation
+- Add Jest setup, repository integration tests and mapper unit tests for the SQLite data layer
+
+### Changed
+
+- Replace persisted workout and history Zustand stores with repository-backed data access and a draft-only workout store
+- Replace app JSON configuration with variant-aware Expo config and guarded native build scripts
+- Replace custom ID generation with `nanoid`
+
 ## [v1.0.1] - 2026-05-08
 
 ### Fixed

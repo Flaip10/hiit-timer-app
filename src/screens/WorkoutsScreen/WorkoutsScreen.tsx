@@ -3,7 +3,12 @@ import { FlatList, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
-import { useAllWorkouts, useWorkouts } from '@state/useWorkouts';
+import { useWorkoutDraftStore } from '@src/state/stores/useWorkoutDraftStore';
+import {
+    useRemoveWorkout,
+    useToggleFavoriteWorkout,
+    useWorkouts,
+} from '@src/data/workouts';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 import { WorkoutItem } from '@components/workouts/WorkoutItem';
 import { importWorkoutFromFile } from '@src/core/importWorkout/importWorkout';
@@ -54,8 +59,12 @@ const EmptyWorkouts = ({ onPressButton }: { onPressButton: () => void }) => {
 const WorkoutsScreen = () => {
     const { t } = useTranslation();
     const router = useRouter();
-    const list = useAllWorkouts();
-    const { remove, startDraftFromImported, toggleFavorite } = useWorkouts();
+    const { data: list = [] } = useWorkouts();
+    const removeWorkout = useRemoveWorkout();
+    const toggleFavoriteWorkout = useToggleFavoriteWorkout();
+    const startDraftFromImported = useWorkoutDraftStore(
+        (state) => state.startDraftFromImported
+    );
 
     const [search, setSearch] = useState('');
     const [toRemove, setToRemove] = useState<string | null>(null);
@@ -156,7 +165,9 @@ const WorkoutsScreen = () => {
                         item={item}
                         onPress={() => router.push(`/workouts/${item.id}`)}
                         onRemove={() => setToRemove(item.id)}
-                        onToggleFavorite={() => toggleFavorite(item.id)}
+                        onToggleFavorite={() =>
+                            toggleFavoriteWorkout.mutate(item)
+                        }
                     />
                 )}
                 ListEmptyComponent={
@@ -181,7 +192,7 @@ const WorkoutsScreen = () => {
                 cancelLabel={t('workouts.confirmRemove.cancel')}
                 destructive
                 onConfirm={() => {
-                    if (toRemove) remove(toRemove);
+                    if (toRemove) removeWorkout.mutate(toRemove);
                     setToRemove(null);
                 }}
                 onCancel={() => setToRemove(null)}

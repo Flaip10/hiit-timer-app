@@ -35,6 +35,14 @@ export const en: I18nResource = {
         settings: 'Settings',
         quickAccess: 'Quick access',
     },
+    bootstrap: {
+        databaseError: {
+            title: 'Something went wrong',
+            description:
+                'Arc Timer could not get your data ready. Restart your app or try again.',
+            retry: 'Try again',
+        },
+    },
     home: {
         title: 'Home',
         welcome: 'Welcome',

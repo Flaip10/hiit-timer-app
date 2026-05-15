@@ -3,7 +3,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import type { WorkoutBlock } from '@src/core/entities/entities';
 import { uid } from '@src/core/id';
-import { useWorkouts } from '@src/state/useWorkouts';
+import { useWorkoutDraftStore } from '@src/state/stores/useWorkoutDraftStore';
+import { useUpsertWorkout, useWorkout } from '@src/data/workouts';
 
 import { WorkoutBlockItem } from './components/WorkoutBlockItem/WorkoutBlockItem';
 import { Button } from '@src/components/ui/Button/Button';
@@ -45,15 +46,26 @@ const EditWorkoutScreen = () => {
     }>();
     const router = useRouter();
 
-    const draft = useWorkouts((state) => state.draft);
-    const startDraftNew = useWorkouts((state) => state.startDraftNew);
-    const startDraftFromExisting = useWorkouts(
-        (state) => state.startDraftFromExisting
+    const draft = useWorkoutDraftStore((state) => state.draft);
+    const sourceWorkoutVersionId = useWorkoutDraftStore(
+        (state) => state.sourceWorkoutVersionId,
     );
-    const updateDraftMeta = useWorkouts((state) => state.updateDraftMeta);
-    const setDraftBlocks = useWorkouts((state) => state.setDraftBlocks);
-    const commitDraft = useWorkouts((state) => state.commitDraft);
-    const clearDraft = useWorkouts((state) => state.clearDraft);
+    const startDraftNew = useWorkoutDraftStore((state) => state.startDraftNew);
+    const startDraftFromWorkout = useWorkoutDraftStore(
+        (state) => state.startDraftFromWorkout,
+    );
+    const updateDraftMeta = useWorkoutDraftStore(
+        (state) => state.updateDraftMeta,
+    );
+    const setDraftBlocks = useWorkoutDraftStore(
+        (state) => state.setDraftBlocks,
+    );
+    const buildWorkoutFromDraft = useWorkoutDraftStore(
+        (state) => state.buildWorkoutFromDraft,
+    );
+    const clearDraft = useWorkoutDraftStore((state) => state.clearDraft);
+    const { data: savedWorkout } = useWorkout(id);
+    const upsertWorkout = useUpsertWorkout();
 
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState<WorkoutEditError[]>([]);
@@ -65,17 +77,32 @@ const EditWorkoutScreen = () => {
     useEffect(() => {
         // If we are importing, DO NOT touch the draft.
         if (fromImport === '1') return;
+        if (draft) return;
 
         if (id) {
-            startDraftFromExisting(id);
+            if (savedWorkout) {
+                startDraftFromWorkout(savedWorkout);
+            }
+            return;
         } else {
             startDraftNew();
         }
+    }, [
+        draft,
+        id,
+        fromImport,
+        savedWorkout,
+        startDraftFromWorkout,
+        startDraftNew,
+    ]);
+
+    useEffect(() => {
+        if (fromImport === '1') return;
 
         return () => {
             clearDraft();
         };
-    }, [clearDraft, id, fromImport, startDraftFromExisting, startDraftNew]);
+    }, [clearDraft, fromImport]);
 
     const name = draft?.name ?? t('editWorkout.defaults.newWorkout');
     const blocks = draft?.blocks ?? [];
@@ -120,26 +147,28 @@ const EditWorkoutScreen = () => {
         return errs.length === 0;
     };
 
-    const isEditingExisting = !!id;
+    const isEditingSavedWorkout = !!id;
 
-    const onSave = () => {
+    const onSave = async () => {
         if (saving) return;
         if (!draft) return;
         if (!validate()) return;
 
         setSaving(true);
         try {
-            const idFromCommit = commitDraft();
+            const workout = buildWorkoutFromDraft();
+            if (!workout) return;
 
-            if (isEditingExisting) {
+            await upsertWorkout.mutateAsync({
+                workout,
+                sourceWorkoutVersionId: sourceWorkoutVersionId ?? undefined,
+            });
+            clearDraft();
+
+            if (isEditingSavedWorkout) {
                 router.back();
             } else {
-                if (idFromCommit) {
-                    router.replace(`/workouts/${idFromCommit}`);
-                } else {
-                    // Fallback – something went wrong, just go back.
-                    router.back();
-                }
+                router.replace(`/workouts/${workout.id}`);
             }
         } finally {
             setSaving(false);
@@ -155,7 +184,7 @@ const EditWorkoutScreen = () => {
         <>
             <MainContainer
                 title={
-                    isEditingExisting
+                    isEditingSavedWorkout
                         ? t('editWorkout.title.edit')
                         : t('editWorkout.title.create')
                 }
@@ -168,7 +197,7 @@ const EditWorkoutScreen = () => {
                         updateDraftMeta({ name: value });
                         // Clear only 'name' errors when user edits the name
                         setErrors((prev) =>
-                            prev.filter((e) => e.field !== 'name')
+                            prev.filter((e) => e.field !== 'name'),
                         );
                     }}
                     placeholder={t('editWorkout.fields.namePlaceholder')}
@@ -216,7 +245,7 @@ const EditWorkoutScreen = () => {
                 />
                 <Button
                     title={
-                        isEditingExisting
+                        isEditingSavedWorkout
                             ? t('editWorkout.actions.save')
                             : t('editWorkout.actions.create')
                     }

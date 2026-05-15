@@ -6,7 +6,10 @@ import { MainContainer } from '@src/components/layout/MainContainer/MainContaine
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { Button } from '@src/components/ui/Button/Button';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
-import { useWorkoutHistory } from '@src/state/stores/useWorkoutHistory';
+import {
+    useClearWorkoutSessions,
+    useWorkoutSessions,
+} from '@src/data/workoutSessions';
 import { useStyles } from './HistoryScreen.styles';
 import SessionListItem from './components/SessionListitem/SessionListItem';
 import { SearchField } from '@src/components/ui/SearchField/SearchField';
@@ -18,23 +21,20 @@ const HistoryScreen = () => {
     const st = useStyles();
 
     const [search, setSearch] = useState('');
-    const order = useWorkoutHistory((s) => s.order);
-    const sessions = useWorkoutHistory((s) => s.sessions);
-    const clearAll = useWorkoutHistory((s) => s.clearAll);
+    const { data: sessions = [] } = useWorkoutSessions();
+    const clearWorkoutSessions = useClearWorkoutSessions();
 
     const [confirmClear, setConfirmClear] = useState(false);
 
     const data = useMemo(() => {
         const searchTerm = search.trim().toLowerCase();
 
-        if (!searchTerm) return order.map((id) => sessions[id]).filter(Boolean);
-        return order
-            .map((id) => sessions[id])
-            .filter(Boolean)
+        if (!searchTerm) return sessions;
+        return sessions
             .filter((session) =>
                 session.workoutNameSnapshot?.toLowerCase().includes(searchTerm)
             );
-    }, [order, search, sessions]);
+    }, [search, sessions]);
 
     return (
         <MainContainer title={t('history.title')} scroll={false} noPadding>
@@ -86,7 +86,7 @@ const HistoryScreen = () => {
                 cancelLabel={t('history.clearConfirm.cancel')}
                 destructive
                 onConfirm={() => {
-                    clearAll();
+                    clearWorkoutSessions.mutate();
                     setConfirmClear(false);
                 }}
                 onCancel={() => setConfirmClear(false)}

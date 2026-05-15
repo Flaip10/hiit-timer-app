@@ -24,7 +24,7 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-const normalize = (scheme: ColorSchemeName): ThemeName =>
+const normalize = (scheme: ColorSchemeName | null | undefined): ThemeName =>
     scheme === 'dark' ? 'dark' : 'light';
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {

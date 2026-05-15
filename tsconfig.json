@@ -11,15 +11,16 @@
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
 
-        "baseUrl": ".",
         "paths": {
-            "@assets/*": ["assets/*"],
-            "@src/*": ["src/*"],
-            "@screens/*": ["src/screens/*"],
-            "@components/*": ["src/components/*"],
-            "@state/*": ["src/state/*"],
-            "@core/*": ["src/core/*"],
-            "@hooks/*": ["src/hooks/*"]
+            "*": ["./*"],
+            "@assets/*": ["./assets/*"],
+            "@src/*": ["./src/*"],
+            "@screens/*": ["./src/screens/*"],
+            "@components/*": ["./src/components/*"],
+            "@state/*": ["./src/state/*"],
+            "@core/*": ["./src/core/*"],
+            "@data/*": ["./src/data/*"],
+            "@hooks/*": ["./src/hooks/*"]
         },
         "jsx": "react-native",
         "noEmit": true
