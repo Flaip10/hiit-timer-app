@@ -52,7 +52,11 @@ export const WorkoutRunScreen = () => {
     const sourceWorkoutVersionId = useWorkoutDraftStore(
         (s) => s.sourceWorkoutVersionId,
     );
-    const addWorkoutSession = useAddWorkoutSession();
+    const {
+        isIdle: isSessionSaveIdle,
+        mutate: addWorkoutSession,
+        reset: resetSessionSave,
+    } = useAddWorkoutSession();
 
     const workout = mode === 'quick' ? draftWorkout : savedWorkout;
     const shouldAutoStart =
@@ -111,15 +115,14 @@ export const WorkoutRunScreen = () => {
     const MIN_SESSION_SEC = 0;
 
     const startedAtMsRef = useRef<number | null>(null);
-    const sessionSavedRef = useRef(false);
 
     useEffect(() => {
         startedAtMsRef.current = null;
-        sessionSavedRef.current = false;
-    }, [meta.runKey]);
+        resetSessionSave();
+    }, [meta.runKey, resetSessionSave]);
 
     useEffect(() => {
-        if (sessionSavedRef.current) return;
+        if (!isSessionSaveIdle) return;
 
         // first transition into running => stamp start
         if (running && startedAtMsRef.current == null) {
@@ -139,17 +142,16 @@ export const WorkoutRunScreen = () => {
         if (totalSec < MIN_SESSION_SEC) return;
         if (!workout) return;
 
-        addWorkoutSession.mutate({
+        addWorkoutSession({
             workout,
             sourceWorkoutVersionId: sourceWorkoutVersionId ?? undefined,
             startedAtMs,
             endedAtMs,
             stats: runStats,
         });
-
-        sessionSavedRef.current = true;
     }, [
         addWorkoutSession,
+        isSessionSaveIdle,
         running,
         isFinished,
         workout,
