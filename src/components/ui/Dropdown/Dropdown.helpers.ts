@@ -5,11 +5,11 @@ import type {
 
 export const resolveDropdownLayout = ({
     anchorLayout,
+    dropdownLayout,
     position,
-    windowWidth,
     matchAnchorWidth,
 }: ResolveDropdownLayoutArgs): DropdownResolvedLayout | null => {
-    if (!anchorLayout) return null;
+    if (!anchorLayout || !dropdownLayout) return null;
 
     const side = position?.side ?? 'bottom';
     const align = position?.align ?? 'start';
@@ -23,7 +23,8 @@ export const resolveDropdownLayout = ({
     }
 
     if (side === 'top') {
-        resolvedLayout.bottom = anchorLayout.y + offsetY;
+        resolvedLayout.top =
+            anchorLayout.y - dropdownLayout.height + offsetY;
     }
 
     if (side === 'bottom') {
@@ -31,7 +32,8 @@ export const resolveDropdownLayout = ({
     }
 
     if (side === 'left') {
-        resolvedLayout.right = windowWidth - anchorLayout.x + offsetX;
+        resolvedLayout.left =
+            anchorLayout.x - dropdownLayout.width + offsetX;
     }
 
     if (side === 'right') {
@@ -40,14 +42,19 @@ export const resolveDropdownLayout = ({
 
     if (side === 'top' || side === 'bottom') {
         if (align === 'end') {
-            resolvedLayout.right =
-                windowWidth - anchorLayout.x - anchorLayout.width - offsetX;
+            resolvedLayout.left =
+                anchorLayout.x +
+                anchorLayout.width -
+                dropdownLayout.width +
+                offsetX;
             return resolvedLayout;
         }
 
         if (align === 'center') {
             resolvedLayout.left =
-                anchorLayout.x + anchorLayout.width / 2 + offsetX;
+                anchorLayout.x +
+                (anchorLayout.width - dropdownLayout.width) / 2 +
+                offsetX;
             return resolvedLayout;
         }
 
@@ -56,12 +63,19 @@ export const resolveDropdownLayout = ({
     }
 
     if (align === 'end') {
-        resolvedLayout.bottom = anchorLayout.y + anchorLayout.height + offsetY;
+        resolvedLayout.top =
+            anchorLayout.y +
+            anchorLayout.height -
+            dropdownLayout.height +
+            offsetY;
         return resolvedLayout;
     }
 
     if (align === 'center') {
-        resolvedLayout.top = anchorLayout.y + anchorLayout.height / 2 + offsetY;
+        resolvedLayout.top =
+            anchorLayout.y +
+            (anchorLayout.height - dropdownLayout.height) / 2 +
+            offsetY;
         return resolvedLayout;
     }
 

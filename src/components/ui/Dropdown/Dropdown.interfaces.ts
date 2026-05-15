@@ -34,8 +34,8 @@ export interface DropdownPosition {
 
 export interface ResolveDropdownLayoutArgs {
     anchorLayout: DropdownLayout | null;
+    dropdownLayout: DropdownLayout | null;
     position?: DropdownPosition;
-    windowWidth: number;
     matchAnchorWidth: boolean;
 }
 
@@ -43,7 +43,7 @@ export interface DropdownProps {
     visible: boolean;
     children: ReactNode;
     onClose: () => void;
-    anchorRef?: RefObject<View | null>;
+    anchorRef: RefObject<View | null>;
     position?: DropdownPosition;
     matchAnchorWidth?: boolean;
     dismissMode?: DropdownDismissMode;
