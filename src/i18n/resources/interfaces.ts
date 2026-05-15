@@ -79,6 +79,13 @@ export interface I18nResource {
             openWorkout: string;
             saveWorkout: string;
             runAgain: string;
+            delete: string;
+        };
+        deleteConfirm: {
+            title: string;
+            message: string;
+            confirm: string;
+            cancel: string;
         };
         hints: {
             noSavedWorkout: string;
