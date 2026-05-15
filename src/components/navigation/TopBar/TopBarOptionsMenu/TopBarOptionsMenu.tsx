@@ -30,6 +30,7 @@ export const TopBarOptionsMenu = ({
             position={{
                 side: 'bottom',
                 align: 'end',
+                offset: { x: -theme.layout.screen.padding },
             }}
             onClose={onClose}
             surfaceStyle={st.surface}
@@ -53,12 +54,12 @@ export const TopBarOptionsMenu = ({
                         {option.icon ? (
                             <AppIcon
                                 id={option.icon}
-                                size={18}
+                                size={20}
                                 color={iconColor}
                             />
                         ) : null}
                         <AppText
-                            variant="bodySmall"
+                            variant="body"
                             numberOfLines={1}
                             ellipsizeMode="tail"
                             style={[

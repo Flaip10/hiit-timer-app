@@ -6,17 +6,19 @@ import type { AppTheme } from '@src/theme/theme';
 export const useTopBarOptionsMenuStyles = createStyles((theme: AppTheme) =>
     StyleSheet.create({
         surface: {
-            minWidth: 160,
+            minWidth: 170,
         },
         option: {
-            padding: 12,
+            padding: 13,
             flexDirection: 'row',
             alignItems: 'center',
             gap: 12,
             backgroundColor: theme.palette.background.card,
+            borderTopWidth: 1,
+            borderColor: theme.palette.border.subtle,
         },
         optionPressed: {
-            opacity: 0.85,
+            opacity: 0.5,
         },
         optionDisabled: {
             opacity: 0.5,
