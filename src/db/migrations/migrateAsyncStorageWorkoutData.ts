@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Workout } from '@src/core/entities/entities';
 import type { WorkoutSession } from '@src/core/entities/workoutSession.interfaces';
 
+import { db } from '../client';
 import { createWorkoutContentKey } from '../mappers/workoutContent';
 import { isRecord, isWorkout, isWorkoutSession } from '../mappers/jsonGuards';
 import {
@@ -10,6 +11,13 @@ import {
     workoutRepository,
 } from '../repositories/workoutRepository';
 import { workoutSessionRepository } from '../repositories/workoutSessionRepository';
+import {
+    workoutBlocksTable,
+    workoutExercisesTable,
+    workoutSessionsTable,
+    workoutVersionsTable,
+    workoutsTable,
+} from '../schema';
 
 const WORKOUTS_STORAGE_KEY = 'workouts-storage';
 const WORKOUT_HISTORY_STORAGE_KEY = 'workout-history-storage-v1';
@@ -98,6 +106,16 @@ const writeMigrationMarker = async (counts: MigrationCounts): Promise<void> => {
     );
 };
 
+const resetWorkoutTables = (): void => {
+    db.transaction((transaction) => {
+        transaction.delete(workoutSessionsTable).run();
+        transaction.delete(workoutExercisesTable).run();
+        transaction.delete(workoutBlocksTable).run();
+        transaction.delete(workoutsTable).run();
+        transaction.delete(workoutVersionsTable).run();
+    });
+};
+
 const resolveMigratedSessionWorkoutId = (args: {
     session: WorkoutSession;
     activeWorkoutIds: Set<string>;
@@ -154,6 +172,8 @@ export const migrateAsyncStorageWorkoutData =
 
         const persistedWorkouts = readPersistedWorkouts(workoutsRaw);
         const persistedHistory = readPersistedWorkoutHistory(historyRaw);
+
+        resetWorkoutTables();
 
         const workoutIds = Object.keys(persistedWorkouts);
         const sessionIds = Object.keys(persistedHistory);
