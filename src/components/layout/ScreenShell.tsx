@@ -2,6 +2,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native';
 import type { ReactNode } from 'react';
 import { useTheme } from '@src/theme/ThemeProvider';
+import { DropdownPortalProvider } from '@src/components/ui/Dropdown/DropdownPortal';
 
 type ScreenShellProps = {
     children: ReactNode;
@@ -19,7 +20,7 @@ export const ScreenShell = ({
             style={[st.container, { backgroundColor: theme.palette.background.primary }]}
             edges={hasTopBar ? ['left', 'right'] : ['top', 'left', 'right']}
         >
-            {children}
+            <DropdownPortalProvider>{children}</DropdownPortalProvider>
         </SafeAreaView>
     );
 };
