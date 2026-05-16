@@ -1,4 +1,28 @@
-import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import {
+    index,
+    integer,
+    sqliteTable,
+    text,
+    uniqueIndex,
+} from 'drizzle-orm/sqlite-core';
+
+export const exerciseDefinitionsTable = sqliteTable('exercise_definitions', {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    normalizedName: text('normalized_name').notNull(),
+    source: text('source', { enum: ['system', 'user'] }).notNull(),
+    availability: text('availability', {
+        enum: ['both', 'workout', 'gym'],
+    }).notNull().default('both'),
+    createdAtMs: integer('created_at_ms').notNull(),
+    updatedAtMs: integer('updated_at_ms').notNull(),
+}, (table) => [
+    uniqueIndex('exercise_definitions_normalized_name_unique_idx').on(
+        table.normalizedName
+    ),
+    index('exercise_definitions_source_idx').on(table.source),
+    index('exercise_definitions_availability_idx').on(table.availability),
+]);
 
 export const workoutsTable = sqliteTable('workouts', {
     id: text('id').primaryKey(),
@@ -43,6 +67,11 @@ export const workoutExercisesTable = sqliteTable('workout_exercises', {
         .references(() => workoutBlocksTable.id, { onDelete: 'cascade' }),
     sortIndex: integer('sort_index').notNull(),
     name: text('name'),
+    exerciseDefinitionId: text('exercise_definition_id').references(
+        () => exerciseDefinitionsTable.id,
+        { onDelete: 'set null' }
+    ),
+    exerciseNameSnapshot: text('exercise_name_snapshot'),
     mode: text('mode', { enum: ['time', 'reps'] }).notNull(),
     value: integer('value').notNull(),
     tempo: text('tempo'),
@@ -51,6 +80,7 @@ export const workoutExercisesTable = sqliteTable('workout_exercises', {
         table.blockId,
         table.sortIndex
     ),
+    index('workout_exercises_definition_idx').on(table.exerciseDefinitionId),
 ]);
 
 export const workoutSessionsTable = sqliteTable('workout_sessions', {
