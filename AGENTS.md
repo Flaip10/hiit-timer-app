@@ -47,14 +47,18 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 
 ---
 
-## 5) State Management (Zustand)
+## 5) State And Persistence
 
+- Durable workout/session persistence belongs in SQLite/Drizzle repositories under `src/db/`.
+- UI reads and writes for workouts/history should go through TanStack Query hooks under `src/data/`.
 - Zustand stores should:
     - Keep state minimal and derived values in selectors when possible.
     - Avoid sorting and heavy computation inside store mutations unless required.
 - Persisted stores:
     - Use `partialize` intentionally to avoid persisting transient state (e.g., drafts).
     - Keep migration/merge logic as simple as possible unless there is a proven need.
+- Workout draft and active run state should stay transient unless the product behavior explicitly changes.
+- Settings may remain persisted in AsyncStorage.
 
 ---
 
@@ -64,6 +68,9 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 - Update `src/db/schema.ts`, then use the project’s Drizzle migration generation command.
 - If generated SQL needs custom data migration logic, call it out explicitly and keep Drizzle metadata generator-owned.
 - Do not read generated migration SQL or snapshot files unless required for a specific migration/debugging task; they are large and waste context.
+- The legacy AsyncStorage workout/history migration is one-time and marker-based.
+- If the legacy migration marker is absent, migration may reset SQLite workout/session tables before replaying old data.
+- Reuse workout versions only when content matches and the version is unowned or belongs to the same workout.
 
 ---
 

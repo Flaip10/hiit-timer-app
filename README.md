@@ -9,6 +9,8 @@
   <img alt="React Native 0.81" src="https://img.shields.io/badge/React_Native-0.81-20232A?logo=react&logoColor=61DAFB" />
   <img alt="React 19" src="https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white" />
   <img alt="TypeScript 5.9" src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" />
+  <img alt="TanStack Query 5" src="https://img.shields.io/badge/TanStack_Query-5-FF4154" />
+  <img alt="Drizzle" src="https://img.shields.io/badge/Drizzle-SQLite-C5F74F" />
   <img alt="Zustand 5.0" src="https://img.shields.io/badge/Zustand-5.0-4B3621" />
   <img alt="i18next 25" src="https://img.shields.io/badge/i18next-25-26A69A" />
 </p>
@@ -30,7 +32,7 @@ ARC Timer is a React Native HIIT workout application built with Expo and Expo Ro
 - Create and edit workouts composed of blocks, sets, exercises, and rest periods
 - Start a quick workout flow without saving a workout first
 - Run workouts through a dedicated timer flow with audio cues and animated feedback
-- Persist workouts, settings, and session history locally with Zustand and AsyncStorage
+- Persist workouts and session history locally with SQLite, plus settings with Zustand and AsyncStorage
 - Mark workouts as favorites
 - Import and export workouts via `.arcw` files
 - Support English and Portuguese (`pt-PT`)
@@ -41,8 +43,9 @@ ARC Timer is a React Native HIIT workout application built with Expo and Expo Ro
 - **Application framework:** Expo, React Native, React 19
 - **Navigation:** Expo Router
 - **Language:** TypeScript
+- **Server-state/data cache:** TanStack Query
 - **State management:** Zustand
-- **Persistence:** AsyncStorage
+- **Persistence:** Expo SQLite / Drizzle, AsyncStorage for settings and migration markers
 - **Localization:** i18next, react-i18next
 - **Animation:** React Native Reanimated
 
@@ -55,10 +58,13 @@ ARC Timer is a React Native HIIT workout application built with Expo and Expo Ro
   Workout runs are converted into explicit execution steps before playback, keeping progression and phase transitions predictable.
 
 - **Local-first persistence**  
-  Workouts, ordering, favorites, settings, and session history are stored on-device with Zustand and AsyncStorage.
+  Workouts, versions, favorites, and session history are stored on-device with SQLite/Drizzle. Settings remain in AsyncStorage.
 
 - **Isolated draft flow**  
   Draft editing is kept separate from persisted workout data to isolate creation and edit flows from saved state.
+
+- **Immutable workout versions**
+  Completed sessions reference workout versions so old history stays readable after workouts are edited or deleted.
 
 - **Versioned `.arcw` format**  
   Import and export use a validated, versioned file contract for workout sharing.
@@ -75,10 +81,13 @@ ARC Timer is a React Native HIIT workout application built with Expo and Expo Ro
   - File-based routing keeps screen organization explicit and easy to inspect in a multi-flow mobile app.
 
 - **Zustand for focused client-side state**
-  - Zustand keeps state logic direct while supporting persisted stores and isolated editing flows.
+  - Zustand keeps transient state direct for drafts, active runs, and user preferences.
 
-- **AsyncStorage for persistence**
-  - AsyncStorage meets the app's local-first requirements without adding storage complexity.
+- **SQLite repositories for durable workout data**
+  - Drizzle-backed repositories keep workouts, immutable versions, and sessions local while preserving history across edits and deletes.
+
+- **TanStack Query for repository-backed UI data**
+  - Query hooks wrap local repositories and centralize invalidation after workout and session mutations.
 
 - **Separate timer planning and timer engine layers**
   - The run planner converts workouts into execution steps, while the timer engine handles progression and timing behavior.
@@ -112,6 +121,8 @@ app/                  Expo Router routes
 src/components/       Shared UI and reusable building blocks
 src/screens/          Screen-level implementations
 src/core/             Timer logic, entities, import/export, domain helpers
+src/data/             TanStack Query providers, keys, queries, and mutations
+src/db/               SQLite schema, Drizzle client, repositories, mappers, migrations
 src/state/            Zustand stores
 src/theme/            Theme, palette, typography, style helpers
 src/i18n/             Localization setup and translations
