@@ -11,16 +11,7 @@ interface PersistedWorkoutSession extends WorkoutSession {
     workoutVersionId: string;
 }
 
-export interface WorkoutSessionRow {
-    id: string;
-    startedAtMs: number;
-    endedAtMs: number;
-    workoutId: string | null;
-    workoutVersionId: string | null;
-    workoutNameSnapshot: string | null;
-    totalDurationSec: number | null;
-    statsJson: string | null;
-}
+export type WorkoutSessionRow = typeof workoutSessionsTable.$inferSelect;
 
 export const workoutSessionToDbRow = (
     session: PersistedWorkoutSession
@@ -51,12 +42,7 @@ const parseWorkoutSessionStats = (
 export const workoutSessionFromDbRow = (
     row: WorkoutSessionRow,
     workoutContent: Workout
-): WorkoutSession => {
-    if (row.workoutVersionId == null) {
-        throw new Error(`Missing workout version for session ${row.id}`);
-    }
-
-    return {
+): WorkoutSession => ({
         id: row.id,
         startedAtMs: row.startedAtMs,
         endedAtMs: row.endedAtMs,
@@ -66,18 +52,13 @@ export const workoutSessionFromDbRow = (
         workoutNameSnapshot: row.workoutNameSnapshot ?? undefined,
         totalDurationSec: row.totalDurationSec ?? undefined,
         stats: parseWorkoutSessionStats(row),
-    };
-};
+});
 
 export const workoutSessionsFromDbRows = (
     rows: WorkoutSessionRow[],
     workoutsByVersionId: Map<string, Workout>
 ): WorkoutSession[] =>
     rows.map((row) => {
-        if (row.workoutVersionId == null) {
-            throw new Error(`Missing workout version for session ${row.id}`);
-        }
-
         const workoutContent = workoutsByVersionId.get(row.workoutVersionId);
         if (!workoutContent) {
             throw new Error(`Missing workout content for session ${row.id}`);
