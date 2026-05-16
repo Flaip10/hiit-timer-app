@@ -1,50 +1,17 @@
-import type {
-    ExerciseMode,
-    Workout,
-    WorkoutBlock,
-} from '@src/core/entities/entities';
+import type { Workout, WorkoutBlock } from '@src/core/entities/entities';
 import { uid } from '@src/core/id';
 
 import type {
     workoutBlocksTable,
     workoutExercisesTable,
     workoutVersionsTable,
+    workoutsTable,
 } from '../schema';
 
-export interface WorkoutRow {
-    id: string;
-    currentVersionId: string;
-    createdAtMs: number;
-    isFavorite: boolean;
-    sortIndex: number;
-}
-
-export interface WorkoutVersionRow {
-    id: string;
-    workoutId: string | null;
-    name: string;
-    updatedAtMs: number;
-}
-
-export interface WorkoutBlockRow {
-    id: string;
-    workoutVersionId: string;
-    sortIndex: number;
-    title: string | null;
-    sets: number;
-    restBetweenSetsSec: number;
-    restBetweenExercisesSec: number;
-}
-
-export interface WorkoutExerciseRow {
-    id: string;
-    blockId: string;
-    sortIndex: number;
-    name: string | null;
-    mode: ExerciseMode;
-    value: number;
-    tempo: string | null;
-}
+export type WorkoutRow = typeof workoutsTable.$inferSelect;
+export type WorkoutVersionRow = typeof workoutVersionsTable.$inferSelect;
+export type WorkoutBlockRow = typeof workoutBlocksTable.$inferSelect;
+export type WorkoutExerciseRow = typeof workoutExercisesTable.$inferSelect;
 
 interface WorkoutVersionDbRows {
     version: typeof workoutVersionsTable.$inferInsert;
@@ -58,7 +25,7 @@ export interface WorkoutWithVersionRow {
 }
 
 const groupBlocksByVersionId = (
-    blocks: WorkoutBlockRow[]
+    blocks: WorkoutBlockRow[],
 ): Map<string, WorkoutBlockRow[]> => {
     const blocksByVersionId = new Map<string, WorkoutBlockRow[]>();
 
@@ -72,7 +39,7 @@ const groupBlocksByVersionId = (
 };
 
 export const groupExercisesByBlockId = (
-    exercises: WorkoutExerciseRow[]
+    exercises: WorkoutExerciseRow[],
 ): Map<string, WorkoutExerciseRow[]> => {
     const exercisesByBlockId = new Map<string, WorkoutExerciseRow[]>();
 
@@ -87,7 +54,7 @@ export const groupExercisesByBlockId = (
 
 const workoutBlocksFromDbRows = (
     blocks: WorkoutBlockRow[],
-    exercisesByBlockId: Map<string, WorkoutExerciseRow[]>
+    exercisesByBlockId: Map<string, WorkoutExerciseRow[]>,
 ): WorkoutBlock[] =>
     blocks
         .slice()
@@ -113,7 +80,7 @@ const workoutBlocksFromDbRows = (
 export const workoutToVersionDbRows = (
     workout: Workout,
     workoutVersionId: string,
-    workoutId: string | null
+    workoutId: string | null,
 ): WorkoutVersionDbRows => {
     const blockDbIdByWorkoutBlockId = new Map<string, string>();
 
@@ -135,7 +102,9 @@ export const workoutToVersionDbRows = (
     const exercises = workout.blocks.flatMap((block) => {
         const blockDbId = blockDbIdByWorkoutBlockId.get(block.id);
         if (!blockDbId) {
-            throw new Error(`Missing DB block ID for workout block ${block.id}`);
+            throw new Error(
+                `Missing DB block ID for workout block ${block.id}`,
+            );
         }
 
         return block.exercises.map((exercise, exerciseIndex) => ({
@@ -165,7 +134,7 @@ export const workoutFromDbRows = (
     version: WorkoutVersionRow,
     blocks: WorkoutBlockRow[],
     exercisesByBlockId: Map<string, WorkoutExerciseRow[]>,
-    args?: { workoutId?: string; isFavorite?: boolean }
+    args?: { workoutId?: string; isFavorite?: boolean },
 ): Workout => {
     const workoutBlocks = workoutBlocksFromDbRows(blocks, exercisesByBlockId);
 
@@ -181,7 +150,7 @@ export const workoutFromDbRows = (
 export const workoutsFromDbRows = (
     rows: WorkoutWithVersionRow[],
     blocks: WorkoutBlockRow[],
-    exercises: WorkoutExerciseRow[]
+    exercises: WorkoutExerciseRow[],
 ): Workout[] => {
     const blocksByVersionId = groupBlocksByVersionId(blocks);
     const exercisesByBlockId = groupExercisesByBlockId(exercises);
@@ -194,15 +163,15 @@ export const workoutsFromDbRows = (
             {
                 workoutId: row.workouts.id,
                 isFavorite: row.workouts.isFavorite,
-            }
-        )
+            },
+        ),
     );
 };
 
 export const workoutsByVersionIdFromDbRows = (
     versions: WorkoutVersionRow[],
     blocks: WorkoutBlockRow[],
-    exercises: WorkoutExerciseRow[]
+    exercises: WorkoutExerciseRow[],
 ): Map<string, Workout> => {
     const blocksByVersionId = groupBlocksByVersionId(blocks);
     const exercisesByBlockId = groupExercisesByBlockId(exercises);
@@ -213,8 +182,8 @@ export const workoutsByVersionIdFromDbRows = (
             workoutFromDbRows(
                 version,
                 blocksByVersionId.get(version.id) ?? [],
-                exercisesByBlockId
+                exercisesByBlockId,
             ),
-        ])
+        ]),
     );
 };
