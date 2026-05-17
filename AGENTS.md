@@ -9,6 +9,7 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 - Prefer **clarity and correctness** over speed.
 - Do **not** propose large refactors unless explicitly requested.
 - When code changes are needed, provide them **file-by-file**.
+- Do **not** create or update tests unless explicitly requested.
 - If **no changes** are needed for a file, reply exactly:
     - `no changes to the <file_name>`
 
