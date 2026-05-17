@@ -254,11 +254,6 @@ export const createWorkoutRepository = (
         },
 
         insertWorkout: (input: InsertWorkoutInput): void => {
-            const existingWorkout = repository.getWorkoutRow(input.id);
-            if (existingWorkout) {
-                throw new Error(`Workout ${input.id} already exists`);
-            }
-
             const currentVersion = repository.getWorkoutVersionRow(
                 input.currentVersionId,
             );
@@ -276,11 +271,6 @@ export const createWorkoutRepository = (
             versionId: string,
             workoutId: string | null,
         ): void => {
-            const existingVersion = repository.getWorkoutVersionRow(versionId);
-            if (existingVersion) {
-                throw new Error(`Workout version ${versionId} already exists`);
-            }
-
             const rows = workoutToVersionDbRows(
                 workoutSnapshot,
                 versionId,
