@@ -34,7 +34,6 @@ export interface Exercise {
     id: UUID;
     name?: string;
     exerciseDefinitionId?: UUID;
-    exerciseNameSnapshot?: string;
 
     mode: ExerciseMode;
 

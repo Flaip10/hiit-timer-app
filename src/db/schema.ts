@@ -71,7 +71,6 @@ export const workoutExercisesTable = sqliteTable('workout_exercises', {
         () => exerciseDefinitionsTable.id,
         { onDelete: 'set null' }
     ),
-    exerciseNameSnapshot: text('exercise_name_snapshot'),
     mode: text('mode', { enum: ['time', 'reps'] }).notNull(),
     value: integer('value').notNull(),
     tempo: text('tempo'),

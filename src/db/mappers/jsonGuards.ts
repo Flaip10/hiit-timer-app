@@ -33,6 +33,12 @@ export const isExercise = (value: unknown): value is Exercise => {
     if (!isExerciseMode(value.mode)) return false;
     if (!isNumber(value.value)) return false;
     if (value.name !== undefined && !isString(value.name)) return false;
+    if (
+        value.exerciseDefinitionId !== undefined &&
+        !isString(value.exerciseDefinitionId)
+    ) {
+        return false;
+    }
     if (value.tempo !== undefined && !isString(value.tempo)) return false;
 
     return true;
