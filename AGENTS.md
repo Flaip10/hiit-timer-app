@@ -51,7 +51,7 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 ## 5) State And Persistence
 
 - Durable workout/session persistence belongs in SQLite/Drizzle repositories under `src/db/`.
-- Repository factory public methods should be defined inline on the returned repository object, not as separate local functions that are later returned by shorthand. Keep separate local functions only for private helpers shared by multiple methods.
+- Repository factory public methods should be defined inline on the returned repository object, not as separate local functions that are later returned by shorthand. Keep separate local functions only for private helpers shared by multiple methods. Order repository methods by behavior: reads, existence checks, inserts/creates, updates/relinks/detaches, then deletes.
 - UI reads and writes for workouts/history should go through TanStack Query hooks under `src/data/`.
 - Zustand stores should:
     - Keep state minimal and derived values in selectors when possible.
