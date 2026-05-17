@@ -1,0 +1,215 @@
+import type {
+    ExerciseDefinition,
+    ExerciseDefinitionAvailability,
+} from '@src/core/entities/entities';
+import { normalizeExerciseDefinitionName } from '@src/core/exercises/normalizeExerciseDefinitionName';
+import { normalizeExerciseName } from '@src/core/exercises/normalizeExerciseName';
+import { systemExerciseDefinitions } from '@src/core/exercises/systemExerciseDefinitions';
+import { uid } from '@src/core/id';
+
+import type { ExerciseDefinitionRepository } from '../../repositories/exerciseDefinitions/exerciseDefinitionRepositoryFactory';
+import { systemClock, type Clock } from '../../repositories/repositoryClock';
+import type { WorkoutExerciseUsageRepository } from '../../repositories/workouts/workoutExerciseUsageRepositoryFactory';
+
+export interface CreateUserExerciseDefinitionInput {
+    availability?: ExerciseDefinitionAvailability;
+    name: string;
+}
+
+export type UpdateExerciseDefinitionMode = 'create-new' | 'relink-existing';
+
+export interface UpdateExerciseDefinitionInput {
+    availability?: ExerciseDefinitionAvailability;
+    id?: string;
+    name: string;
+}
+
+export interface ExerciseDefinitionService {
+    createUserExerciseDefinition: (
+        input: CreateUserExerciseDefinitionInput,
+    ) => ExerciseDefinition;
+    deleteUserExerciseDefinition: (id: string) => void;
+    findOrCreateUserExerciseDefinitionByName: (
+        name: string,
+    ) => ExerciseDefinition | null;
+    getAll: () => ExerciseDefinition[];
+    getById: (id: string) => ExerciseDefinition | null;
+    getByNormalizedName: (normalizedName: string) => ExerciseDefinition | null;
+    seedSystemDefinitions: () => void;
+    updateExerciseDefinition: (
+        input: UpdateExerciseDefinitionInput,
+        mode: UpdateExerciseDefinitionMode,
+    ) => ExerciseDefinition | null;
+}
+
+export interface CreateExerciseDefinitionServiceArgs {
+    clock?: Clock;
+    exerciseDefinitionRepository: ExerciseDefinitionRepository;
+    workoutExerciseUsageRepository: WorkoutExerciseUsageRepository;
+}
+
+export const createExerciseDefinitionService = ({
+    clock = systemClock,
+    exerciseDefinitionRepository,
+    workoutExerciseUsageRepository,
+}: CreateExerciseDefinitionServiceArgs): ExerciseDefinitionService => {
+    const getSystemDefinitionByNormalizedName = (
+        normalizedName: string,
+    ): ExerciseDefinition | null =>
+        systemExerciseDefinitions.find(
+            (definition) => definition.normalizedName === normalizedName,
+        ) ?? null;
+
+    const seedSystemDefinition = (definition: ExerciseDefinition): void => {
+        const nameInput = normalizeExerciseDefinitionName(definition.name);
+        const existing = exerciseDefinitionRepository.getByNormalizedName(
+            nameInput.normalizedName,
+        );
+
+        if (existing) return;
+
+        exerciseDefinitionRepository.create({
+            id: uid(),
+            name: nameInput.name,
+            normalizedName: nameInput.normalizedName,
+            source: 'system',
+            availability: definition.availability,
+            createdAtMs: definition.createdAtMs,
+            updatedAtMs: definition.updatedAtMs,
+        });
+    };
+
+    const service: ExerciseDefinitionService = {
+        createUserExerciseDefinition: ({
+            availability = 'both',
+            name,
+        }: CreateUserExerciseDefinitionInput): ExerciseDefinition => {
+            const nameInput = normalizeExerciseDefinitionName(name);
+            const nowMs = clock.now();
+
+            return exerciseDefinitionRepository.create({
+                id: uid(),
+                name: nameInput.name,
+                normalizedName: nameInput.normalizedName,
+                source: 'user',
+                availability,
+                createdAtMs: nowMs,
+                updatedAtMs: nowMs,
+            });
+        },
+
+        deleteUserExerciseDefinition: (id: string): void => {
+            const existing = exerciseDefinitionRepository.getById(id);
+            if (!existing) {
+                throw new Error(`Exercise definition ${id} was not found`);
+            }
+
+            if (existing.source === 'system') {
+                throw new Error(
+                    `Cannot delete system exercise definition ${id}`,
+                );
+            }
+
+            if (
+                workoutExerciseUsageRepository.hasExerciseDefinitionReferences(
+                    id,
+                )
+            ) {
+                throw new Error(
+                    `Cannot delete referenced exercise definition ${id}`,
+                );
+            }
+
+            exerciseDefinitionRepository.deleteById(id);
+        },
+
+        findOrCreateUserExerciseDefinitionByName: (
+            name: string,
+        ): ExerciseDefinition | null => {
+            const trimmedName = name.trim();
+            const normalizedName = normalizeExerciseName(trimmedName);
+            if (normalizedName.length === 0) return null;
+
+            return (
+                exerciseDefinitionRepository.getByNormalizedName(
+                    normalizedName,
+                ) ??
+                service.createUserExerciseDefinition({
+                    name: trimmedName,
+                })
+            );
+        },
+
+        getAll: (): ExerciseDefinition[] =>
+            exerciseDefinitionRepository.getAll(),
+
+        getById: (id: string): ExerciseDefinition | null =>
+            exerciseDefinitionRepository.getById(id),
+
+        getByNormalizedName: (
+            normalizedName: string,
+        ): ExerciseDefinition | null =>
+            exerciseDefinitionRepository.getByNormalizedName(normalizedName),
+
+        seedSystemDefinitions: (): void => {
+            systemExerciseDefinitions.forEach(seedSystemDefinition);
+        },
+
+        updateExerciseDefinition: (
+            {
+                availability,
+                id,
+                name,
+            }: UpdateExerciseDefinitionInput,
+            mode: UpdateExerciseDefinitionMode,
+        ): ExerciseDefinition | null => {
+            if (mode === 'create-new') {
+                return service.findOrCreateUserExerciseDefinitionByName(name);
+            }
+
+            if (!id) {
+                throw new Error('Exercise definition id is required');
+            }
+
+            const nameInput = normalizeExerciseDefinitionName(name);
+            const existing = exerciseDefinitionRepository.getById(id);
+            if (!existing) {
+                throw new Error(`Exercise definition ${id} was not found`);
+            }
+
+            if (existing.source === 'user') {
+                return exerciseDefinitionRepository.update({
+                    id: existing.id,
+                    name: nameInput.name,
+                    normalizedName: nameInput.normalizedName,
+                    availability,
+                    updatedAtMs: clock.now(),
+                });
+            }
+
+            if (existing.normalizedName === nameInput.normalizedName) {
+                return existing;
+            }
+
+            const updated = exerciseDefinitionRepository.update({
+                id: existing.id,
+                name: nameInput.name,
+                normalizedName: nameInput.normalizedName,
+                source: 'user',
+                availability,
+                updatedAtMs: clock.now(),
+            });
+            const oldSystemDefinition = getSystemDefinitionByNormalizedName(
+                existing.normalizedName,
+            );
+
+            if (oldSystemDefinition) {
+                seedSystemDefinition(oldSystemDefinition);
+            }
+
+            return updated;
+        },
+    };
+
+    return service;
+};
