@@ -6,188 +6,102 @@ import { uid } from '@src/core/id';
 
 import {
     workoutBlocksTable,
+    exerciseDefinitionsTable,
     workoutExercisesTable,
-    workoutSessionsTable,
     workoutVersionsTable,
     workoutsTable,
-} from '../schema';
-import type * as schema from '../schema';
-import { hasSameWorkoutContent } from '../mappers/workoutContent';
+} from '../../schema';
+import type * as schema from '../../schema';
 import {
     groupExercisesByBlockId,
     workoutFromDbRows,
     workoutToVersionDbRows,
     workoutsFromDbRows,
     type WorkoutExerciseRow,
-} from '../mappers/workoutMapper';
+} from '../../mappers/workouts/workoutMapper';
 
-export interface Clock {
-    now: () => number;
+export type WorkoutRow = typeof workoutsTable.$inferSelect;
+export type WorkoutVersionRow = typeof workoutVersionsTable.$inferSelect;
+
+export type InsertWorkoutInput = typeof workoutsTable.$inferInsert;
+
+export interface UpdateWorkoutInput {
+    currentVersionId: string;
+    id: string;
+    isFavorite: boolean;
+    sortIndex: number;
+}
+
+export interface RelinkWorkoutVersionInput {
+    workoutId: string;
+    workoutVersionId: string;
 }
 
 export interface WorkoutRepository {
     getAll: () => Workout[];
     getById: (id: string) => Workout | null;
     getCurrentVersionId: (id: string) => string | null;
-    remove: (id: string) => void;
+    getWorkoutByVersionId: (versionId: string) => Workout | null;
+    getWorkoutRow: (id: string) => WorkoutRow | null;
+    getWorkoutVersionRow: (versionId: string) => WorkoutVersionRow | null;
+    hasWorkoutForVersion: (versionId: string) => boolean;
     readExistingIds: (ids: string[]) => Set<string>;
-    relinkSessionsForVersion: (args: {
-        workoutId: string;
-        workoutVersionId: string;
-    }) => void;
-    upsert: (workout: Workout, sortIndex: number) => void;
-    upsertRestoredWorkout: (args: {
-        workout: Workout;
-        sortIndex: number;
-        sourceWorkoutVersionId: string;
-    }) => void;
-}
-
-export interface WorkoutRepositoryApi {
-    createWorkoutVersion: (
-        workout: Workout,
-        workoutId: string | null,
-    ) => string;
-    deleteWorkoutVersionIfOrphan: (versionId: string) => void;
-    getWorkoutByVersionId: (
-        versionId: string,
-        args?: { workoutId?: string; isFavorite?: boolean },
-    ) => Workout | null;
+    insertWorkout: (input: InsertWorkoutInput) => void;
     insertWorkoutVersion: (
-        workout: Workout,
+        workoutSnapshot: Workout,
         versionId: string,
         workoutId: string | null,
     ) => void;
-    workoutRepository: WorkoutRepository;
+    createWorkoutVersion: (
+        workoutSnapshot: Workout,
+        workoutId: string | null,
+    ) => string;
+    updateWorkout: (input: UpdateWorkoutInput) => void;
+    relinkWorkoutVersion: (args: RelinkWorkoutVersionInput) => void;
+    deleteWorkout: (id: string) => void;
+    deleteWorkoutVersion: (versionId: string) => void;
 }
 
 export type RepositoryDb = BaseSQLiteDatabase<'sync', unknown, typeof schema>;
 
 export interface CreateWorkoutRepositoryArgs {
-    clock?: Clock;
     db: RepositoryDb;
 }
 
-const systemClock: Clock = {
-    now: () => Date.now(),
-};
-
 export const createWorkoutRepository = (
     factoryArgs: CreateWorkoutRepositoryArgs,
-): WorkoutRepositoryApi => {
+): WorkoutRepository => {
     const repositoryDb = factoryArgs.db;
-    const clock = factoryArgs.clock ?? systemClock;
 
     const getExercisesForBlocks = (blockIds: string[]): WorkoutExerciseRow[] =>
         blockIds.length > 0
             ? repositoryDb
-                  .select()
+                  .select({
+                      id: workoutExercisesTable.id,
+                      blockId: workoutExercisesTable.blockId,
+                      sortIndex: workoutExercisesTable.sortIndex,
+                      name: workoutExercisesTable.name,
+                      exerciseDefinitionId:
+                          workoutExercisesTable.exerciseDefinitionId,
+                      exerciseDefinitionName: exerciseDefinitionsTable.name,
+                      mode: workoutExercisesTable.mode,
+                      value: workoutExercisesTable.value,
+                      tempo: workoutExercisesTable.tempo,
+                  })
                   .from(workoutExercisesTable)
+                  .leftJoin(
+                      exerciseDefinitionsTable,
+                      eq(
+                          workoutExercisesTable.exerciseDefinitionId,
+                          exerciseDefinitionsTable.id,
+                      ),
+                  )
                   .where(inArray(workoutExercisesTable.blockId, blockIds))
                   .orderBy(asc(workoutExercisesTable.sortIndex))
                   .all()
             : [];
 
-    const insertWorkoutVersion = (
-        workout: Workout,
-        versionId: string,
-        workoutId: string | null,
-    ): void => {
-        const rows = workoutToVersionDbRows(workout, versionId, workoutId);
-
-        repositoryDb.insert(workoutVersionsTable).values(rows.version).run();
-
-        if (rows.blocks.length > 0) {
-            repositoryDb.insert(workoutBlocksTable).values(rows.blocks).run();
-        }
-
-        if (rows.exercises.length > 0) {
-            repositoryDb
-                .insert(workoutExercisesTable)
-                .values(rows.exercises)
-                .run();
-        }
-    };
-
-    const deleteWorkoutVersion = (versionId: string): void => {
-        const blocks = repositoryDb
-            .select()
-            .from(workoutBlocksTable)
-            .where(eq(workoutBlocksTable.workoutVersionId, versionId))
-            .all();
-
-        const blockIds = blocks.map((block) => block.id);
-        if (blockIds.length > 0) {
-            repositoryDb
-                .delete(workoutExercisesTable)
-                .where(inArray(workoutExercisesTable.blockId, blockIds))
-                .run();
-        }
-
-        repositoryDb
-            .delete(workoutBlocksTable)
-            .where(eq(workoutBlocksTable.workoutVersionId, versionId))
-            .run();
-        repositoryDb
-            .delete(workoutVersionsTable)
-            .where(eq(workoutVersionsTable.id, versionId))
-            .run();
-    };
-
-    const deleteWorkoutVersionIfOrphan = (versionId: string): void => {
-        const activeWorkout = repositoryDb
-            .select({ id: workoutsTable.id })
-            .from(workoutsTable)
-            .where(eq(workoutsTable.currentVersionId, versionId))
-            .get();
-        if (activeWorkout) return;
-
-        const session = repositoryDb
-            .select({ id: workoutSessionsTable.id })
-            .from(workoutSessionsTable)
-            .where(eq(workoutSessionsTable.workoutVersionId, versionId))
-            .get();
-        if (session) return;
-
-        deleteWorkoutVersion(versionId);
-    };
-
-    const getWorkoutByVersionId = (
-        versionId: string,
-        options?: { workoutId?: string; isFavorite?: boolean },
-    ): Workout | null => {
-        const version = repositoryDb
-            .select()
-            .from(workoutVersionsTable)
-            .where(eq(workoutVersionsTable.id, versionId))
-            .get();
-        if (!version) return null;
-
-        const blocks = repositoryDb
-            .select()
-            .from(workoutBlocksTable)
-            .where(eq(workoutBlocksTable.workoutVersionId, versionId))
-            .orderBy(asc(workoutBlocksTable.sortIndex))
-            .all();
-
-        const exercises = getExercisesForBlocks(
-            blocks.map((block) => block.id),
-        );
-        const exercisesByBlockId = groupExercisesByBlockId(exercises);
-
-        return workoutFromDbRows(version, blocks, exercisesByBlockId, options);
-    };
-
-    const createWorkoutVersion = (
-        workout: Workout,
-        workoutId: string | null,
-    ): string => {
-        const versionId = uid();
-        insertWorkoutVersion(workout, versionId, workoutId);
-        return versionId;
-    };
-
-    const workoutRepository: WorkoutRepository = {
+    const repository: WorkoutRepository = {
         getAll: (): Workout[] => {
             const rows = repositoryDb
                 .select()
@@ -272,33 +186,59 @@ export const createWorkoutRepository = (
             return workout?.currentVersionId ?? null;
         },
 
-        remove: (id: string): void => {
-            const workout = repositoryDb
-                .select({ currentVersionId: workoutsTable.currentVersionId })
+        getWorkoutByVersionId: (versionId: string): Workout | null => {
+            const version = repositoryDb
+                .select()
+                .from(workoutVersionsTable)
+                .where(eq(workoutVersionsTable.id, versionId))
+                .get();
+            if (!version) return null;
+
+            const blocks = repositoryDb
+                .select()
+                .from(workoutBlocksTable)
+                .where(eq(workoutBlocksTable.workoutVersionId, versionId))
+                .orderBy(asc(workoutBlocksTable.sortIndex))
+                .all();
+
+            const exercises = getExercisesForBlocks(
+                blocks.map((block) => block.id),
+            );
+            const exercisesByBlockId = groupExercisesByBlockId(exercises);
+
+            return workoutFromDbRows(version, blocks, exercisesByBlockId);
+        },
+
+        getWorkoutRow: (id: string): WorkoutRow | null => {
+            const row = repositoryDb
+                .select()
                 .from(workoutsTable)
                 .where(eq(workoutsTable.id, id))
                 .get();
 
-            repositoryDb.transaction(() => {
-                repositoryDb
-                    .update(workoutVersionsTable)
-                    .set({ workoutId: null })
-                    .where(eq(workoutVersionsTable.workoutId, id))
-                    .run();
-                repositoryDb
-                    .update(workoutSessionsTable)
-                    .set({ workoutId: null })
-                    .where(eq(workoutSessionsTable.workoutId, id))
-                    .run();
-                repositoryDb
-                    .delete(workoutsTable)
-                    .where(eq(workoutsTable.id, id))
-                    .run();
-            });
+            return row ?? null;
+        },
 
-            if (workout) {
-                deleteWorkoutVersionIfOrphan(workout.currentVersionId);
-            }
+        getWorkoutVersionRow: (
+            versionId: string,
+        ): WorkoutVersionRow | null => {
+            const version = repositoryDb
+                .select()
+                .from(workoutVersionsTable)
+                .where(eq(workoutVersionsTable.id, versionId))
+                .get();
+
+            return version ?? null;
+        },
+
+        hasWorkoutForVersion: (versionId: string): boolean => {
+            const workout = repositoryDb
+                .select({ id: workoutsTable.id })
+                .from(workoutsTable)
+                .where(eq(workoutsTable.currentVersionId, versionId))
+                .get();
+
+            return workout !== undefined;
         },
 
         readExistingIds: (ids: string[]): Set<string> => {
@@ -313,20 +253,92 @@ export const createWorkoutRepository = (
             return new Set(rows.map((row) => row.id));
         },
 
-        relinkSessionsForVersion: (relinkArgs: {
-            workoutId: string;
-            workoutVersionId: string;
-        }): void => {
+        insertWorkout: (input: InsertWorkoutInput): void => {
+            const existingWorkout = repository.getWorkoutRow(input.id);
+            if (existingWorkout) {
+                throw new Error(`Workout ${input.id} already exists`);
+            }
+
+            const currentVersion = repository.getWorkoutVersionRow(
+                input.currentVersionId,
+            );
+            if (!currentVersion) {
+                throw new Error(
+                    `Workout version ${input.currentVersionId} was not found`,
+                );
+            }
+
+            repositoryDb.insert(workoutsTable).values(input).run();
+        },
+
+        insertWorkoutVersion: (
+            workoutSnapshot: Workout,
+            versionId: string,
+            workoutId: string | null,
+        ): void => {
+            const existingVersion = repository.getWorkoutVersionRow(versionId);
+            if (existingVersion) {
+                throw new Error(`Workout version ${versionId} already exists`);
+            }
+
+            const rows = workoutToVersionDbRows(
+                workoutSnapshot,
+                versionId,
+                workoutId,
+            );
+
+            repositoryDb.insert(workoutVersionsTable).values(rows.version).run();
+
+            if (rows.blocks.length > 0) {
+                repositoryDb
+                    .insert(workoutBlocksTable)
+                    .values(rows.blocks)
+                    .run();
+            }
+
+            if (rows.exercises.length > 0) {
+                repositoryDb
+                    .insert(workoutExercisesTable)
+                    .values(rows.exercises)
+                    .run();
+            }
+        },
+
+        createWorkoutVersion: (
+            workoutSnapshot: Workout,
+            workoutId: string | null,
+        ): string => {
+            const versionId = uid();
+            repository.insertWorkoutVersion(
+                workoutSnapshot,
+                versionId,
+                workoutId,
+            );
+            return versionId;
+        },
+
+        updateWorkout: (input: UpdateWorkoutInput): void => {
+            const currentVersion = repository.getWorkoutVersionRow(
+                input.currentVersionId,
+            );
+            if (!currentVersion) {
+                throw new Error(
+                    `Workout version ${input.currentVersionId} was not found`,
+                );
+            }
+
             repositoryDb
-                .update(workoutSessionsTable)
-                .set({ workoutId: relinkArgs.workoutId })
-                .where(
-                    eq(
-                        workoutSessionsTable.workoutVersionId,
-                        relinkArgs.workoutVersionId,
-                    ),
-                )
+                .update(workoutsTable)
+                .set({
+                    currentVersionId: input.currentVersionId,
+                    isFavorite: input.isFavorite,
+                    sortIndex: input.sortIndex,
+                })
+                .where(eq(workoutsTable.id, input.id))
                 .run();
+        },
+
+        relinkWorkoutVersion: (relinkArgs: RelinkWorkoutVersionInput): void => {
             repositoryDb
                 .update(workoutVersionsTable)
                 .set({ workoutId: relinkArgs.workoutId })
@@ -334,141 +346,44 @@ export const createWorkoutRepository = (
                 .run();
         },
 
-        upsert: (workout: Workout, sortIndex: number): void => {
-            const existingWorkout = repositoryDb
+        deleteWorkout: (id: string): void => {
+            repositoryDb
+                .delete(workoutsTable)
+                .where(eq(workoutsTable.id, id))
+                .run();
+        },
+
+        deleteWorkoutVersion: (versionId: string): void => {
+            if (repository.hasWorkoutForVersion(versionId)) {
+                throw new Error(
+                    `Cannot delete workout version ${versionId}: version is used by a workout`,
+                );
+            }
+
+            const blocks = repositoryDb
                 .select()
-                .from(workoutsTable)
-                .where(eq(workoutsTable.id, workout.id))
-                .get();
+                .from(workoutBlocksTable)
+                .where(eq(workoutBlocksTable.workoutVersionId, versionId))
+                .all();
 
-            if (!existingWorkout) {
-                const versionId = uid();
-
-                repositoryDb.transaction(() => {
-                    repositoryDb
-                        .insert(workoutsTable)
-                        .values({
-                            id: workout.id,
-                            currentVersionId: versionId,
-                            createdAtMs: workout.updatedAtMs,
-                            isFavorite: workout.isFavorite === true,
-                            sortIndex,
-                        })
-                        .run();
-                    insertWorkoutVersion(workout, versionId, workout.id);
-                });
-                return;
-            }
-
-            const currentWorkout = getWorkoutByVersionId(
-                existingWorkout.currentVersionId,
-                {
-                    workoutId: workout.id,
-                    isFavorite: existingWorkout.isFavorite,
-                },
-            );
-            const shouldCreateVersion =
-                currentWorkout === null ||
-                !hasSameWorkoutContent(currentWorkout, workout);
-            const nextVersionId = shouldCreateVersion
-                ? uid()
-                : existingWorkout.currentVersionId;
-            const previousVersionId = existingWorkout.currentVersionId;
-
-            repositoryDb.transaction(() => {
-                if (shouldCreateVersion) {
-                    insertWorkoutVersion(workout, nextVersionId, workout.id);
-                }
-
+            const blockIds = blocks.map((block) => block.id);
+            if (blockIds.length > 0) {
                 repositoryDb
-                    .update(workoutsTable)
-                    .set({
-                        currentVersionId: nextVersionId,
-                        createdAtMs: existingWorkout.createdAtMs,
-                        isFavorite: workout.isFavorite === true,
-                        sortIndex,
-                    })
-                    .where(eq(workoutsTable.id, workout.id))
+                    .delete(workoutExercisesTable)
+                    .where(inArray(workoutExercisesTable.blockId, blockIds))
                     .run();
-            });
-
-            if (shouldCreateVersion) {
-                deleteWorkoutVersionIfOrphan(previousVersionId);
-            }
-        },
-
-        upsertRestoredWorkout: (restoreArgs: {
-            workout: Workout;
-            sortIndex: number;
-            sourceWorkoutVersionId: string;
-        }): void => {
-            const sourceVersionWorkout = getWorkoutByVersionId(
-                restoreArgs.sourceWorkoutVersionId,
-            );
-            const shouldReuseSourceVersion =
-                sourceVersionWorkout !== null &&
-                hasSameWorkoutContent(
-                    sourceVersionWorkout,
-                    restoreArgs.workout,
-                );
-
-            if (!shouldReuseSourceVersion) {
-                workoutRepository.upsert(
-                    restoreArgs.workout,
-                    restoreArgs.sortIndex,
-                );
-                return;
             }
 
-            const existingWorkout = repositoryDb
-                .select({ id: workoutsTable.id })
-                .from(workoutsTable)
-                .where(eq(workoutsTable.id, restoreArgs.workout.id))
-                .get();
-
-            if (existingWorkout) {
-                throw new Error(
-                    `Cannot restore workout ${restoreArgs.workout.id}: already exists`,
-                );
-            }
-
-            const sourceVersion = repositoryDb
-                .select({ workoutId: workoutVersionsTable.workoutId })
-                .from(workoutVersionsTable)
-                .where(eq(workoutVersionsTable.id, restoreArgs.sourceWorkoutVersionId))
-                .get();
-
-            if (sourceVersion?.workoutId) {
-                throw new Error(
-                    `Cannot restore workout ${restoreArgs.workout.id}: source version already belongs to workout ${sourceVersion.workoutId}`,
-                );
-            }
-
-            repositoryDb.transaction(() => {
-                repositoryDb
-                    .insert(workoutsTable)
-                    .values({
-                        id: restoreArgs.workout.id,
-                        currentVersionId: restoreArgs.sourceWorkoutVersionId,
-                        createdAtMs: clock.now(),
-                        isFavorite: restoreArgs.workout.isFavorite === true,
-                        sortIndex: restoreArgs.sortIndex,
-                    })
-                    .run();
-
-                workoutRepository.relinkSessionsForVersion({
-                    workoutId: restoreArgs.workout.id,
-                    workoutVersionId: restoreArgs.sourceWorkoutVersionId,
-                });
-            });
+            repositoryDb
+                .delete(workoutBlocksTable)
+                .where(eq(workoutBlocksTable.workoutVersionId, versionId))
+                .run();
+            repositoryDb
+                .delete(workoutVersionsTable)
+                .where(eq(workoutVersionsTable.id, versionId))
+                .run();
         },
     };
 
-    return {
-        createWorkoutVersion,
-        deleteWorkoutVersionIfOrphan,
-        getWorkoutByVersionId,
-        insertWorkoutVersion,
-        workoutRepository,
-    };
+    return repository;
 };

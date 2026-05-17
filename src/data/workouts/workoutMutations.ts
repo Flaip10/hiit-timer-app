@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { Workout } from '@src/core/entities/entities';
-import { workoutRepository } from '@src/db/repositories/workoutRepository';
+import { workoutService } from '@src/db';
 
 import { workoutSessionKeys } from '../workoutSessions';
 import { workoutKeys } from './workoutKeys';
@@ -25,15 +25,10 @@ export const useUpsertWorkout = () => {
                 ? args.sourceWorkoutVersionId
                 : undefined;
 
-            if (sourceWorkoutVersionId) {
-                workoutRepository.upsertRestoredWorkout({
-                    workout,
-                    sortIndex: -workout.updatedAtMs,
-                    sourceWorkoutVersionId,
-                });
-            } else {
-                workoutRepository.upsert(workout, -workout.updatedAtMs);
-            }
+            workoutService.upsertWorkout({
+                workout,
+                sourceWorkoutVersionId,
+            });
         },
         onSuccess: async (_data, args) => {
             const sourceWorkoutVersionId = isUpsertWorkoutArgs(args)
@@ -59,7 +54,7 @@ export const useRemoveWorkout = () => {
 
     return useMutation({
         mutationFn: async (id: string) => {
-            workoutRepository.remove(id);
+            workoutService.deleteWorkout(id);
             return id;
         },
         onSuccess: async (id) => {
@@ -78,12 +73,7 @@ export const useToggleFavoriteWorkout = () => {
 
     return useMutation({
         mutationFn: async (workout: Workout) => {
-            const nextWorkout: Workout = {
-                ...workout,
-                isFavorite: !workout.isFavorite,
-            };
-
-            workoutRepository.upsert(nextWorkout, -nextWorkout.updatedAtMs);
+            workoutService.toggleFavorite(workout);
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({
