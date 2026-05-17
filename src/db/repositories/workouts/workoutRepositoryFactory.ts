@@ -16,6 +16,7 @@ import {
     groupExercisesByBlockId,
     workoutFromDbRows,
     workoutToVersionDbRows,
+    workoutsByVersionIdFromDbRows,
     workoutsFromDbRows,
     type WorkoutExerciseRow,
 } from '../../mappers/workouts/workoutMapper';
@@ -44,6 +45,7 @@ export interface WorkoutRepository {
     getWorkoutByVersionId: (versionId: string) => Workout | null;
     getWorkoutRow: (id: string) => WorkoutRow | null;
     getWorkoutVersionRow: (versionId: string) => WorkoutVersionRow | null;
+    getWorkoutsByVersionIds: (versionIds: string[]) => Map<string, Workout>;
     hasWorkoutForVersion: (versionId: string) => boolean;
     readExistingIds: (ids: string[]) => Set<string>;
     insertWorkout: (input: InsertWorkoutInput) => void;
@@ -187,26 +189,11 @@ export const createWorkoutRepository = (
         },
 
         getWorkoutByVersionId: (versionId: string): Workout | null => {
-            const version = repositoryDb
-                .select()
-                .from(workoutVersionsTable)
-                .where(eq(workoutVersionsTable.id, versionId))
-                .get();
-            if (!version) return null;
+            const workoutsByVersionId = repository.getWorkoutsByVersionIds([
+                versionId,
+            ]);
 
-            const blocks = repositoryDb
-                .select()
-                .from(workoutBlocksTable)
-                .where(eq(workoutBlocksTable.workoutVersionId, versionId))
-                .orderBy(asc(workoutBlocksTable.sortIndex))
-                .all();
-
-            const exercises = getExercisesForBlocks(
-                blocks.map((block) => block.id),
-            );
-            const exercisesByBlockId = groupExercisesByBlockId(exercises);
-
-            return workoutFromDbRows(version, blocks, exercisesByBlockId);
+            return workoutsByVersionId.get(versionId) ?? null;
         },
 
         getWorkoutRow: (id: string): WorkoutRow | null => {
@@ -229,6 +216,42 @@ export const createWorkoutRepository = (
                 .get();
 
             return version ?? null;
+        },
+
+        getWorkoutsByVersionIds: (
+            versionIds: string[],
+        ): Map<string, Workout> => {
+            const uniqueVersionIds = Array.from(new Set(versionIds));
+            if (uniqueVersionIds.length === 0) return new Map();
+
+            const versionRows = repositoryDb
+                .select()
+                .from(workoutVersionsTable)
+                .where(inArray(workoutVersionsTable.id, uniqueVersionIds))
+                .all();
+            if (versionRows.length === 0) return new Map();
+
+            const resolvedVersionIds = versionRows.map((version) => version.id);
+            const blockRows = repositoryDb
+                .select()
+                .from(workoutBlocksTable)
+                .where(
+                    inArray(
+                        workoutBlocksTable.workoutVersionId,
+                        resolvedVersionIds,
+                    ),
+                )
+                .orderBy(asc(workoutBlocksTable.sortIndex))
+                .all();
+            const exerciseRows = getExercisesForBlocks(
+                blockRows.map((block) => block.id),
+            );
+
+            return workoutsByVersionIdFromDbRows(
+                versionRows,
+                blockRows,
+                exerciseRows,
+            );
         },
 
         hasWorkoutForVersion: (versionId: string): boolean => {
