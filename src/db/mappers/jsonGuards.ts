@@ -1,6 +1,6 @@
 import type {
-    Exercise,
     ExerciseMode,
+    WorkoutExercise,
     Workout,
     WorkoutBlock,
 } from '@src/core/entities/entities';
@@ -27,7 +27,9 @@ const isNumberArray = (value: unknown): value is number[] =>
 const isExerciseMode = (value: unknown): value is ExerciseMode =>
     value === 'time' || value === 'reps';
 
-export const isExercise = (value: unknown): value is Exercise => {
+export const isWorkoutExercise = (
+    value: unknown,
+): value is WorkoutExercise => {
     if (!isRecord(value)) return false;
     if (!isString(value.id)) return false;
     if (!isExerciseMode(value.mode)) return false;
@@ -53,7 +55,7 @@ export const isWorkoutBlock = (value: unknown): value is WorkoutBlock => {
     if (!isNumber(value.restBetweenExercisesSec)) return false;
     if (!Array.isArray(value.exercises)) return false;
 
-    return value.exercises.every(isExercise);
+    return value.exercises.every(isWorkoutExercise);
 };
 
 export const isWorkout = (value: unknown): value is Workout => {

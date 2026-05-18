@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type {
     Workout,
     WorkoutBlock,
-    Exercise,
+    WorkoutExercise,
 } from '@src/core/entities/entities';
 import { uid } from '@core/id';
 
@@ -123,7 +123,7 @@ export const useBlockEditor = ({ draft, blockId }: UseBlockEditorArgs) => {
         });
 
     // per-exercise changes
-    const onExChange = (ei: number, next: Exercise) =>
+    const onExChange = (ei: number, next: WorkoutExercise) =>
         setBlock((prev) =>
             prev
                 ? {

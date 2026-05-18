@@ -1,9 +1,13 @@
-import type { Exercise, Workout, WorkoutBlock } from '@src/core/entities/entities';
+import type {
+    Workout,
+    WorkoutBlock,
+    WorkoutExercise,
+} from '@src/core/entities/entities';
 
 interface CanonicalExerciseContent {
     exerciseDefinitionId?: string;
     name?: string;
-    mode: Exercise['mode'];
+    mode: WorkoutExercise['mode'];
     value: number;
     tempo?: string;
 }
@@ -22,7 +26,7 @@ interface CanonicalWorkoutContent {
 }
 
 const canonicalExerciseContent = (
-    exercise: Exercise
+    exercise: WorkoutExercise
 ): CanonicalExerciseContent => ({
     exerciseDefinitionId: exercise.exerciseDefinitionId,
     name: exercise.exerciseDefinitionId ? undefined : exercise.name,

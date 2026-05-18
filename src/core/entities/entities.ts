@@ -30,7 +30,7 @@ export interface ExerciseDefinition {
  *   value: <reps>
  *   tempo?: '3-1-3' | '2-0-2' | string
  */
-export interface Exercise {
+export interface WorkoutExercise {
     id: UUID;
     name?: string;
     exerciseDefinitionId?: UUID;
@@ -56,7 +56,7 @@ export interface WorkoutBlock {
     restBetweenSetsSec: number;
     restBetweenExercisesSec: number;
 
-    exercises: Exercise[];
+    exercises: WorkoutExercise[];
 }
 
 export interface Workout {
