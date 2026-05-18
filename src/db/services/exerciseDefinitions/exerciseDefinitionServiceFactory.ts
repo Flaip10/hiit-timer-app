@@ -1,6 +1,7 @@
 import type {
     ExerciseDefinition,
     ExerciseDefinitionAvailability,
+    Workout,
 } from '@src/core/entities/entities';
 import { normalizeExerciseDefinitionName } from '@src/core/exercises/normalizeExerciseDefinitionName';
 import { normalizeExerciseName } from '@src/core/exercises/normalizeExerciseName';
@@ -9,7 +10,6 @@ import { uid } from '@src/core/id';
 
 import type { ExerciseDefinitionRepository } from '../../repositories/exerciseDefinitions/exerciseDefinitionRepositoryFactory';
 import { systemClock, type Clock } from '../../repositories/repositoryClock';
-import type { WorkoutExerciseUsageRepository } from '../../repositories/workouts/workoutExerciseUsageRepositoryFactory';
 
 export interface CreateUserExerciseDefinitionInput {
     availability?: ExerciseDefinitionAvailability;
@@ -35,6 +35,7 @@ export interface ExerciseDefinitionService {
     getAll: () => ExerciseDefinition[];
     getById: (id: string) => ExerciseDefinition | null;
     getByNormalizedName: (normalizedName: string) => ExerciseDefinition | null;
+    resolveWorkoutExerciseDefinitions: (workout: Workout) => Workout;
     seedSystemDefinitions: () => void;
     updateExerciseDefinition: (
         input: UpdateExerciseDefinitionInput,
@@ -45,13 +46,11 @@ export interface ExerciseDefinitionService {
 export interface CreateExerciseDefinitionServiceArgs {
     clock?: Clock;
     exerciseDefinitionRepository: ExerciseDefinitionRepository;
-    workoutExerciseUsageRepository: WorkoutExerciseUsageRepository;
 }
 
 export const createExerciseDefinitionService = ({
     clock = systemClock,
     exerciseDefinitionRepository,
-    workoutExerciseUsageRepository,
 }: CreateExerciseDefinitionServiceArgs): ExerciseDefinitionService => {
     const getSystemDefinitionByNormalizedName = (
         normalizedName: string,
@@ -110,11 +109,7 @@ export const createExerciseDefinitionService = ({
                 );
             }
 
-            if (
-                workoutExerciseUsageRepository.hasExerciseDefinitionReferences(
-                    id,
-                )
-            ) {
+            if (exerciseDefinitionRepository.hasWorkoutExerciseReferences(id)) {
                 throw new Error(
                     `Cannot delete referenced exercise definition ${id}`,
                 );
@@ -150,6 +145,51 @@ export const createExerciseDefinitionService = ({
             normalizedName: string,
         ): ExerciseDefinition | null =>
             exerciseDefinitionRepository.getByNormalizedName(normalizedName),
+
+        resolveWorkoutExerciseDefinitions: (workout: Workout): Workout => ({
+            ...workout,
+            blocks: workout.blocks.map((block) => ({
+                ...block,
+                exercises: block.exercises.map((exercise) => {
+                    const name = exercise.name?.trim();
+                    if (exercise.exerciseDefinitionId) {
+                        const definition = service.getById(
+                            exercise.exerciseDefinitionId,
+                        );
+
+                        if (
+                            definition &&
+                            (!name ||
+                                normalizeExerciseName(name) ===
+                                    definition.normalizedName)
+                        ) {
+                            return {
+                                ...exercise,
+                                name: definition.name,
+                                exerciseDefinitionId: definition.id,
+                            };
+                        }
+                    }
+
+                    if (!name || name.length === 0) {
+                        return {
+                            ...exercise,
+                            name: undefined,
+                            exerciseDefinitionId: undefined,
+                        };
+                    }
+
+                    const definition =
+                        service.findOrCreateUserExerciseDefinitionByName(name);
+
+                    return {
+                        ...exercise,
+                        name: definition?.name ?? name,
+                        exerciseDefinitionId: definition?.id,
+                    };
+                }),
+            })),
+        }),
 
         seedSystemDefinitions: (): void => {
             systemExerciseDefinitions.forEach(seedSystemDefinition);

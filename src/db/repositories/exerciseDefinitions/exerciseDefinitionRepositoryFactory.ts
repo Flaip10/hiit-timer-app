@@ -7,7 +7,10 @@ import type {
     ExerciseDefinitionSource,
 } from '@src/core/entities/entities';
 
-import { exerciseDefinitionsTable } from '../../schema';
+import {
+    exerciseDefinitionsTable,
+    workoutExercisesTable,
+} from '../../schema';
 import type * as schema from '../../schema';
 
 export type ExerciseDefinitionRepositoryDb = BaseSQLiteDatabase<
@@ -44,6 +47,7 @@ export interface ExerciseDefinitionRepository {
     getAll: () => ExerciseDefinition[];
     getById: (id: string) => ExerciseDefinition | null;
     getByNormalizedName: (normalizedName: string) => ExerciseDefinition | null;
+    hasWorkoutExerciseReferences: (id: string) => boolean;
     update: (input: UpdateExerciseDefinitionInput) => ExerciseDefinition;
 }
 
@@ -129,6 +133,16 @@ export const createExerciseDefinitionRepository = ({
                 .get();
 
             return row ? exerciseDefinitionFromRow(row) : null;
+        },
+
+        hasWorkoutExerciseReferences: (id: string): boolean => {
+            const reference = db
+                .select({ id: workoutExercisesTable.id })
+                .from(workoutExercisesTable)
+                .where(eq(workoutExercisesTable.exerciseDefinitionId, id))
+                .get();
+
+            return reference !== undefined;
         },
 
         update: (input: UpdateExerciseDefinitionInput): ExerciseDefinition => {
