@@ -21,7 +21,6 @@ interface CanonicalBlockContent {
 }
 
 interface CanonicalWorkoutContent {
-    name: string;
     blocks: CanonicalBlockContent[];
 }
 
@@ -44,7 +43,6 @@ const canonicalBlockContent = (block: WorkoutBlock): CanonicalBlockContent => ({
 });
 
 const canonicalWorkoutContent = (workout: Workout): CanonicalWorkoutContent => ({
-    name: workout.name,
     blocks: workout.blocks.map(canonicalBlockContent),
 });
 
