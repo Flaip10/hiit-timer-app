@@ -47,7 +47,7 @@ const HistorySessionScreen = () => {
     const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
 
     const { data: session } = useWorkoutSession(sessionId);
-    const { data: savedWorkout } = useWorkout(session?.workoutId);
+    const { data: savedWorkout } = useWorkout(session?.activeWorkoutId);
     const startDraftFromImported = useWorkoutDraftStore(
         (s) => s.startDraftFromImported,
     );
@@ -225,14 +225,14 @@ const HistorySessionScreen = () => {
 
     // -------- actions --------
 
-    const canOpenSavedWorkout = !!session.workoutId && !!savedWorkout;
+    const canOpenSavedWorkout = !!session.activeWorkoutId && !!savedWorkout;
 
     const hasSavedWorkoutForSession = canOpenSavedWorkout;
 
     const handleRunAgain = () => {
-        if (hasSavedWorkoutForSession && session.workoutId) {
+        if (hasSavedWorkoutForSession && session.activeWorkoutId) {
             router.push({
-                pathname: `/run/${session.workoutId}`,
+                pathname: `/run/${session.activeWorkoutId}`,
                 params: { autoStart: '1' },
             });
             return;
@@ -249,8 +249,8 @@ const HistorySessionScreen = () => {
     };
 
     const handleOpenWorkout = () => {
-        if (hasSavedWorkoutForSession && session.workoutId) {
-            router.push(`/workouts/${session.workoutId}`);
+        if (hasSavedWorkoutForSession && session.activeWorkoutId) {
+            router.push(`/workouts/${session.activeWorkoutId}`);
             return;
         }
 
