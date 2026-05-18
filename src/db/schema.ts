@@ -5,6 +5,7 @@ import {
     text,
     uniqueIndex,
 } from 'drizzle-orm/sqlite-core';
+import type { AnySQLiteColumn } from 'drizzle-orm/sqlite-core';
 
 export const exerciseDefinitionsTable = sqliteTable('exercise_definitions', {
     id: text('id').primaryKey(),
@@ -26,22 +27,24 @@ export const exerciseDefinitionsTable = sqliteTable('exercise_definitions', {
 
 export const workoutsTable = sqliteTable('workouts', {
     id: text('id').primaryKey(),
-    currentVersionId: text('current_version_id').notNull(),
+    name: text('name').notNull(),
+    currentVersionId: text('current_version_id')
+        .notNull()
+        .references((): AnySQLiteColumn => workoutVersionsTable.id, {
+            onDelete: 'restrict',
+        }),
     createdAtMs: integer('created_at_ms').notNull(),
     isFavorite: integer('is_favorite', { mode: 'boolean' }).notNull().default(false),
     sortIndex: integer('sort_index').notNull(),
-});
+}, (table) => [
+    index('workouts_current_version_idx').on(table.currentVersionId),
+]);
 
 export const workoutVersionsTable = sqliteTable('workout_versions', {
     id: text('id').primaryKey(),
-    workoutId: text('workout_id').references(() => workoutsTable.id, {
-        onDelete: 'set null',
-    }),
     name: text('name').notNull(),
     updatedAtMs: integer('updated_at_ms').notNull(),
-}, (table) => [
-    index('workout_versions_workout_id_idx').on(table.workoutId),
-]);
+});
 
 export const workoutBlocksTable = sqliteTable('workout_blocks', {
     id: text('id').primaryKey(),
@@ -68,7 +71,7 @@ export const workoutExercisesTable = sqliteTable('workout_exercises', {
     sortIndex: integer('sort_index').notNull(),
     exerciseDefinitionId: text('exercise_definition_id').references(
         () => exerciseDefinitionsTable.id,
-        { onDelete: 'set null' }
+        { onDelete: 'restrict' }
     ),
     mode: text('mode', { enum: ['time', 'reps'] }).notNull(),
     value: integer('value').notNull(),
