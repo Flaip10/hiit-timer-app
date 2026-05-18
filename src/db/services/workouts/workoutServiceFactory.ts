@@ -138,7 +138,7 @@ export const createWorkoutService = ({
             workoutId: resolvedWorkout.id,
             workoutVersionId: sourceWorkoutVersionId,
         });
-        workoutSessionRepository.relinkWorkoutSessions({
+        workoutSessionRepository.relinkWorkoutToSessions({
             workoutId: resolvedWorkout.id,
             workoutVersionId: sourceWorkoutVersionId,
         });

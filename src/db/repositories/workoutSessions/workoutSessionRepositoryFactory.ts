@@ -1,268 +1,82 @@
-import { asc, desc, eq, inArray } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
 
-import type { Workout } from '@src/core/entities/entities';
-import { uid } from '@src/core/id';
-import type {
-    WorkoutSession,
-    WorkoutSessionStats,
-} from '@src/core/entities/workoutSession.interfaces';
+import type { WorkoutSession } from '@src/core/entities/workoutSession.interfaces';
 
+import { workoutSessionsTable } from '../../schema';
 import {
-    workoutBlocksTable,
-    workoutExercisesTable,
-    workoutSessionsTable,
-    workoutVersionsTable,
-} from '../schema';
-import { hasSameWorkoutContent } from '../mappers/workoutContent';
-import {
-    workoutsByVersionIdFromDbRows,
-    type WorkoutExerciseRow,
-    type WorkoutVersionRow,
-} from '../mappers/workoutMapper';
-import {
-    workoutSessionFromDbRow,
-    workoutSessionsFromDbRows,
     workoutSessionToDbRow,
     type WorkoutSessionRow,
-} from '../mappers/workoutSessionMapper';
-import type {
-    RepositoryDb,
-    WorkoutRepositoryApi,
-} from './workoutRepositoryFactory';
+} from '../../mappers/workoutSessionMapper';
+import type { RepositoryDb } from '../workouts/workoutRepositoryFactory';
 
-export interface CreateWorkoutSessionArgs {
-    workout: Workout;
-    sourceWorkoutVersionId?: string;
-    startedAtMs: number;
-    endedAtMs: number;
-    stats?: WorkoutSessionStats;
+export interface PersistedWorkoutSession extends WorkoutSession {
+    workoutVersionId: string;
+}
+
+export interface RelinkWorkoutToSessionsInput {
+    workoutId: string;
+    workoutVersionId: string;
 }
 
 export interface WorkoutSessionRepository {
-    clear: () => void;
-    create: (args: CreateWorkoutSessionArgs) => WorkoutSession;
-    getAll: () => WorkoutSession[];
-    getById: (id: string) => WorkoutSession | null;
-    getRecent: (limit: number) => WorkoutSession[];
+    getAllRows: () => WorkoutSessionRow[];
+    getRecentRows: (limit: number) => WorkoutSessionRow[];
+    getRowById: (id: string) => WorkoutSessionRow | null;
+    hasSessionForVersion: (versionId: string) => boolean;
     readExistingIds: (ids: string[]) => Set<string>;
-    remove: (id: string) => void;
-    upsert: (session: WorkoutSession) => void;
+    readUsedVersionIds: (versionIds: string[]) => Set<string>;
+    insertSession: (session: PersistedWorkoutSession) => void;
+    relinkWorkoutToSessions: (args: RelinkWorkoutToSessionsInput) => void;
+    clearSessions: () => void;
+    deleteSession: (id: string) => void;
 }
 
 export interface CreateWorkoutSessionRepositoryArgs {
     db: RepositoryDb;
-    workoutRepositoryApi: WorkoutRepositoryApi;
 }
 
 const normalizeLimit = (limit: number): number =>
     Number.isInteger(limit) && limit > 0 ? limit : 5;
 
-const resolveSessionDurationSec = (args: {
-    startedAtMs: number;
-    endedAtMs: number;
-    stats?: WorkoutSessionStats;
-}): number => {
-    const { startedAtMs, endedAtMs, stats } = args;
-
-    if (stats != null) {
-        return (
-            stats.totalWorkSec +
-            stats.totalRestSec +
-            (stats.totalPausedSec ?? 0) +
-            (stats.totalBlockPauseSec ?? 0)
-        );
-    }
-
-    return Math.round((endedAtMs - startedAtMs) / 1000);
-};
-
 export const createWorkoutSessionRepository = (
     factoryArgs: CreateWorkoutSessionRepositoryArgs,
 ): WorkoutSessionRepository => {
     const repositoryDb = factoryArgs.db;
-    const {
-        createWorkoutVersion,
-        deleteWorkoutVersionIfOrphan,
-        getWorkoutByVersionId,
-        workoutRepository,
-    } = factoryArgs.workoutRepositoryApi;
 
-    const hydrateSession = (row: WorkoutSessionRow): WorkoutSession => {
-        if (row.workoutVersionId === null) {
-            throw new Error(`Missing workout version for session ${row.id}`);
-        }
-
-        const workoutContent = getWorkoutByVersionId(row.workoutVersionId);
-        if (!workoutContent) {
-            throw new Error(`Missing workout content for session ${row.id}`);
-        }
-
-        return workoutSessionFromDbRow(row, workoutContent);
-    };
-
-    const getExercisesForBlocks = (
-        blockIds: string[],
-    ): WorkoutExerciseRow[] =>
-        blockIds.length > 0
-            ? repositoryDb
-                  .select()
-                  .from(workoutExercisesTable)
-                  .where(inArray(workoutExercisesTable.blockId, blockIds))
-                  .orderBy(asc(workoutExercisesTable.sortIndex))
-                  .all()
-            : [];
-
-    const hydrateSessions = (rows: WorkoutSessionRow[]): WorkoutSession[] => {
-        if (rows.length === 0) return [];
-
-        const versionIds = Array.from(
-            new Set(
-                rows.flatMap((row) =>
-                    row.workoutVersionId === null
-                        ? []
-                        : [row.workoutVersionId],
-                ),
-            ),
-        );
-
-        if (versionIds.length === 0) {
-            throw new Error('Missing workout versions for session rows');
-        }
-
-        const versionRows: WorkoutVersionRow[] = repositoryDb
-            .select()
-            .from(workoutVersionsTable)
-            .where(inArray(workoutVersionsTable.id, versionIds))
-            .all();
-        const blockRows = repositoryDb
-            .select()
-            .from(workoutBlocksTable)
-            .where(inArray(workoutBlocksTable.workoutVersionId, versionIds))
-            .orderBy(asc(workoutBlocksTable.sortIndex))
-            .all();
-        const exerciseRows = getExercisesForBlocks(
-            blockRows.map((block) => block.id),
-        );
-        const workoutsByVersionId = workoutsByVersionIdFromDbRows(
-            versionRows,
-            blockRows,
-            exerciseRows,
-        );
-
-        return workoutSessionsFromDbRows(rows, workoutsByVersionId);
-    };
-
-    const resolveWorkoutVersionId = (session: WorkoutSession): string => {
-        if (session.workoutVersionId && session.workoutVersionId.length > 0) {
-            return session.workoutVersionId;
-        }
-
-        if (session.workoutId) {
-            const currentVersionId = workoutRepository.getCurrentVersionId(
-                session.workoutId,
-            );
-            if (currentVersionId) return currentVersionId;
-        }
-
-        return createWorkoutVersion(session.workoutSnapshot, null);
-    };
-
-    const buildWorkoutSession = (
-        buildArgs: CreateWorkoutSessionArgs,
-    ): WorkoutSession => {
-        const endedAtMs = Math.max(buildArgs.endedAtMs, buildArgs.startedAtMs);
-        const workoutSnapshot: Workout = {
-            ...buildArgs.workout,
-            updatedAtMs: Number.isFinite(buildArgs.workout.updatedAtMs)
-                ? buildArgs.workout.updatedAtMs
-                : endedAtMs,
-        };
-        const sourceVersionWorkout = buildArgs.sourceWorkoutVersionId
-            ? getWorkoutByVersionId(buildArgs.sourceWorkoutVersionId)
-            : null;
-        const workoutVersionId =
-            sourceVersionWorkout !== null &&
-            hasSameWorkoutContent(sourceVersionWorkout, workoutSnapshot)
-                ? buildArgs.sourceWorkoutVersionId
-                : undefined;
-        const currentWorkoutVersionId =
-            workoutRepository.getCurrentVersionId(buildArgs.workout.id);
-        const workoutId =
-            currentWorkoutVersionId !== null &&
-            (workoutVersionId === undefined ||
-                currentWorkoutVersionId === workoutVersionId)
-                ? buildArgs.workout.id
-                : undefined;
-
-        return {
-            id: uid(),
-            startedAtMs: buildArgs.startedAtMs,
-            endedAtMs,
-            workoutSnapshot,
-            workoutId,
-            workoutVersionId,
-            workoutNameSnapshot: workoutSnapshot.name,
-            totalDurationSec: resolveSessionDurationSec({
-                startedAtMs: buildArgs.startedAtMs,
-                endedAtMs,
-                stats: buildArgs.stats,
-            }),
-            stats: buildArgs.stats,
-        };
-    };
-
-    const workoutSessionRepository: WorkoutSessionRepository = {
-        clear: (): void => {
-            const rows = repositoryDb
-                .select({
-                    workoutVersionId: workoutSessionsTable.workoutVersionId,
-                })
-                .from(workoutSessionsTable)
-                .all();
-            const versionIds = new Set(rows.map((row) => row.workoutVersionId));
-
-            repositoryDb.delete(workoutSessionsTable).run();
-
-            versionIds.forEach((versionId) => {
-                deleteWorkoutVersionIfOrphan(versionId);
-            });
-        },
-
-        create: (createArgs: CreateWorkoutSessionArgs): WorkoutSession => {
-            const session = buildWorkoutSession(createArgs);
-            workoutSessionRepository.upsert(session);
-            return session;
-        },
-
-        getAll: (): WorkoutSession[] => {
-            const rows = repositoryDb
+    return {
+        getAllRows: (): WorkoutSessionRow[] =>
+            repositoryDb
                 .select()
                 .from(workoutSessionsTable)
                 .orderBy(desc(workoutSessionsTable.endedAtMs))
-                .all();
+                .all(),
 
-            return hydrateSessions(rows);
-        },
+        getRecentRows: (limit: number): WorkoutSessionRow[] =>
+            repositoryDb
+                .select()
+                .from(workoutSessionsTable)
+                .orderBy(desc(workoutSessionsTable.endedAtMs))
+                .limit(normalizeLimit(limit))
+                .all(),
 
-        getById: (id: string): WorkoutSession | null => {
+        getRowById: (id: string): WorkoutSessionRow | null => {
             const row = repositoryDb
                 .select()
                 .from(workoutSessionsTable)
                 .where(eq(workoutSessionsTable.id, id))
                 .get();
 
-            return row ? hydrateSession(row) : null;
+            return row ?? null;
         },
 
-        getRecent: (limit: number): WorkoutSession[] => {
-            const rows = repositoryDb
-                .select()
+        hasSessionForVersion: (versionId: string): boolean => {
+            const session = repositoryDb
+                .select({ id: workoutSessionsTable.id })
                 .from(workoutSessionsTable)
-                .orderBy(desc(workoutSessionsTable.endedAtMs))
-                .limit(normalizeLimit(limit))
-                .all();
+                .where(eq(workoutSessionsTable.workoutVersionId, versionId))
+                .get();
 
-            return hydrateSessions(rows);
+            return session !== undefined;
         },
 
         readExistingIds: (ids: string[]): Set<string> => {
@@ -277,48 +91,52 @@ export const createWorkoutSessionRepository = (
             return new Set(rows.map((row) => row.id));
         },
 
-        remove: (id: string): void => {
-            const row = repositoryDb
+        readUsedVersionIds: (versionIds: string[]): Set<string> => {
+            if (versionIds.length === 0) return new Set<string>();
+
+            const rows = repositoryDb
                 .select({
                     workoutVersionId: workoutSessionsTable.workoutVersionId,
                 })
                 .from(workoutSessionsTable)
-                .where(eq(workoutSessionsTable.id, id))
-                .get();
+                .where(
+                    inArray(workoutSessionsTable.workoutVersionId, versionIds),
+                )
+                .all();
 
+            return new Set(rows.map((row) => row.workoutVersionId));
+        },
+
+        insertSession: (session: PersistedWorkoutSession): void => {
+            const row = workoutSessionToDbRow(session);
+
+            repositoryDb.insert(workoutSessionsTable).values(row).run();
+        },
+
+        relinkWorkoutToSessions: (
+            relinkArgs: RelinkWorkoutToSessionsInput,
+        ): void => {
+            repositoryDb
+                .update(workoutSessionsTable)
+                .set({ workoutId: relinkArgs.workoutId })
+                .where(
+                    eq(
+                        workoutSessionsTable.workoutVersionId,
+                        relinkArgs.workoutVersionId,
+                    ),
+                )
+                .run();
+        },
+
+        clearSessions: (): void => {
+            repositoryDb.delete(workoutSessionsTable).run();
+        },
+
+        deleteSession: (id: string): void => {
             repositoryDb
                 .delete(workoutSessionsTable)
                 .where(eq(workoutSessionsTable.id, id))
                 .run();
-
-            if (row?.workoutVersionId) {
-                deleteWorkoutVersionIfOrphan(row.workoutVersionId);
-            }
-        },
-
-        upsert: (session: WorkoutSession): void => {
-            const workoutId =
-                session.workoutId &&
-                workoutRepository.getCurrentVersionId(session.workoutId) !== null
-                    ? session.workoutId
-                    : undefined;
-            const nextSession: WorkoutSession & { workoutVersionId: string } = {
-                ...session,
-                workoutId,
-                workoutVersionId: resolveWorkoutVersionId(session),
-            };
-            const row = workoutSessionToDbRow(nextSession);
-
-            repositoryDb
-                .insert(workoutSessionsTable)
-                .values(row)
-                .onConflictDoUpdate({
-                    target: workoutSessionsTable.id,
-                    set: row,
-                })
-                .run();
         },
     };
-
-    return workoutSessionRepository;
 };
