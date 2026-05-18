@@ -1,9 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import {
-    type CreateWorkoutSessionArgs,
-    workoutSessionService,
-} from '@src/db';
+import { dbServices } from '@src/db/dbServices';
+import type { CreateWorkoutSessionArgs } from '@src/db/services/workoutSessions/workoutSessionServiceFactory';
 
 import { workoutSessionKeys } from './workoutSessionKeys';
 
@@ -12,7 +10,7 @@ export const useAddWorkoutSession = () => {
 
     return useMutation({
         mutationFn: async (args: CreateWorkoutSessionArgs) =>
-            workoutSessionService.createSession(args),
+            dbServices.workoutSessionService.createSession(args),
         onSuccess: async () => {
             await queryClient.invalidateQueries({
                 queryKey: workoutSessionKeys.all,
@@ -26,7 +24,7 @@ export const useRemoveWorkoutSession = () => {
 
     return useMutation({
         mutationFn: async (id: string) => {
-            workoutSessionService.deleteSession(id);
+            dbServices.workoutSessionService.deleteSession(id);
             return id;
         },
         onSuccess: async (id) => {
@@ -45,7 +43,7 @@ export const useClearWorkoutSessions = () => {
 
     return useMutation({
         mutationFn: async () => {
-            workoutSessionService.clearSessions();
+            dbServices.workoutSessionService.clearSessions();
         },
         onSuccess: async () => {
             queryClient.removeQueries({

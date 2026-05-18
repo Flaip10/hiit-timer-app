@@ -1,20 +1,11 @@
-import { db as appDb } from './client';
 import { createExerciseDefinitionRepository } from './repositories/exerciseDefinitions/exerciseDefinitionRepositoryFactory';
 import { systemClock, type Clock } from './repositories/repositoryClock';
 import {
     createWorkoutRepository,
     type RepositoryDb,
 } from './repositories/workouts/workoutRepositoryFactory';
-import {
-    createWorkoutExerciseUsageRepository,
-    type WorkoutExerciseUsageRepository,
-} from './repositories/workouts/workoutExerciseUsageRepositoryFactory';
 import { createWorkoutSessionRepository } from './repositories/workoutSessions/workoutSessionRepositoryFactory';
 import { createExerciseDefinitionService } from './services/exerciseDefinitions/exerciseDefinitionServiceFactory';
-import {
-    createWorkoutExerciseDefinitionService,
-    type WorkoutExerciseDefinitionService,
-} from './services/workouts/workoutExerciseDefinitionServiceFactory';
 import {
     createWorkoutService,
     type WorkoutService,
@@ -24,10 +15,7 @@ import {
     type WorkoutSessionService,
 } from './services/workoutSessions/workoutSessionServiceFactory';
 import type { ExerciseDefinitionService } from './services/exerciseDefinitions/exerciseDefinitionServiceFactory';
-import type {
-    WorkoutRepository,
-    WorkoutRepositoryApi,
-} from './repositories/workouts/workoutRepositoryFactory';
+import type { WorkoutRepository } from './repositories/workouts/workoutRepositoryFactory';
 import type { WorkoutSessionRepository } from './repositories/workoutSessions/workoutSessionRepositoryFactory';
 
 export interface CreateDbServicesArgs {
@@ -37,10 +25,7 @@ export interface CreateDbServicesArgs {
 
 export interface DbServices {
     exerciseDefinitionService: ExerciseDefinitionService;
-    workoutExerciseDefinitionService: WorkoutExerciseDefinitionService;
-    workoutExerciseUsageRepository: WorkoutExerciseUsageRepository;
     workoutRepository: WorkoutRepository;
-    workoutRepositoryApi: WorkoutRepositoryApi;
     workoutService: WorkoutService;
     workoutSessionRepository: WorkoutSessionRepository;
     workoutSessionService: WorkoutSessionService;
@@ -53,53 +38,33 @@ export const createDbServices = ({
     const exerciseDefinitionRepository = createExerciseDefinitionRepository({
         db,
     });
-    const workoutExerciseUsageRepository = createWorkoutExerciseUsageRepository(
-        {
-            db,
-        },
-    );
     const exerciseDefinitionService = createExerciseDefinitionService({
         clock,
         exerciseDefinitionRepository,
-        workoutExerciseUsageRepository,
     });
-    const workoutExerciseDefinitionService =
-        createWorkoutExerciseDefinitionService({
-            exerciseDefinitionService,
-        });
-    const workoutRepositoryApi = createWorkoutRepository({
-        clock,
+    const workoutRepository = createWorkoutRepository({
         db,
-        workoutExerciseDefinitionService,
     });
     const workoutSessionRepository = createWorkoutSessionRepository({
         db,
-        workoutExerciseDefinitionService,
-        workoutRepositoryApi,
     });
     const workoutService = createWorkoutService({
-        workoutRepository: workoutRepositoryApi.workoutRepository,
+        clock,
+        exerciseDefinitionService,
+        workoutRepository,
+        workoutSessionRepository,
     });
     const workoutSessionService = createWorkoutSessionService({
+        exerciseDefinitionService,
+        workoutRepository,
         workoutSessionRepository,
     });
 
     return {
         exerciseDefinitionService,
-        workoutExerciseDefinitionService,
-        workoutExerciseUsageRepository,
-        workoutRepository: workoutRepositoryApi.workoutRepository,
-        workoutRepositoryApi,
+        workoutRepository,
         workoutService,
         workoutSessionRepository,
         workoutSessionService,
     };
 };
-
-export const dbServices = createDbServices({ db: appDb });
-
-export const {
-    exerciseDefinitionService,
-    workoutService,
-    workoutSessionService,
-} = dbServices;

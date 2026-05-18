@@ -1,27 +1,29 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { workoutSessionService } from '@src/db';
+import { dbServices } from '@src/db/dbServices';
 
 import { workoutSessionKeys } from './workoutSessionKeys';
 
 export const useWorkoutSessions = () =>
     useQuery({
         queryKey: workoutSessionKeys.all,
-        queryFn: () => workoutSessionService.getAll(),
-        initialData: () => workoutSessionService.getAll(),
+        queryFn: () => dbServices.workoutSessionService.getAll(),
+        initialData: () => dbServices.workoutSessionService.getAll(),
     });
 
 export const useRecentWorkoutSessions = (limit = 5) =>
     useQuery({
         queryKey: workoutSessionKeys.recent(limit),
-        queryFn: () => workoutSessionService.getRecent(limit),
-        initialData: () => workoutSessionService.getRecent(limit),
+        queryFn: () => dbServices.workoutSessionService.getRecent(limit),
+        initialData: () => dbServices.workoutSessionService.getRecent(limit),
     });
 
 export const useWorkoutSession = (id?: string) =>
     useQuery({
         queryKey: workoutSessionKeys.detail(id),
-        queryFn: () => (id ? workoutSessionService.getById(id) : null),
+        queryFn: () =>
+            id ? dbServices.workoutSessionService.getById(id) : null,
         enabled: !!id,
-        initialData: () => (id ? workoutSessionService.getById(id) : null),
+        initialData: () =>
+            id ? dbServices.workoutSessionService.getById(id) : null,
     });

@@ -1,8 +1,8 @@
 import { migrate } from 'drizzle-orm/expo-sqlite/migrator';
 
 import migrations from '../../drizzle/migrations';
-import { dbServices } from './dbFactory';
 import { db } from './client';
+import { dbServices } from './dbServices';
 import { migrateAsyncStorageWorkoutData } from './migrations/migrateAsyncStorageWorkoutData';
 import { migrateWorkoutExerciseDefinitionsWithRepository } from './migrations/migrateWorkoutExerciseDefinitions';
 import { seedSystemExerciseDefinitionsOnce } from './migrations/seedSystemExerciseDefinitions';
