@@ -134,6 +134,7 @@ export interface I18nResource {
         validation: {
             nameRequired: string;
             addBlock: string;
+            exerciseNamesRequired: string;
         };
         removeBlock: {
             title: string;
@@ -179,6 +180,7 @@ export interface I18nResource {
         validation: {
             setsMin: string;
             exercisesMin: string;
+            exerciseNameRequired: string;
             exerciseDurationMin: string;
             exerciseRepsMin: string;
         };

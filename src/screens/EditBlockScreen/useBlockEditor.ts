@@ -13,6 +13,7 @@ import {
     validateBlock,
     applyDurationToAll,
     type BlockValidationError,
+    type ValidateBlockOptions,
 } from './helpers';
 
 type UseBlockEditorArgs = {
@@ -163,8 +164,8 @@ export const useBlockEditor = ({ draft, blockId }: UseBlockEditorArgs) => {
         );
 
     // ----- validation -----
-    const validate = (): boolean => {
-        const errs = validateBlock(block);
+    const validate = (options?: ValidateBlockOptions): boolean => {
+        const errs = validateBlock(block, options);
         setErrors(errs);
         return errs.length === 0;
     };

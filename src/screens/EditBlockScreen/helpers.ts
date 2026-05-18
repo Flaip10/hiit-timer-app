@@ -5,9 +5,14 @@ export interface BlockValidationError {
     key:
         | 'setsMin'
         | 'exercisesMin'
+        | 'exerciseNameRequired'
         | 'exerciseDurationMin'
         | 'exerciseRepsMin';
     exerciseIndex?: number;
+}
+
+export interface ValidateBlockOptions {
+    shouldRequireExerciseNames?: boolean;
 }
 
 // Parse a string/number → non-negative integer
@@ -56,7 +61,8 @@ export const applyDurationToAll = (
 
 // Block-level validation rules
 export const validateBlock = (
-    block: WorkoutBlock | null
+    block: WorkoutBlock | null,
+    options: ValidateBlockOptions = {},
 ): BlockValidationError[] => {
     if (!block) return [];
     const errors: BlockValidationError[] = [];
@@ -70,6 +76,21 @@ export const validateBlock = (
     }
 
     block.exercises.forEach((ex, ei) => {
+        const hasDefinition = !!ex.exerciseDefinitionId;
+        const hasName =
+            ex.name !== undefined && ex.name.trim().length > 0;
+
+        if (
+            options.shouldRequireExerciseNames === true &&
+            !hasDefinition &&
+            !hasName
+        ) {
+            errors.push({
+                key: 'exerciseNameRequired',
+                exerciseIndex: ei + 1,
+            });
+        }
+
         if (ex.mode === 'time' && ex.value <= 0) {
             errors.push({
                 key: 'exerciseDurationMin',

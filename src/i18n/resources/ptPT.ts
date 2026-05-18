@@ -139,6 +139,7 @@ export const ptPT: I18nResource = {
         validation: {
             nameRequired: 'O nome do treino é obrigatório.',
             addBlock: 'Adiciona pelo menos um bloco.',
+            exerciseNamesRequired: 'Exercícios devem ter nomes definidos.',
         },
         removeBlock: {
             title: 'Remover bloco',
@@ -184,6 +185,8 @@ export const ptPT: I18nResource = {
         validation: {
             setsMin: 'O bloco tem de ter pelo menos uma série.',
             exercisesMin: 'Adiciona pelo menos um exercício.',
+            exerciseNameRequired:
+                'Exercício {{index}}: o nome é obrigatório antes de guardar.',
             exerciseDurationMin:
                 'Exercício {{index}}: a duração tem de ser > 0 segundos.',
             exerciseRepsMin:

@@ -29,7 +29,7 @@ const EditBlockScreen = () => {
 
     const draft = useWorkoutDraftStore((state) => state.draft);
     const updateDraftBlock = useWorkoutDraftStore(
-        (state) => state.updateDraftBlock
+        (state) => state.updateDraftBlock,
     );
 
     const {
@@ -53,7 +53,7 @@ const EditBlockScreen = () => {
 
     const st = useBlockEditStyles();
     const [exerciseToRemove, setExerciseToRemove] = useState<number | null>(
-        null
+        null,
     );
 
     const formatValidationError = useCallback(
@@ -63,6 +63,10 @@ const EditBlockScreen = () => {
                     return t('editBlock.validation.setsMin');
                 case 'exercisesMin':
                     return t('editBlock.validation.exercisesMin');
+                case 'exerciseNameRequired':
+                    return t('editBlock.validation.exerciseNameRequired', {
+                        index: error.exerciseIndex ?? 1,
+                    });
                 case 'exerciseDurationMin':
                     return t('editBlock.validation.exerciseDurationMin', {
                         index: error.exerciseIndex ?? 1,
@@ -73,7 +77,7 @@ const EditBlockScreen = () => {
                     });
             }
         },
-        [t]
+        [t],
     );
 
     const errorBox = useMemo(
@@ -87,7 +91,7 @@ const EditBlockScreen = () => {
                     ))}
                 </View>
             ) : null,
-        [errors, formatValidationError, st.errorBox]
+        [errors, formatValidationError, st.errorBox],
     );
 
     if (notFound || !block || labelIndex === null) {
@@ -106,7 +110,7 @@ const EditBlockScreen = () => {
 
     const onSave = () => {
         if (saving) return;
-        if (!validate()) return;
+        if (!validate({ shouldRequireExerciseNames: !isQuick })) return;
 
         setSaving(true);
         try {
@@ -181,7 +185,9 @@ const EditBlockScreen = () => {
                             />
 
                             <Stepper
-                                label={t('editBlock.fields.exerciseDurationSec')}
+                                label={t(
+                                    'editBlock.fields.exerciseDurationSec',
+                                )}
                                 labelTone="primary"
                                 value={block.exercises[0]?.value ?? 20}
                                 onChange={onExerciseLength}
@@ -206,7 +212,7 @@ const EditBlockScreen = () => {
                         <View style={st.setupGroupBody}>
                             <Stepper
                                 label={t(
-                                    'editBlock.fields.restBetweenExercisesSec'
+                                    'editBlock.fields.restBetweenExercisesSec',
                                 )}
                                 labelTone="primary"
                                 value={block.restBetweenExercisesSec}

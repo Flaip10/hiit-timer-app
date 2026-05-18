@@ -143,6 +143,22 @@ const EditWorkoutScreen = () => {
                 message: t('editWorkout.validation.addBlock'),
             });
         }
+        const hasUnnamedExercise = blocks.some((block) =>
+            block.exercises.some((exercise) => {
+                const hasDefinition = !!exercise.exerciseDefinitionId;
+                const hasName =
+                    exercise.name !== undefined &&
+                    exercise.name.trim().length > 0;
+
+                return !hasDefinition && !hasName;
+            })
+        );
+        if (hasUnnamedExercise) {
+            errs.push({
+                field: 'exercises',
+                message: t('editWorkout.validation.exerciseNamesRequired'),
+            });
+        }
         setErrors(errs);
         return errs.length === 0;
     };

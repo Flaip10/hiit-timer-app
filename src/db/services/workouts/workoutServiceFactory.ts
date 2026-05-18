@@ -29,6 +29,23 @@ export interface CreateWorkoutServiceArgs {
 
 const getSortIndex = (workout: Workout): number => -workout.updatedAtMs;
 
+const assertWorkoutExercisesCanBePersisted = (workout: Workout): void => {
+    workout.blocks.forEach((block) => {
+        block.exercises.forEach((exercise) => {
+            const hasDefinition = !!exercise.exerciseDefinitionId;
+            const hasName =
+                exercise.name !== undefined &&
+                exercise.name.trim().length > 0;
+
+            if (!hasDefinition && !hasName) {
+                throw new Error(
+                    'Cannot save a workout with unnamed exercises',
+                );
+            }
+        });
+    });
+};
+
 export const createWorkoutService = ({
     clock = systemClock,
     exerciseDefinitionService,
@@ -53,6 +70,11 @@ export const createWorkoutService = ({
         if (!existingWorkout) {
             const versionId = uid();
 
+            workoutRepository.insertWorkoutVersion(
+                resolvedWorkout,
+                versionId,
+                null,
+            );
             workoutRepository.insertWorkout({
                 id: resolvedWorkout.id,
                 currentVersionId: versionId,
@@ -60,11 +82,10 @@ export const createWorkoutService = ({
                 isFavorite: resolvedWorkout.isFavorite === true,
                 sortIndex,
             });
-            workoutRepository.insertWorkoutVersion(
-                resolvedWorkout,
-                versionId,
-                resolvedWorkout.id,
-            );
+            workoutRepository.relinkWorkoutVersion({
+                workoutId: resolvedWorkout.id,
+                workoutVersionId: versionId,
+            });
             return;
         }
 
@@ -153,6 +174,8 @@ export const createWorkoutService = ({
             sourceWorkoutVersionId,
             workout,
         }: UpsertWorkoutArgs): void => {
+            assertWorkoutExercisesCanBePersisted(workout);
+
             const resolvedWorkout =
                 exerciseDefinitionService.resolveWorkoutExerciseDefinitions(
                     workout,
