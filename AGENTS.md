@@ -153,3 +153,11 @@ Allowed exception:
 - Don’t “clean up” unrelated code while doing a requested change.
 
 ---
+
+## 11) Verification
+
+Before finalizing changes, run:
+
+- `check`
+
+Do not ignore failing checks.
