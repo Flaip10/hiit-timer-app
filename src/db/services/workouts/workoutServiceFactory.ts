@@ -73,18 +73,14 @@ export const createWorkoutService = ({
             workoutRepository.insertWorkoutVersion(
                 resolvedWorkout,
                 versionId,
-                null,
             );
             workoutRepository.insertWorkout({
                 id: resolvedWorkout.id,
+                name: resolvedWorkout.name,
                 currentVersionId: versionId,
                 createdAtMs: resolvedWorkout.updatedAtMs,
                 isFavorite: resolvedWorkout.isFavorite === true,
                 sortIndex,
-            });
-            workoutRepository.relinkWorkoutVersion({
-                workoutId: resolvedWorkout.id,
-                workoutVersionId: versionId,
             });
             return;
         }
@@ -96,16 +92,14 @@ export const createWorkoutService = ({
             currentWorkout === null ||
             !hasSameWorkoutContent(currentWorkout, resolvedWorkout);
         const nextVersionId = shouldCreateVersion
-            ? workoutRepository.createWorkoutVersion(
-                  resolvedWorkout,
-                  resolvedWorkout.id,
-              )
+            ? workoutRepository.createWorkoutVersion(resolvedWorkout)
             : existingWorkout.currentVersionId;
 
         workoutRepository.updateWorkout({
             id: resolvedWorkout.id,
             currentVersionId: nextVersionId,
             isFavorite: resolvedWorkout.isFavorite === true,
+            name: resolvedWorkout.name,
             sortIndex,
         });
 
@@ -139,25 +133,13 @@ export const createWorkoutService = ({
             );
         }
 
-        const sourceVersion = workoutRepository.getWorkoutVersionRow(
-            sourceWorkoutVersionId,
-        );
-        if (sourceVersion?.workoutId) {
-            throw new Error(
-                `Cannot restore workout ${resolvedWorkout.id}: source version already belongs to workout ${sourceVersion.workoutId}`,
-            );
-        }
-
         workoutRepository.insertWorkout({
             id: resolvedWorkout.id,
+            name: resolvedWorkout.name,
             currentVersionId: sourceWorkoutVersionId,
             createdAtMs: clock.now(),
             isFavorite: resolvedWorkout.isFavorite === true,
             sortIndex: getSortIndex(resolvedWorkout),
-        });
-        workoutRepository.relinkWorkoutVersion({
-            workoutId: resolvedWorkout.id,
-            workoutVersionId: sourceWorkoutVersionId,
         });
         workoutSessionRepository.relinkWorkoutToSessions({
             workoutId: resolvedWorkout.id,

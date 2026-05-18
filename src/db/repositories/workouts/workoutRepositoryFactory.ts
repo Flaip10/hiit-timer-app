@@ -18,11 +18,11 @@ import {
     workoutToVersionDbRows,
     workoutsByVersionIdFromDbRows,
     workoutsFromDbRows,
-    type WorkoutExerciseRow,
+    type WorkoutExerciseWithDefinitionRow,
 } from '../../mappers/workouts/workoutMapper';
 
-export type WorkoutRow = typeof workoutsTable.$inferSelect;
-export type WorkoutVersionRow = typeof workoutVersionsTable.$inferSelect;
+export type WorkoutDbRow = typeof workoutsTable.$inferSelect;
+export type WorkoutVersionDbRow = typeof workoutVersionsTable.$inferSelect;
 
 export type InsertWorkoutInput = typeof workoutsTable.$inferInsert;
 
@@ -30,12 +30,8 @@ export interface UpdateWorkoutInput {
     currentVersionId: string;
     id: string;
     isFavorite: boolean;
+    name: string;
     sortIndex: number;
-}
-
-export interface RelinkWorkoutVersionInput {
-    workoutId: string;
-    workoutVersionId: string;
 }
 
 export interface WorkoutRepository {
@@ -43,8 +39,8 @@ export interface WorkoutRepository {
     getById: (id: string) => Workout | null;
     getCurrentVersionId: (id: string) => string | null;
     getWorkoutByVersionId: (versionId: string) => Workout | null;
-    getWorkoutRow: (id: string) => WorkoutRow | null;
-    getWorkoutVersionRow: (versionId: string) => WorkoutVersionRow | null;
+    getWorkoutRow: (id: string) => WorkoutDbRow | null;
+    getWorkoutVersionRow: (versionId: string) => WorkoutVersionDbRow | null;
     getWorkoutsByVersionIds: (versionIds: string[]) => Map<string, Workout>;
     hasWorkoutForVersion: (versionId: string) => boolean;
     readExistingIds: (ids: string[]) => Set<string>;
@@ -53,14 +49,9 @@ export interface WorkoutRepository {
     insertWorkoutVersion: (
         workoutSnapshot: Workout,
         versionId: string,
-        workoutId: string | null,
     ) => void;
-    createWorkoutVersion: (
-        workoutSnapshot: Workout,
-        workoutId: string | null,
-    ) => string;
+    createWorkoutVersion: (workoutSnapshot: Workout) => string;
     updateWorkout: (input: UpdateWorkoutInput) => void;
-    relinkWorkoutVersion: (args: RelinkWorkoutVersionInput) => void;
     deleteWorkout: (id: string) => void;
     deleteWorkoutVersion: (versionId: string) => void;
 }
@@ -76,7 +67,9 @@ export const createWorkoutRepository = (
 ): WorkoutRepository => {
     const repositoryDb = factoryArgs.db;
 
-    const getExercisesForBlocks = (blockIds: string[]): WorkoutExerciseRow[] =>
+    const getExercisesForBlocks = (
+        blockIds: string[],
+    ): WorkoutExerciseWithDefinitionRow[] =>
         blockIds.length > 0
             ? repositoryDb
                   .select({
@@ -173,6 +166,7 @@ export const createWorkoutRepository = (
                 exercisesByBlockId,
                 {
                     workoutId: row.workouts.id,
+                    workoutName: row.workouts.name,
                     isFavorite: row.workouts.isFavorite,
                 },
             );
@@ -196,7 +190,7 @@ export const createWorkoutRepository = (
             return workoutsByVersionId.get(versionId) ?? null;
         },
 
-        getWorkoutRow: (id: string): WorkoutRow | null => {
+        getWorkoutRow: (id: string): WorkoutDbRow | null => {
             const row = repositoryDb
                 .select()
                 .from(workoutsTable)
@@ -208,7 +202,7 @@ export const createWorkoutRepository = (
 
         getWorkoutVersionRow: (
             versionId: string,
-        ): WorkoutVersionRow | null => {
+        ): WorkoutVersionDbRow | null => {
             const version = repositoryDb
                 .select()
                 .from(workoutVersionsTable)
@@ -224,14 +218,20 @@ export const createWorkoutRepository = (
             const uniqueVersionIds = Array.from(new Set(versionIds));
             if (uniqueVersionIds.length === 0) return new Map();
 
-            const versionRows = repositoryDb
+            const rows = repositoryDb
                 .select()
                 .from(workoutVersionsTable)
+                .leftJoin(
+                    workoutsTable,
+                    eq(workoutsTable.currentVersionId, workoutVersionsTable.id),
+                )
                 .where(inArray(workoutVersionsTable.id, uniqueVersionIds))
                 .all();
-            if (versionRows.length === 0) return new Map();
+            if (rows.length === 0) return new Map();
 
-            const resolvedVersionIds = versionRows.map((version) => version.id);
+            const resolvedVersionIds = rows.map(
+                (row) => row.workout_versions.id,
+            );
             const blockRows = repositoryDb
                 .select()
                 .from(workoutBlocksTable)
@@ -248,7 +248,7 @@ export const createWorkoutRepository = (
             );
 
             return workoutsByVersionIdFromDbRows(
-                versionRows,
+                rows,
                 blockRows,
                 exerciseRows,
             );
@@ -304,12 +304,10 @@ export const createWorkoutRepository = (
         insertWorkoutVersion: (
             workoutSnapshot: Workout,
             versionId: string,
-            workoutId: string | null,
         ): void => {
             const rows = workoutToVersionDbRows(
                 workoutSnapshot,
                 versionId,
-                workoutId,
             );
 
             repositoryDb.insert(workoutVersionsTable).values(rows.version).run();
@@ -329,15 +327,11 @@ export const createWorkoutRepository = (
             }
         },
 
-        createWorkoutVersion: (
-            workoutSnapshot: Workout,
-            workoutId: string | null,
-        ): string => {
+        createWorkoutVersion: (workoutSnapshot: Workout): string => {
             const versionId = uid();
             repository.insertWorkoutVersion(
                 workoutSnapshot,
                 versionId,
-                workoutId,
             );
             return versionId;
         },
@@ -357,17 +351,10 @@ export const createWorkoutRepository = (
                 .set({
                     currentVersionId: input.currentVersionId,
                     isFavorite: input.isFavorite,
+                    name: input.name,
                     sortIndex: input.sortIndex,
                 })
                 .where(eq(workoutsTable.id, input.id))
-                .run();
-        },
-
-        relinkWorkoutVersion: (relinkArgs: RelinkWorkoutVersionInput): void => {
-            repositoryDb
-                .update(workoutVersionsTable)
-                .set({ workoutId: relinkArgs.workoutId })
-                .where(eq(workoutVersionsTable.id, relinkArgs.workoutVersionId))
                 .run();
         },
 
@@ -379,30 +366,6 @@ export const createWorkoutRepository = (
         },
 
         deleteWorkoutVersion: (versionId: string): void => {
-            if (repository.hasWorkoutForVersion(versionId)) {
-                throw new Error(
-                    `Cannot delete workout version ${versionId}: version is used by a workout`,
-                );
-            }
-
-            const blocks = repositoryDb
-                .select()
-                .from(workoutBlocksTable)
-                .where(eq(workoutBlocksTable.workoutVersionId, versionId))
-                .all();
-
-            const blockIds = blocks.map((block) => block.id);
-            if (blockIds.length > 0) {
-                repositoryDb
-                    .delete(workoutExercisesTable)
-                    .where(inArray(workoutExercisesTable.blockId, blockIds))
-                    .run();
-            }
-
-            repositoryDb
-                .delete(workoutBlocksTable)
-                .where(eq(workoutBlocksTable.workoutVersionId, versionId))
-                .run();
             repositoryDb
                 .delete(workoutVersionsTable)
                 .where(eq(workoutVersionsTable.id, versionId))
