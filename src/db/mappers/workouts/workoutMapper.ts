@@ -6,12 +6,16 @@ import type {
     workoutExercisesTable,
     workoutVersionsTable,
     workoutsTable,
-} from '../schema';
+} from '../../schema';
 
 export type WorkoutRow = typeof workoutsTable.$inferSelect;
 export type WorkoutVersionRow = typeof workoutVersionsTable.$inferSelect;
 export type WorkoutBlockRow = typeof workoutBlocksTable.$inferSelect;
-export type WorkoutExerciseRow = typeof workoutExercisesTable.$inferSelect;
+type WorkoutExerciseTableRow = typeof workoutExercisesTable.$inferSelect;
+
+export interface WorkoutExerciseRow extends WorkoutExerciseTableRow {
+    exerciseDefinitionName: string | null;
+}
 
 interface WorkoutVersionDbRows {
     version: typeof workoutVersionsTable.$inferInsert;
@@ -70,7 +74,9 @@ const workoutBlocksFromDbRows = (
                 .sort((left, right) => left.sortIndex - right.sortIndex)
                 .map((exercise) => ({
                     id: exercise.id,
-                    name: exercise.name ?? undefined,
+                    name: exercise.exerciseDefinitionName ?? undefined,
+                    exerciseDefinitionId:
+                        exercise.exerciseDefinitionId ?? undefined,
                     mode: exercise.mode,
                     value: exercise.value,
                     tempo: exercise.tempo ?? undefined,
@@ -78,13 +84,13 @@ const workoutBlocksFromDbRows = (
         }));
 
 export const workoutToVersionDbRows = (
-    workout: Workout,
+    workoutSnapshot: Workout,
     workoutVersionId: string,
     workoutId: string | null,
 ): WorkoutVersionDbRows => {
     const blockDbIdByWorkoutBlockId = new Map<string, string>();
 
-    const blocks = workout.blocks.map((block, blockIndex) => {
+    const blocks = workoutSnapshot.blocks.map((block, blockIndex) => {
         const blockDbId = uid();
         blockDbIdByWorkoutBlockId.set(block.id, blockDbId);
 
@@ -99,7 +105,7 @@ export const workoutToVersionDbRows = (
         };
     });
 
-    const exercises = workout.blocks.flatMap((block) => {
+    const exercises = workoutSnapshot.blocks.flatMap((block) => {
         const blockDbId = blockDbIdByWorkoutBlockId.get(block.id);
         if (!blockDbId) {
             throw new Error(
@@ -111,7 +117,7 @@ export const workoutToVersionDbRows = (
             id: uid(),
             blockId: blockDbId,
             sortIndex: exerciseIndex,
-            name: exercise.name ?? null,
+            exerciseDefinitionId: exercise.exerciseDefinitionId ?? null,
             mode: exercise.mode,
             value: exercise.value,
             tempo: exercise.tempo ?? null,
@@ -122,8 +128,8 @@ export const workoutToVersionDbRows = (
         version: {
             id: workoutVersionId,
             workoutId,
-            name: workout.name,
-            updatedAtMs: workout.updatedAtMs,
+            name: workoutSnapshot.name,
+            updatedAtMs: workoutSnapshot.updatedAtMs,
         },
         blocks,
         exercises,
