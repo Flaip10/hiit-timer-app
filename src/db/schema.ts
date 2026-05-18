@@ -66,7 +66,6 @@ export const workoutExercisesTable = sqliteTable('workout_exercises', {
         .notNull()
         .references(() => workoutBlocksTable.id, { onDelete: 'cascade' }),
     sortIndex: integer('sort_index').notNull(),
-    name: text('name'),
     exerciseDefinitionId: text('exercise_definition_id').references(
         () => exerciseDefinitionsTable.id,
         { onDelete: 'set null' }
