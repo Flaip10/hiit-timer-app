@@ -23,6 +23,11 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 - Avoid unnecessary type assertions (`as X`)—only use them when they truly change inference.
 - Boolean naming must be semantic:
     - `isX` (state/classification), `hasX` (presence), `canX` / `shouldX` (policy), `wasX` / `didX` (historical).
+- Avoid unnecessary export/import duplication:
+    - Do not export a constant only to immediately re-import or re-export it from another file.
+    - Do not create wrapper files that only alias a singleton from another module unless they are preserving a deliberate public API.
+    - Prefer one clear module boundary. Export factories for dependency injection/testing when useful, and export app singletons only from the boundary where consumers should import them.
+    - Barrel files (`index.ts`) should expose intentional public APIs only; do not use them to mirror every internal symbol.
 
 ---
 
