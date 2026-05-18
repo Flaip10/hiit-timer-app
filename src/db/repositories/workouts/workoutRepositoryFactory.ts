@@ -83,7 +83,6 @@ export const createWorkoutRepository = (
                       id: workoutExercisesTable.id,
                       blockId: workoutExercisesTable.blockId,
                       sortIndex: workoutExercisesTable.sortIndex,
-                      name: workoutExercisesTable.name,
                       exerciseDefinitionId:
                           workoutExercisesTable.exerciseDefinitionId,
                       exerciseDefinitionName: exerciseDefinitionsTable.name,
