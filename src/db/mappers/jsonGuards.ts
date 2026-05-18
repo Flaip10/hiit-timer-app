@@ -123,7 +123,12 @@ export const isWorkoutSession = (value: unknown): value is WorkoutSession => {
     if (!isNumber(value.startedAtMs)) return false;
     if (!isNumber(value.endedAtMs)) return false;
     if (!isWorkout(value.workoutSnapshot)) return false;
-    if (value.workoutId !== undefined && !isString(value.workoutId)) return false;
+    if (
+        value.activeWorkoutId !== undefined &&
+        !isString(value.activeWorkoutId)
+    ) {
+        return false;
+    }
     if (
         value.workoutVersionId !== undefined &&
         !isString(value.workoutVersionId)

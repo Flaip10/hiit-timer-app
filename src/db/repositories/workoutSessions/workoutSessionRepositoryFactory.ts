@@ -13,11 +13,6 @@ export interface PersistedWorkoutSession extends WorkoutSession {
     workoutVersionId: string;
 }
 
-export interface RelinkWorkoutToSessionsInput {
-    workoutId: string;
-    workoutVersionId: string;
-}
-
 export interface WorkoutSessionRepository {
     getAllRows: () => WorkoutSessionRow[];
     getRecentRows: (limit: number) => WorkoutSessionRow[];
@@ -26,7 +21,6 @@ export interface WorkoutSessionRepository {
     readExistingIds: (ids: string[]) => Set<string>;
     readUsedVersionIds: (versionIds: string[]) => Set<string>;
     insertSession: (session: PersistedWorkoutSession) => void;
-    relinkWorkoutToSessions: (args: RelinkWorkoutToSessionsInput) => void;
     clearSessions: () => void;
     deleteSession: (id: string) => void;
 }
@@ -111,21 +105,6 @@ export const createWorkoutSessionRepository = (
             const row = workoutSessionToDbRow(session);
 
             repositoryDb.insert(workoutSessionsTable).values(row).run();
-        },
-
-        relinkWorkoutToSessions: (
-            relinkArgs: RelinkWorkoutToSessionsInput,
-        ): void => {
-            repositoryDb
-                .update(workoutSessionsTable)
-                .set({ workoutId: relinkArgs.workoutId })
-                .where(
-                    eq(
-                        workoutSessionsTable.workoutVersionId,
-                        relinkArgs.workoutVersionId,
-                    ),
-                )
-                .run();
         },
 
         clearSessions: (): void => {

@@ -14,12 +14,11 @@ interface PersistedWorkoutSession extends WorkoutSession {
 export type WorkoutSessionRow = typeof workoutSessionsTable.$inferSelect;
 
 export const workoutSessionToDbRow = (
-    session: PersistedWorkoutSession
+    session: PersistedWorkoutSession,
 ): typeof workoutSessionsTable.$inferInsert => ({
     id: session.id,
     startedAtMs: session.startedAtMs,
     endedAtMs: session.endedAtMs,
-    workoutId: session.workoutId ?? null,
     workoutVersionId: session.workoutVersionId,
     workoutNameSnapshot: session.workoutNameSnapshot ?? null,
     totalDurationSec: session.totalDurationSec ?? null,
@@ -27,7 +26,7 @@ export const workoutSessionToDbRow = (
 });
 
 const parseWorkoutSessionStats = (
-    row: WorkoutSessionRow
+    row: WorkoutSessionRow,
 ): WorkoutSessionStats | undefined => {
     if (row.statsJson == null) return undefined;
 
@@ -41,28 +40,16 @@ const parseWorkoutSessionStats = (
 
 export const workoutSessionFromDbRow = (
     row: WorkoutSessionRow,
-    workoutContent: Workout
+    workoutContent: Workout,
+    activeWorkoutId?: string,
 ): WorkoutSession => ({
-        id: row.id,
-        startedAtMs: row.startedAtMs,
-        endedAtMs: row.endedAtMs,
-        workoutSnapshot: workoutContent,
-        workoutId: row.workoutId ?? undefined,
-        workoutVersionId: row.workoutVersionId,
-        workoutNameSnapshot: row.workoutNameSnapshot ?? undefined,
-        totalDurationSec: row.totalDurationSec ?? undefined,
-        stats: parseWorkoutSessionStats(row),
+    id: row.id,
+    startedAtMs: row.startedAtMs,
+    endedAtMs: row.endedAtMs,
+    workoutSnapshot: workoutContent,
+    activeWorkoutId,
+    workoutVersionId: row.workoutVersionId,
+    workoutNameSnapshot: row.workoutNameSnapshot ?? undefined,
+    totalDurationSec: row.totalDurationSec ?? undefined,
+    stats: parseWorkoutSessionStats(row),
 });
-
-export const workoutSessionsFromDbRows = (
-    rows: WorkoutSessionRow[],
-    workoutsByVersionId: Map<string, Workout>
-): WorkoutSession[] =>
-    rows.map((row) => {
-        const workoutContent = workoutsByVersionId.get(row.workoutVersionId);
-        if (!workoutContent) {
-            throw new Error(`Missing workout content for session ${row.id}`);
-        }
-
-        return workoutSessionFromDbRow(row, workoutContent);
-    });

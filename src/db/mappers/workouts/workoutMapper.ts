@@ -8,12 +8,13 @@ import type {
     workoutsTable,
 } from '../../schema';
 
-export type WorkoutRow = typeof workoutsTable.$inferSelect;
-export type WorkoutVersionRow = typeof workoutVersionsTable.$inferSelect;
-export type WorkoutBlockRow = typeof workoutBlocksTable.$inferSelect;
+export type WorkoutDbRow = typeof workoutsTable.$inferSelect;
+export type WorkoutVersionDbRow = typeof workoutVersionsTable.$inferSelect;
+export type WorkoutBlockDbRow = typeof workoutBlocksTable.$inferSelect;
 type WorkoutExerciseTableRow = typeof workoutExercisesTable.$inferSelect;
 
-export interface WorkoutExerciseRow extends WorkoutExerciseTableRow {
+export interface WorkoutExerciseWithDefinitionRow
+    extends WorkoutExerciseTableRow {
     exerciseDefinitionName: string | null;
 }
 
@@ -23,15 +24,20 @@ interface WorkoutVersionDbRows {
     exercises: (typeof workoutExercisesTable.$inferInsert)[];
 }
 
-export interface WorkoutWithVersionRow {
-    workouts: WorkoutRow;
-    workout_versions: WorkoutVersionRow;
+export interface WorkoutWithCurrentVersionRow {
+    workouts: WorkoutDbRow;
+    workout_versions: WorkoutVersionDbRow;
+}
+
+export interface WorkoutVersionWithActiveWorkoutRow {
+    workouts: WorkoutDbRow | null;
+    workout_versions: WorkoutVersionDbRow;
 }
 
 const groupBlocksByVersionId = (
-    blocks: WorkoutBlockRow[],
-): Map<string, WorkoutBlockRow[]> => {
-    const blocksByVersionId = new Map<string, WorkoutBlockRow[]>();
+    blocks: WorkoutBlockDbRow[],
+): Map<string, WorkoutBlockDbRow[]> => {
+    const blocksByVersionId = new Map<string, WorkoutBlockDbRow[]>();
 
     blocks.forEach((block) => {
         const current = blocksByVersionId.get(block.workoutVersionId) ?? [];
@@ -43,9 +49,12 @@ const groupBlocksByVersionId = (
 };
 
 export const groupExercisesByBlockId = (
-    exercises: WorkoutExerciseRow[],
-): Map<string, WorkoutExerciseRow[]> => {
-    const exercisesByBlockId = new Map<string, WorkoutExerciseRow[]>();
+    exercises: WorkoutExerciseWithDefinitionRow[],
+): Map<string, WorkoutExerciseWithDefinitionRow[]> => {
+    const exercisesByBlockId = new Map<
+        string,
+        WorkoutExerciseWithDefinitionRow[]
+    >();
 
     exercises.forEach((exercise) => {
         const current = exercisesByBlockId.get(exercise.blockId) ?? [];
@@ -57,8 +66,8 @@ export const groupExercisesByBlockId = (
 };
 
 const workoutBlocksFromDbRows = (
-    blocks: WorkoutBlockRow[],
-    exercisesByBlockId: Map<string, WorkoutExerciseRow[]>,
+    blocks: WorkoutBlockDbRow[],
+    exercisesByBlockId: Map<string, WorkoutExerciseWithDefinitionRow[]>,
 ): WorkoutBlock[] =>
     blocks
         .slice()
@@ -86,7 +95,6 @@ const workoutBlocksFromDbRows = (
 export const workoutToVersionDbRows = (
     workoutSnapshot: Workout,
     workoutVersionId: string,
-    workoutId: string | null,
 ): WorkoutVersionDbRows => {
     const blockDbIdByWorkoutBlockId = new Map<string, string>();
 
@@ -127,7 +135,6 @@ export const workoutToVersionDbRows = (
     return {
         version: {
             id: workoutVersionId,
-            workoutId,
             name: workoutSnapshot.name,
             updatedAtMs: workoutSnapshot.updatedAtMs,
         },
@@ -137,16 +144,16 @@ export const workoutToVersionDbRows = (
 };
 
 export const workoutFromDbRows = (
-    version: WorkoutVersionRow,
-    blocks: WorkoutBlockRow[],
-    exercisesByBlockId: Map<string, WorkoutExerciseRow[]>,
-    args?: { workoutId?: string; isFavorite?: boolean },
+    version: WorkoutVersionDbRow,
+    blocks: WorkoutBlockDbRow[],
+    exercisesByBlockId: Map<string, WorkoutExerciseWithDefinitionRow[]>,
+    args?: { workoutId?: string; workoutName?: string; isFavorite?: boolean },
 ): Workout => {
     const workoutBlocks = workoutBlocksFromDbRows(blocks, exercisesByBlockId);
 
     return {
-        id: args?.workoutId ?? version.workoutId ?? version.id,
-        name: version.name,
+        id: args?.workoutId ?? version.id,
+        name: args?.workoutName ?? version.name,
         blocks: workoutBlocks,
         updatedAtMs: version.updatedAtMs,
         isFavorite: args?.isFavorite,
@@ -154,9 +161,9 @@ export const workoutFromDbRows = (
 };
 
 export const workoutsFromDbRows = (
-    rows: WorkoutWithVersionRow[],
-    blocks: WorkoutBlockRow[],
-    exercises: WorkoutExerciseRow[],
+    rows: WorkoutWithCurrentVersionRow[],
+    blocks: WorkoutBlockDbRow[],
+    exercises: WorkoutExerciseWithDefinitionRow[],
 ): Workout[] => {
     const blocksByVersionId = groupBlocksByVersionId(blocks);
     const exercisesByBlockId = groupExercisesByBlockId(exercises);
@@ -168,6 +175,7 @@ export const workoutsFromDbRows = (
             exercisesByBlockId,
             {
                 workoutId: row.workouts.id,
+                workoutName: row.workouts.name,
                 isFavorite: row.workouts.isFavorite,
             },
         ),
@@ -175,20 +183,27 @@ export const workoutsFromDbRows = (
 };
 
 export const workoutsByVersionIdFromDbRows = (
-    versions: WorkoutVersionRow[],
-    blocks: WorkoutBlockRow[],
-    exercises: WorkoutExerciseRow[],
+    rows: WorkoutVersionWithActiveWorkoutRow[],
+    blocks: WorkoutBlockDbRow[],
+    exercises: WorkoutExerciseWithDefinitionRow[],
 ): Map<string, Workout> => {
     const blocksByVersionId = groupBlocksByVersionId(blocks);
     const exercisesByBlockId = groupExercisesByBlockId(exercises);
 
     return new Map(
-        versions.map((version) => [
-            version.id,
+        rows.map((row) => [
+            row.workout_versions.id,
             workoutFromDbRows(
-                version,
-                blocksByVersionId.get(version.id) ?? [],
+                row.workout_versions,
+                blocksByVersionId.get(row.workout_versions.id) ?? [],
                 exercisesByBlockId,
+                row.workouts
+                    ? {
+                          workoutId: row.workouts.id,
+                          workoutName: row.workouts.name,
+                          isFavorite: row.workouts.isFavorite,
+                      }
+                    : undefined,
             ),
         ]),
     );

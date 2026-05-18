@@ -64,6 +64,9 @@ export const useRemoveWorkout = () => {
             await queryClient.invalidateQueries({
                 queryKey: workoutKeys.all,
             });
+            await queryClient.invalidateQueries({
+                queryKey: workoutSessionKeys.all,
+            });
         },
     });
 };

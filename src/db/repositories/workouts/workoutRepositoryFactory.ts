@@ -38,6 +38,9 @@ export interface WorkoutRepository {
     getAll: () => Workout[];
     getById: (id: string) => Workout | null;
     getCurrentVersionId: (id: string) => string | null;
+    getActiveWorkoutIdsByVersionIds: (
+        versionIds: string[],
+    ) => Map<string, string>;
     getWorkoutByVersionId: (versionId: string) => Workout | null;
     getWorkoutRow: (id: string) => WorkoutDbRow | null;
     getWorkoutVersionRow: (versionId: string) => WorkoutVersionDbRow | null;
@@ -180,6 +183,28 @@ export const createWorkoutRepository = (
                 .get();
 
             return workout?.currentVersionId ?? null;
+        },
+
+        getActiveWorkoutIdsByVersionIds: (
+            versionIds: string[],
+        ): Map<string, string> => {
+            const uniqueVersionIds = Array.from(new Set(versionIds));
+            if (uniqueVersionIds.length === 0) return new Map<string, string>();
+
+            const rows = repositoryDb
+                .select({
+                    id: workoutsTable.id,
+                    currentVersionId: workoutsTable.currentVersionId,
+                })
+                .from(workoutsTable)
+                .where(
+                    inArray(workoutsTable.currentVersionId, uniqueVersionIds),
+                )
+                .all();
+
+            return new Map(
+                rows.map((row) => [row.currentVersionId, row.id]),
+            );
         },
 
         getWorkoutByVersionId: (versionId: string): Workout | null => {

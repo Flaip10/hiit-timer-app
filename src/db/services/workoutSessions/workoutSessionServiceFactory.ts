@@ -4,7 +4,7 @@ import type { WorkoutSessionStats } from '@src/core/entities/workoutSession.inte
 import { uid } from '@src/core/id';
 
 import {
-    workoutSessionsFromDbRows,
+    workoutSessionFromDbRow,
     type WorkoutSessionRow,
 } from '../../mappers/workoutSessionMapper';
 import { hasSameWorkoutContent } from '../../mappers/workouts/workoutContent';
@@ -88,16 +88,8 @@ export const createWorkoutSessionService = ({
             return session.workoutVersionId;
         }
 
-        if (session.workoutId) {
-            const currentVersionId = workoutRepository.getCurrentVersionId(
-                session.workoutId
-            );
-            if (currentVersionId) return currentVersionId;
-        }
-
         return workoutRepository.createWorkoutVersion(
             session.workoutSnapshot,
-            null
         );
     };
 
@@ -111,8 +103,23 @@ export const createWorkoutSessionService = ({
         );
         const workoutsByVersionId =
             workoutRepository.getWorkoutsByVersionIds(versionIds);
+        const activeWorkoutIdsByVersionId =
+            workoutRepository.getActiveWorkoutIdsByVersionIds(versionIds);
 
-        return workoutSessionsFromDbRows(rows, workoutsByVersionId);
+        return rows.map((row) => {
+            const versionWorkout = workoutsByVersionId.get(
+                row.workoutVersionId,
+            );
+            if (!versionWorkout) {
+                throw new Error(`Missing workout content for session ${row.id}`);
+            }
+
+            return workoutSessionFromDbRow(
+                row,
+                versionWorkout,
+                activeWorkoutIdsByVersionId.get(row.workoutVersionId),
+            );
+        });
     };
 
     const buildWorkoutSession = (
@@ -139,20 +146,23 @@ export const createWorkoutSessionService = ({
         const currentWorkoutVersionId = workoutRepository.getCurrentVersionId(
             buildArgs.workout.id
         );
-        const workoutId =
-            currentWorkoutVersionId !== null &&
-            (workoutVersionId === undefined ||
-                currentWorkoutVersionId === workoutVersionId)
-                ? buildArgs.workout.id
-                : undefined;
+        const currentVersionWorkout = currentWorkoutVersionId
+            ? workoutRepository.getWorkoutByVersionId(currentWorkoutVersionId)
+            : null;
+        const nextWorkoutVersionId =
+            workoutVersionId ??
+            (currentWorkoutVersionId !== null &&
+            currentVersionWorkout !== null &&
+            hasSameWorkoutContent(currentVersionWorkout, workoutSnapshot)
+                ? currentWorkoutVersionId
+                : undefined);
 
         return {
             id: uid(),
             startedAtMs: buildArgs.startedAtMs,
             endedAtMs,
             workoutSnapshot,
-            workoutId,
-            workoutVersionId,
+            workoutVersionId: nextWorkoutVersionId,
             workoutNameSnapshot: workoutSnapshot.name,
             totalDurationSec: resolveSessionDurationSec({
                 startedAtMs: buildArgs.startedAtMs,

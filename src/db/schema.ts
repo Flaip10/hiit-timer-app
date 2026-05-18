@@ -88,9 +88,6 @@ export const workoutSessionsTable = sqliteTable('workout_sessions', {
     id: text('id').primaryKey(),
     startedAtMs: integer('started_at_ms').notNull(),
     endedAtMs: integer('ended_at_ms').notNull(),
-    workoutId: text('workout_id').references(() => workoutsTable.id, {
-        onDelete: 'set null',
-    }),
     workoutVersionId: text('workout_version_id')
         .notNull()
         .references(() => workoutVersionsTable.id, { onDelete: 'restrict' }),
@@ -99,5 +96,4 @@ export const workoutSessionsTable = sqliteTable('workout_sessions', {
     statsJson: text('stats_json'),
 }, (table) => [
     index('workout_sessions_version_idx').on(table.workoutVersionId),
-    index('workout_sessions_workout_id_idx').on(table.workoutId),
 ]);

@@ -141,10 +141,6 @@ export const createWorkoutService = ({
             isFavorite: resolvedWorkout.isFavorite === true,
             sortIndex: getSortIndex(resolvedWorkout),
         });
-        workoutSessionRepository.relinkWorkoutToSessions({
-            workoutId: resolvedWorkout.id,
-            workoutVersionId: sourceWorkoutVersionId,
-        });
     };
 
     return {
