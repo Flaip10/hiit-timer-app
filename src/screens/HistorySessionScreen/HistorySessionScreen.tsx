@@ -15,7 +15,7 @@ import { ShareWorkoutModal } from '@src/components/modals/ShareWorkoutModal/Shar
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 
 import { useWorkoutDraftStore } from '@src/state/stores/useWorkoutDraftStore';
-import { useWorkout, useWorkoutCurrentVersionId } from '@src/data/workouts';
+import { useWorkout } from '@src/data/workouts';
 import {
     useRemoveWorkoutSession,
     useWorkoutSession,
@@ -48,9 +48,6 @@ const HistorySessionScreen = () => {
 
     const { data: session } = useWorkoutSession(sessionId);
     const { data: savedWorkout } = useWorkout(session?.workoutId);
-    const { data: savedWorkoutVersionId } = useWorkoutCurrentVersionId(
-        session?.workoutId,
-    );
     const startDraftFromImported = useWorkoutDraftStore(
         (s) => s.startDraftFromImported,
     );
@@ -230,15 +227,10 @@ const HistorySessionScreen = () => {
 
     const canOpenSavedWorkout = !!session.workoutId && !!savedWorkout;
 
-    // Check if the saved workout matches the session version
-    const savedWorkoutMatchesSessionVersion = (() => {
-        if (!canOpenSavedWorkout) return false;
-
-        return savedWorkoutVersionId === session.workoutVersionId;
-    })();
+    const hasSavedWorkoutForSession = canOpenSavedWorkout;
 
     const handleRunAgain = () => {
-        if (savedWorkoutMatchesSessionVersion && session.workoutId) {
+        if (hasSavedWorkoutForSession && session.workoutId) {
             router.push({
                 pathname: `/run/${session.workoutId}`,
                 params: { autoStart: '1' },
@@ -257,7 +249,7 @@ const HistorySessionScreen = () => {
     };
 
     const handleOpenWorkout = () => {
-        if (savedWorkoutMatchesSessionVersion && session.workoutId) {
+        if (hasSavedWorkoutForSession && session.workoutId) {
             router.push(`/workouts/${session.workoutId}`);
             return;
         }
@@ -605,7 +597,7 @@ const HistorySessionScreen = () => {
                     <View style={st.actionsContainer}>
                         <Button
                             title={
-                                savedWorkoutMatchesSessionVersion
+                                hasSavedWorkoutForSession
                                     ? t('historySession.actions.openWorkout')
                                     : t('historySession.actions.saveWorkout')
                             }
@@ -622,18 +614,6 @@ const HistorySessionScreen = () => {
                                 {t('historySession.hints.noSavedWorkout')}
                             </AppText>
                         )}
-                        {canOpenSavedWorkout &&
-                            !savedWorkoutMatchesSessionVersion && (
-                                <AppText
-                                    variant="bodySmall"
-                                    tone="secondary"
-                                    style={st.linkHint}
-                                >
-                                    {t(
-                                        'historySession.hints.workoutEditedSinceSession',
-                                    )}
-                                </AppText>
-                            )}
                     </View>
                 </ScreenSection>
             </MainContainer>
