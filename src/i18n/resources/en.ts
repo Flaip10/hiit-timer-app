@@ -31,6 +31,7 @@ export const en: I18nResource = {
     drawer: {
         home: 'Home',
         workouts: 'Workouts',
+        exercises: 'Exercises',
         history: 'History',
         settings: 'Settings',
         quickAccess: 'Quick access',
@@ -267,6 +268,43 @@ export const en: I18nResource = {
                 readFailed: 'Could not read the selected file.',
                 unexpected: 'Import failed due to an unexpected error.',
             },
+        },
+    },
+    exerciseDefinitions: {
+        title: 'Exercises',
+        detailsTitle: 'Exercise',
+        searchPlaceholder: 'Search exercises',
+        newButton: '＋ New',
+        createButton: '＋ Create exercise',
+        emptyTitle: 'No exercises yet',
+        emptyDescription:
+            'Create your first exercise to build your catalog.',
+        notFound: 'Exercise not found.',
+        overview: 'Overview',
+        fields: {
+            name: 'Name',
+            namePlaceholder: 'e.g., Push-ups',
+            availability: 'Availability',
+            source: 'Source',
+        },
+        source: {
+            system: 'System',
+            user: 'Custom',
+        },
+        availability: {
+            both: 'Workout + Gym',
+            workout: 'Workout',
+            gym: 'Gym',
+        },
+        modal: {
+            createTitle: 'New exercise',
+            editTitle: 'Edit exercise',
+            subtitle: 'Keep your exercise catalog clear and reusable.',
+            create: 'Create',
+            save: 'Save',
+        },
+        validation: {
+            nameRequired: 'Exercise name is required.',
         },
     },
     workoutSummary: {

@@ -29,6 +29,7 @@ export interface I18nResource {
     drawer: {
         home: string;
         workouts: string;
+        exercises: string;
         history: string;
         settings: string;
         quickAccess: string;
@@ -259,6 +260,42 @@ export interface I18nResource {
                 readFailed: string;
                 unexpected: string;
             };
+        };
+    };
+    exerciseDefinitions: {
+        title: string;
+        detailsTitle: string;
+        searchPlaceholder: string;
+        newButton: string;
+        createButton: string;
+        emptyTitle: string;
+        emptyDescription: string;
+        notFound: string;
+        overview: string;
+        fields: {
+            name: string;
+            namePlaceholder: string;
+            availability: string;
+            source: string;
+        };
+        source: {
+            system: string;
+            user: string;
+        };
+        availability: {
+            both: string;
+            workout: string;
+            gym: string;
+        };
+        modal: {
+            createTitle: string;
+            editTitle: string;
+            subtitle: string;
+            create: string;
+            save: string;
+        };
+        validation: {
+            nameRequired: string;
         };
     };
     workoutSummary: {

@@ -31,6 +31,7 @@ export const ptPT: I18nResource = {
     drawer: {
         home: 'Início',
         workouts: 'Treinos',
+        exercises: 'Exercícios',
         history: 'Histórico',
         settings: 'Definições',
         quickAccess: 'Acesso rápido',
@@ -270,6 +271,43 @@ export const ptPT: I18nResource = {
                 readFailed: 'Não foi possível ler o ficheiro selecionado.',
                 unexpected: 'A importação falhou devido a um erro inesperado.',
             },
+        },
+    },
+    exerciseDefinitions: {
+        title: 'Exercícios',
+        detailsTitle: 'Exercício',
+        searchPlaceholder: 'Pesquisar exercícios',
+        newButton: '＋ Novo',
+        createButton: '＋ Criar exercício',
+        emptyTitle: 'Ainda não existem exercícios',
+        emptyDescription:
+            'Cria o teu primeiro exercício para construir o catálogo.',
+        notFound: 'Exercício não encontrado.',
+        overview: 'Visão geral',
+        fields: {
+            name: 'Nome',
+            namePlaceholder: 'ex.: Flexões',
+            availability: 'Disponibilidade',
+            source: 'Origem',
+        },
+        source: {
+            system: 'Sistema',
+            user: 'Personalizado',
+        },
+        availability: {
+            both: 'Treino + Ginásio',
+            workout: 'Treino',
+            gym: 'Ginásio',
+        },
+        modal: {
+            createTitle: 'Novo exercício',
+            editTitle: 'Editar exercício',
+            subtitle: 'Mantém o catálogo de exercícios claro e reutilizável.',
+            create: 'Criar',
+            save: 'Guardar',
+        },
+        validation: {
+            nameRequired: 'O nome do exercício é obrigatório.',
         },
     },
     workoutSummary: {

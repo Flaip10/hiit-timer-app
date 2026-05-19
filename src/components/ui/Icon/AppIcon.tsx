@@ -129,6 +129,11 @@ const ICON_MAP = {
         name: 'trash-outline',
         defaultSize: 18,
     },
+    edit: {
+        lib: 'ion',
+        name: 'create-outline',
+        defaultSize: 18,
+    },
     star: {
         lib: 'ion',
         name: 'star',

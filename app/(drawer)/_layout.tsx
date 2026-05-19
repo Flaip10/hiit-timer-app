@@ -32,6 +32,10 @@ const DrawerLayout = () => {
                 options={{ title: t('drawer.workouts') }}
             />
             <Drawer.Screen
+                name="exercise-definitions/index"
+                options={{ title: t('drawer.exercises') }}
+            />
+            <Drawer.Screen
                 name="history/index"
                 options={{ title: t('drawer.history') }}
             />
