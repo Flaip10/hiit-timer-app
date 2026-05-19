@@ -362,4 +362,87 @@ describe('workoutSessionService integration', () => {
             .get();
         expect(retainedSavedVersion?.id).toBe(savedVersionId);
     });
+
+    it('getById returns a hydrated session when the id exists', () => {
+        const workout = createWorkoutFixture();
+        const { workoutSessionService } = context.testDb.dbServices;
+
+        const created = workoutSessionService.createSessionFromSnapshot({
+            workout,
+            startedAtMs: 100_000,
+            endedAtMs: 220_000,
+        });
+
+        const found = workoutSessionService.getById(created.id);
+
+        expect(found).not.toBeNull();
+        expect(found?.id).toBe(created.id);
+        expect(found?.workoutSnapshot.name).toBe(workout.name);
+        expect(found?.startedAtMs).toBe(100_000);
+        expect(found?.endedAtMs).toBe(220_000);
+        expect(found?.totalDurationSec).toBe(120);
+    });
+
+    it('getById returns null when the id does not exist', () => {
+        const { workoutSessionService } = context.testDb.dbServices;
+
+        expect(workoutSessionService.getById('non-existent-session')).toBeNull();
+    });
+
+    it('clearSessions removes all sessions from the DB', () => {
+        const { workoutSessionService } = context.testDb.dbServices;
+
+        workoutSessionService.createSessionFromSnapshot({
+            workout: createWorkoutFixture({ id: 'w1', name: 'First' }),
+            startedAtMs: 100_000,
+            endedAtMs: 200_000,
+        });
+        workoutSessionService.createSessionFromSnapshot({
+            workout: createWorkoutFixture({ id: 'w2', name: 'Second' }),
+            startedAtMs: 200_000,
+            endedAtMs: 300_000,
+        });
+
+        workoutSessionService.clearSessions();
+
+        expect(workoutSessionService.getAll()).toHaveLength(0);
+    });
+
+    it('clearSessions removes orphaned versions but keeps active workout versions', () => {
+        const { workoutService, workoutRepository, workoutSessionService } =
+            context.testDb.dbServices;
+
+        const quickWorkout = createQuickWorkoutFixture({ id: 'quick-workout' });
+        workoutSessionService.createSessionFromSnapshot({
+            workout: quickWorkout,
+            startedAtMs: 100_000,
+            endedAtMs: 220_000,
+        });
+
+        const savedWorkout = createWorkoutFixture({ id: 'saved-workout' });
+        workoutService.upsertWorkout({ workout: savedWorkout });
+        const savedVersionId = workoutRepository.getCurrentVersionId(
+            savedWorkout.id,
+        );
+        expect(savedVersionId).toBeTruthy();
+        if (!savedVersionId) throw new Error('Expected saved version');
+
+        workoutSessionService.createSession({
+            versionId: savedVersionId,
+            startedAtMs: 200_000,
+            endedAtMs: 320_000,
+        });
+
+        workoutSessionService.clearSessions();
+
+        const remainingVersions = context.testDb.db
+            .select()
+            .from(workoutVersionsTable)
+            .all();
+
+        // The orphaned quick-workout version is removed; the saved workout's
+        // version is retained because the workout still owns it.
+        expect(remainingVersions).toHaveLength(1);
+        expect(remainingVersions[0]?.id).toBe(savedVersionId);
+    });
 });
