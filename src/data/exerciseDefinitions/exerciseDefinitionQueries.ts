@@ -14,3 +14,13 @@ export const useExerciseDefinitions = (
         initialData: () =>
             dbServices.exerciseDefinitionService.list(params),
     });
+
+export const useExerciseDefinition = (id?: string) =>
+    useQuery({
+        queryKey: exerciseDefinitionKeys.detail(id),
+        queryFn: () =>
+            id ? dbServices.exerciseDefinitionService.getById(id) : null,
+        enabled: !!id,
+        initialData: () =>
+            id ? dbServices.exerciseDefinitionService.getById(id) : null,
+    });

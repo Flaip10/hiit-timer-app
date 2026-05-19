@@ -1,6 +1,9 @@
 export { exerciseDefinitionKeys } from './exerciseDefinitionKeys';
 export { useUpsertExerciseDefinition } from './exerciseDefinitionMutations';
-export { useExerciseDefinitions } from './exerciseDefinitionQueries';
+export {
+    useExerciseDefinition,
+    useExerciseDefinitions,
+} from './exerciseDefinitionQueries';
 export type { UpsertExerciseDefinitionArgs } from './exerciseDefinitionMutations';
 export type {
     ExerciseDefinitionListFilters,
