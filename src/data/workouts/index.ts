@@ -6,5 +6,6 @@ export {
 } from './workoutMutations';
 export {
     useWorkout,
+    useWorkoutCurrentVersionId,
     useWorkouts,
 } from './workoutQueries';

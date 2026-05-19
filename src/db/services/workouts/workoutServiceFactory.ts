@@ -15,6 +15,7 @@ export interface UpsertWorkoutArgs {
 export interface WorkoutService {
     getAll: () => Workout[];
     getById: (id: string) => Workout | null;
+    getCurrentVersionId: (workoutId: string) => string | null;
     upsertWorkout: (args: UpsertWorkoutArgs) => void;
     toggleFavorite: (workout: Workout) => void;
     deleteWorkout: (id: string) => void;
@@ -34,13 +35,10 @@ const assertWorkoutExercisesCanBePersisted = (workout: Workout): void => {
         block.exercises.forEach((exercise) => {
             const hasDefinition = !!exercise.exerciseDefinitionId;
             const hasName =
-                exercise.name !== undefined &&
-                exercise.name.trim().length > 0;
+                exercise.name !== undefined && exercise.name.trim().length > 0;
 
             if (!hasDefinition && !hasName) {
-                throw new Error(
-                    'Cannot save a workout with unnamed exercises',
-                );
+                throw new Error('Cannot save a workout with unnamed exercises');
             }
         });
     });
@@ -70,10 +68,7 @@ export const createWorkoutService = ({
         if (!existingWorkout) {
             const versionId = uid();
 
-            workoutRepository.insertWorkoutVersion(
-                resolvedWorkout,
-                versionId,
-            );
+            workoutRepository.insertWorkoutVersion(resolvedWorkout, versionId);
             workoutRepository.insertWorkout({
                 id: resolvedWorkout.id,
                 name: resolvedWorkout.name,
@@ -147,6 +142,9 @@ export const createWorkoutService = ({
         getAll: (): Workout[] => workoutRepository.getAll(),
 
         getById: (id: string): Workout | null => workoutRepository.getById(id),
+
+        getCurrentVersionId: (workoutId: string): string | null =>
+            workoutRepository.getCurrentVersionId(workoutId),
 
         upsertWorkout: ({
             sourceWorkoutVersionId,

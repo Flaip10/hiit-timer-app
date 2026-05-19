@@ -9,10 +9,6 @@ import {
 } from '../../mappers/workoutSessionMapper';
 import type { RepositoryDb } from '../workouts/workoutRepositoryFactory';
 
-export interface PersistedWorkoutSession extends WorkoutSession {
-    workoutVersionId: string;
-}
-
 export interface WorkoutSessionRepository {
     getAllRows: () => WorkoutSessionRow[];
     getRecentRows: (limit: number) => WorkoutSessionRow[];
@@ -20,7 +16,7 @@ export interface WorkoutSessionRepository {
     hasSessionForVersion: (versionId: string) => boolean;
     readExistingIds: (ids: string[]) => Set<string>;
     readUsedVersionIds: (versionIds: string[]) => Set<string>;
-    insertSession: (session: PersistedWorkoutSession) => void;
+    insertSession: (session: WorkoutSession) => void;
     clearSessions: () => void;
     deleteSession: (id: string) => void;
 }
@@ -101,7 +97,7 @@ export const createWorkoutSessionRepository = (
             return new Set(rows.map((row) => row.workoutVersionId));
         },
 
-        insertSession: (session: PersistedWorkoutSession): void => {
+        insertSession: (session: WorkoutSession): void => {
             const row = workoutSessionToDbRow(session);
 
             repositoryDb.insert(workoutSessionsTable).values(row).run();

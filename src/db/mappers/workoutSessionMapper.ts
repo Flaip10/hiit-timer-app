@@ -7,14 +7,10 @@ import type { Workout } from '@src/core/entities/entities';
 import type { workoutSessionsTable } from '../schema';
 import { isWorkoutSessionStats } from './jsonGuards';
 
-interface PersistedWorkoutSession extends WorkoutSession {
-    workoutVersionId: string;
-}
-
 export type WorkoutSessionRow = typeof workoutSessionsTable.$inferSelect;
 
 export const workoutSessionToDbRow = (
-    session: PersistedWorkoutSession,
+    session: WorkoutSession,
 ): typeof workoutSessionsTable.$inferInsert => ({
     id: session.id,
     startedAtMs: session.startedAtMs,

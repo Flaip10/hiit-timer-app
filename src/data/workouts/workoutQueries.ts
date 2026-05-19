@@ -16,6 +16,19 @@ export const useWorkout = (id?: string) =>
         queryKey: workoutKeys.detail(id ?? 'missing'),
         queryFn: () => (id ? dbServices.workoutService.getById(id) : null),
         enabled: !!id,
+        initialData: () => (id ? dbServices.workoutService.getById(id) : null),
+    });
+
+export const useWorkoutCurrentVersionId = (workoutId?: string) =>
+    useQuery({
+        queryKey: workoutKeys.currentVersionId(workoutId ?? 'missing'),
+        queryFn: () =>
+            workoutId
+                ? dbServices.workoutService.getCurrentVersionId(workoutId)
+                : null,
+        enabled: !!workoutId,
         initialData: () =>
-            id ? dbServices.workoutService.getById(id) : null,
+            workoutId
+                ? dbServices.workoutService.getCurrentVersionId(workoutId)
+                : null,
     });

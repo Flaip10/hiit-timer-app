@@ -1,23 +1,27 @@
 import type { Workout } from '@src/core/entities/entities';
-import type { WorkoutSession } from '@src/core/entities/workoutSession.interfaces';
-import type { WorkoutSessionStats } from '@src/core/entities/workoutSession.interfaces';
+import type {
+    WorkoutSession,
+    WorkoutSessionStats,
+} from '@src/core/entities/workoutSession.interfaces';
 import { uid } from '@src/core/id';
 
 import {
     workoutSessionFromDbRow,
     type WorkoutSessionRow,
 } from '../../mappers/workoutSessionMapper';
-import { hasSameWorkoutContent } from '../../mappers/workouts/workoutContent';
 import type { ExerciseDefinitionService } from '../exerciseDefinitions/exerciseDefinitionServiceFactory';
-import type {
-    PersistedWorkoutSession,
-    WorkoutSessionRepository,
-} from '../../repositories/workoutSessions/workoutSessionRepositoryFactory';
+import type { WorkoutSessionRepository } from '../../repositories/workoutSessions/workoutSessionRepositoryFactory';
 import type { WorkoutRepository } from '../../repositories/workouts/workoutRepositoryFactory';
 
 export interface CreateWorkoutSessionArgs {
+    versionId: string;
+    startedAtMs: number;
+    endedAtMs: number;
+    stats?: WorkoutSessionStats;
+}
+
+export interface CreateWorkoutSessionFromSnapshotArgs {
     workout: Workout;
-    sourceWorkoutVersionId?: string;
     startedAtMs: number;
     endedAtMs: number;
     stats?: WorkoutSessionStats;
@@ -28,6 +32,9 @@ export interface WorkoutSessionService {
     getById: (id: string) => WorkoutSession | null;
     getRecent: (limit: number) => WorkoutSession[];
     createSession: (args: CreateWorkoutSessionArgs) => WorkoutSession;
+    createSessionFromSnapshot: (
+        args: CreateWorkoutSessionFromSnapshotArgs,
+    ) => WorkoutSession;
     clearSessions: () => void;
     deleteSession: (id: string) => void;
 }
@@ -57,6 +64,31 @@ const resolveSessionDurationSec = (args: {
     return Math.round((endedAtMs - startedAtMs) / 1000);
 };
 
+const buildPersistedSession = (args: {
+    versionId: string;
+    workoutSnapshot: Workout;
+    startedAtMs: number;
+    endedAtMs: number;
+    stats?: WorkoutSessionStats;
+}): WorkoutSession => {
+    const endedAtMs = Math.max(args.endedAtMs, args.startedAtMs);
+
+    return {
+        id: uid(),
+        startedAtMs: args.startedAtMs,
+        endedAtMs,
+        workoutSnapshot: args.workoutSnapshot,
+        workoutVersionId: args.versionId,
+        workoutNameSnapshot: args.workoutSnapshot.name,
+        totalDurationSec: resolveSessionDurationSec({
+            startedAtMs: args.startedAtMs,
+            endedAtMs,
+            stats: args.stats,
+        }),
+        stats: args.stats,
+    };
+};
+
 export const createWorkoutSessionService = ({
     exerciseDefinitionService,
     workoutRepository,
@@ -83,19 +115,7 @@ export const createWorkoutSessionService = ({
         });
     };
 
-    const resolveWorkoutVersionId = (session: WorkoutSession): string => {
-        if (session.workoutVersionId && session.workoutVersionId.length > 0) {
-            return session.workoutVersionId;
-        }
-
-        return workoutRepository.createWorkoutVersion(
-            session.workoutSnapshot,
-        );
-    };
-
-    const hydrateSessionRows = (
-        rows: WorkoutSessionRow[],
-    ): WorkoutSession[] => {
+    const hydrateSessionRows = (rows: WorkoutSessionRow[]): WorkoutSession[] => {
         if (rows.length === 0) return [];
 
         const versionIds = Array.from(
@@ -107,9 +127,7 @@ export const createWorkoutSessionService = ({
             workoutRepository.getActiveWorkoutIdsByVersionIds(versionIds);
 
         return rows.map((row) => {
-            const versionWorkout = workoutsByVersionId.get(
-                row.workoutVersionId,
-            );
+            const versionWorkout = workoutsByVersionId.get(row.workoutVersionId);
             if (!versionWorkout) {
                 throw new Error(`Missing workout content for session ${row.id}`);
             }
@@ -120,57 +138,6 @@ export const createWorkoutSessionService = ({
                 activeWorkoutIdsByVersionId.get(row.workoutVersionId),
             );
         });
-    };
-
-    const buildWorkoutSession = (
-        buildArgs: CreateWorkoutSessionArgs,
-    ): WorkoutSession => {
-        const endedAtMs = Math.max(buildArgs.endedAtMs, buildArgs.startedAtMs);
-        const workoutSnapshot =
-            exerciseDefinitionService.resolveWorkoutExerciseDefinitions({
-                ...buildArgs.workout,
-                updatedAtMs: Number.isFinite(buildArgs.workout.updatedAtMs)
-                    ? buildArgs.workout.updatedAtMs
-                    : endedAtMs,
-            });
-        const sourceVersionWorkout = buildArgs.sourceWorkoutVersionId
-            ? workoutRepository.getWorkoutByVersionId(
-                  buildArgs.sourceWorkoutVersionId
-              )
-            : null;
-        const workoutVersionId =
-            sourceVersionWorkout !== null &&
-            hasSameWorkoutContent(sourceVersionWorkout, workoutSnapshot)
-                ? buildArgs.sourceWorkoutVersionId
-                : undefined;
-        const currentWorkoutVersionId = workoutRepository.getCurrentVersionId(
-            buildArgs.workout.id
-        );
-        const currentVersionWorkout = currentWorkoutVersionId
-            ? workoutRepository.getWorkoutByVersionId(currentWorkoutVersionId)
-            : null;
-        const nextWorkoutVersionId =
-            workoutVersionId ??
-            (currentWorkoutVersionId !== null &&
-            currentVersionWorkout !== null &&
-            hasSameWorkoutContent(currentVersionWorkout, workoutSnapshot)
-                ? currentWorkoutVersionId
-                : undefined);
-
-        return {
-            id: uid(),
-            startedAtMs: buildArgs.startedAtMs,
-            endedAtMs,
-            workoutSnapshot,
-            workoutVersionId: nextWorkoutVersionId,
-            workoutNameSnapshot: workoutSnapshot.name,
-            totalDurationSec: resolveSessionDurationSec({
-                startedAtMs: buildArgs.startedAtMs,
-                endedAtMs,
-                stats: buildArgs.stats,
-            }),
-            stats: buildArgs.stats,
-        };
     };
 
     return {
@@ -187,16 +154,50 @@ export const createWorkoutSessionService = ({
         getRecent: (limit: number): WorkoutSession[] =>
             hydrateSessionRows(workoutSessionRepository.getRecentRows(limit)),
 
-        createSession: (args: CreateWorkoutSessionArgs): WorkoutSession => {
-            const session = buildWorkoutSession(args);
-            const nextSession: PersistedWorkoutSession = {
-                ...session,
-                workoutVersionId: resolveWorkoutVersionId(session),
-            };
+        createSession: ({ versionId, startedAtMs, endedAtMs, stats }): WorkoutSession => {
+            const workoutContent = workoutRepository.getWorkoutByVersionId(versionId);
+            if (!workoutContent) {
+                throw new Error(`Workout version ${versionId} not found`);
+            }
 
-            workoutSessionRepository.insertSession(nextSession);
+            const session = buildPersistedSession({
+                versionId,
+                workoutSnapshot: workoutContent,
+                startedAtMs,
+                endedAtMs,
+                stats,
+            });
 
-            return nextSession;
+            workoutSessionRepository.insertSession(session);
+            return session;
+        },
+
+        createSessionFromSnapshot: ({
+            workout,
+            startedAtMs,
+            endedAtMs,
+            stats,
+        }): WorkoutSession => {
+            const endedAtMsResolved = Math.max(endedAtMs, startedAtMs);
+            const workoutSnapshot =
+                exerciseDefinitionService.resolveWorkoutExerciseDefinitions({
+                    ...workout,
+                    updatedAtMs: Number.isFinite(workout.updatedAtMs)
+                        ? workout.updatedAtMs
+                        : endedAtMsResolved,
+                });
+            const versionId = workoutRepository.createWorkoutVersion(workoutSnapshot);
+
+            const session = buildPersistedSession({
+                versionId,
+                workoutSnapshot,
+                startedAtMs,
+                endedAtMs: endedAtMsResolved,
+                stats,
+            });
+
+            workoutSessionRepository.insertSession(session);
+            return session;
         },
 
         clearSessions: (): void => {
@@ -205,7 +206,7 @@ export const createWorkoutSessionService = ({
             workoutSessionRepository.clearSessions();
 
             const versionIds = new Set(
-                deletedRows.map((row) => row.workoutVersionId)
+                deletedRows.map((row) => row.workoutVersionId),
             );
 
             deleteWorkoutVersionsIfOrphan(versionIds);
