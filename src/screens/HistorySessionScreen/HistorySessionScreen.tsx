@@ -15,7 +15,8 @@ import { ShareWorkoutModal } from '@src/components/modals/ShareWorkoutModal/Shar
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 
 import { useWorkoutDraftStore } from '@src/state/stores/useWorkoutDraftStore';
-import { useWorkout } from '@src/data/workouts';
+import { useWorkoutRunStore } from '@src/state/stores/useWorkoutRunStore';
+import { useWorkout, useWorkoutCurrentVersionId } from '@src/data/workouts';
 import {
     useRemoveWorkoutSession,
     useWorkoutSession,
@@ -48,6 +49,9 @@ const HistorySessionScreen = () => {
 
     const { data: session } = useWorkoutSession(sessionId);
     const { data: savedWorkout } = useWorkout(session?.activeWorkoutId);
+    const { data: savedWorkoutCurrentVersionId } = useWorkoutCurrentVersionId(
+        session?.activeWorkoutId,
+    );
     const startDraftFromImported = useWorkoutDraftStore(
         (s) => s.startDraftFromImported,
     );
@@ -231,6 +235,9 @@ const HistorySessionScreen = () => {
 
     const handleRunAgain = () => {
         if (hasSavedWorkoutForSession && session.activeWorkoutId) {
+            useWorkoutRunStore
+                .getState()
+                .setSourceVersionId(savedWorkoutCurrentVersionId ?? null);
             router.push({
                 pathname: `/run/${session.activeWorkoutId}`,
                 params: { autoStart: '1' },
@@ -238,6 +245,9 @@ const HistorySessionScreen = () => {
             return;
         }
 
+        useWorkoutRunStore
+            .getState()
+            .setSourceVersionId(session.workoutVersionId);
         startDraftFromImported(
             session.workoutSnapshot,
             session.workoutVersionId,
