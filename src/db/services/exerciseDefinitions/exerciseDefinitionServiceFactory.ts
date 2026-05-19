@@ -8,8 +8,18 @@ import { normalizeExerciseName } from '@src/core/exercises/normalizeExerciseName
 import { systemExerciseDefinitions } from '@src/core/exercises/systemExerciseDefinitions';
 import { uid } from '@src/core/id';
 
-import type { ExerciseDefinitionRepository } from '../../repositories/exerciseDefinitions/exerciseDefinitionRepositoryFactory';
+import type {
+    ExerciseDefinitionListParams,
+    ExerciseDefinitionRepository,
+} from '../../repositories/exerciseDefinitions/exerciseDefinitionRepositoryFactory';
 import { systemClock, type Clock } from '../../repositories/repositoryClock';
+
+export type {
+    ExerciseDefinitionListFilters,
+    ExerciseDefinitionListPagination,
+    ExerciseDefinitionListParams,
+    ExerciseDefinitionListScope,
+} from '../../repositories/exerciseDefinitions/exerciseDefinitionRepositoryFactory';
 
 export interface CreateUserExerciseDefinitionInput {
     availability?: ExerciseDefinitionAvailability;
@@ -32,9 +42,9 @@ export interface ExerciseDefinitionService {
     findOrCreateUserExerciseDefinitionByName: (
         name: string,
     ) => ExerciseDefinition | null;
-    getAll: () => ExerciseDefinition[];
     getById: (id: string) => ExerciseDefinition | null;
     getByNormalizedName: (normalizedName: string) => ExerciseDefinition | null;
+    list: (params?: ExerciseDefinitionListParams) => ExerciseDefinition[];
     resolveWorkoutExerciseDefinitions: (workout: Workout) => Workout;
     seedSystemDefinitions: () => void;
     updateExerciseDefinition: (
@@ -135,8 +145,16 @@ export const createExerciseDefinitionService = ({
             );
         },
 
-        getAll: (): ExerciseDefinition[] =>
-            exerciseDefinitionRepository.getAll(),
+        list: ({
+            filters,
+            pagination,
+            scope = 'active',
+        }: ExerciseDefinitionListParams = {}): ExerciseDefinition[] =>
+            exerciseDefinitionRepository.list({
+                filters,
+                pagination,
+                scope,
+            }),
 
         getById: (id: string): ExerciseDefinition | null =>
             exerciseDefinitionRepository.getById(id),
@@ -196,11 +214,7 @@ export const createExerciseDefinitionService = ({
         },
 
         updateExerciseDefinition: (
-            {
-                availability,
-                id,
-                name,
-            }: UpdateExerciseDefinitionInput,
+            { availability, id, name }: UpdateExerciseDefinitionInput,
             mode: UpdateExerciseDefinitionMode,
         ): ExerciseDefinition | null => {
             if (mode === 'create-new') {

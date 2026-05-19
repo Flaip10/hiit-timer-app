@@ -1,4 +1,4 @@
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq, exists, like, or } from 'drizzle-orm';
 import type { BaseSQLiteDatabase } from 'drizzle-orm/sqlite-core';
 
 import type {
@@ -6,6 +6,7 @@ import type {
     ExerciseDefinitionAvailability,
     ExerciseDefinitionSource,
 } from '@src/core/entities/entities';
+import { normalizeExerciseName } from '@src/core/exercises/normalizeExerciseName';
 
 import {
     exerciseDefinitionsTable,
@@ -41,6 +42,24 @@ export interface UpdateExerciseDefinitionInput {
     updatedAtMs: number;
 }
 
+export interface ExerciseDefinitionListFilters {
+    availability?: ExerciseDefinitionAvailability;
+    name?: string;
+    source?: ExerciseDefinitionSource;
+}
+
+export interface ExerciseDefinitionListPagination {
+    limit?: number;
+}
+
+export type ExerciseDefinitionListScope = 'active' | 'all';
+
+export interface ExerciseDefinitionListParams {
+    filters?: ExerciseDefinitionListFilters;
+    pagination?: ExerciseDefinitionListPagination;
+    scope?: ExerciseDefinitionListScope;
+}
+
 export interface ExerciseDefinitionRepository {
     create: (input: CreateExerciseDefinitionInput) => ExerciseDefinition;
     deleteById: (id: string) => void;
@@ -48,6 +67,7 @@ export interface ExerciseDefinitionRepository {
     getById: (id: string) => ExerciseDefinition | null;
     getByNormalizedName: (normalizedName: string) => ExerciseDefinition | null;
     hasWorkoutExerciseReferences: (id: string) => boolean;
+    list: (params?: ExerciseDefinitionListParams) => ExerciseDefinition[];
     update: (input: UpdateExerciseDefinitionInput) => ExerciseDefinition;
 }
 
@@ -84,6 +104,19 @@ export const createExerciseDefinitionRepository = ({
                 `Exercise definition already exists for normalized name "${normalizedName}"`,
             );
         }
+    };
+
+    const normalizeLimit = (limit?: number): number | undefined =>
+        limit !== undefined && Number.isInteger(limit) && limit > 0
+            ? limit
+            : undefined;
+
+    const normalizeNameFilter = (name?: string): string | undefined => {
+        if (!name) return undefined;
+
+        const normalizedName = normalizeExerciseName(name);
+
+        return normalizedName.length > 0 ? normalizedName : undefined;
     };
 
     const repository: ExerciseDefinitionRepository = {
@@ -140,9 +173,65 @@ export const createExerciseDefinitionRepository = ({
                 .select({ id: workoutExercisesTable.id })
                 .from(workoutExercisesTable)
                 .where(eq(workoutExercisesTable.exerciseDefinitionId, id))
+                .limit(1)
                 .get();
 
             return reference !== undefined;
+        },
+
+        list: ({
+            filters,
+            pagination,
+            scope = 'active',
+        }: ExerciseDefinitionListParams = {}): ExerciseDefinition[] => {
+            const normalizedNameFilter = normalizeNameFilter(filters?.name);
+            const conditions = [
+                scope === 'active'
+                    ? or(
+                          eq(exerciseDefinitionsTable.source, 'user'),
+                          exists(
+                              db
+                                  .select({ id: workoutExercisesTable.id })
+                                  .from(workoutExercisesTable)
+                                  .where(
+                                      eq(
+                                          workoutExercisesTable.exerciseDefinitionId,
+                                          exerciseDefinitionsTable.id,
+                                      ),
+                                  ),
+                          ),
+                      )
+                    : undefined,
+                filters?.source
+                    ? eq(exerciseDefinitionsTable.source, filters.source)
+                    : undefined,
+                filters?.availability
+                    ? or(
+                          eq(exerciseDefinitionsTable.availability, 'both'),
+                          eq(
+                              exerciseDefinitionsTable.availability,
+                              filters.availability,
+                          ),
+                      )
+                    : undefined,
+                normalizedNameFilter
+                    ? like(
+                          exerciseDefinitionsTable.normalizedName,
+                          `%${normalizedNameFilter}%`,
+                      )
+                    : undefined,
+            ];
+            const whereClause = and(...conditions);
+            const query = db
+                .select()
+                .from(exerciseDefinitionsTable)
+                .where(whereClause)
+                .orderBy(asc(exerciseDefinitionsTable.name));
+            const limit = normalizeLimit(pagination?.limit);
+            const rows =
+                limit === undefined ? query.all() : query.limit(limit).all();
+
+            return rows.map(exerciseDefinitionFromRow);
         },
 
         update: (input: UpdateExerciseDefinitionInput): ExerciseDefinition => {
