@@ -21,7 +21,6 @@ describe('workoutSessionToDbRow', () => {
             startedAtMs: 1_700_000_000_000,
             endedAtMs: 1_700_000_300_000,
             workoutVersionId: 'version-1',
-            workoutNameSnapshot: workoutSnapshot.name,
             workoutSnapshot,
             totalDurationSec: 300,
             stats,
@@ -34,7 +33,6 @@ describe('workoutSessionToDbRow', () => {
             startedAtMs: session.startedAtMs,
             endedAtMs: session.endedAtMs,
             workoutVersionId: session.workoutVersionId,
-            workoutNameSnapshot: session.workoutNameSnapshot ?? null,
             totalDurationSec: session.totalDurationSec ?? null,
             statsJson: JSON.stringify(session.stats),
         });
@@ -53,7 +51,6 @@ describe('workoutSessionToDbRow', () => {
         const row = workoutSessionToDbRow(session);
 
         expect(row).toMatchObject({
-            workoutNameSnapshot: null,
             totalDurationSec: null,
             statsJson: null,
         });
@@ -72,7 +69,6 @@ describe('workoutSessionFromDbRow', () => {
             endedAtMs: row.endedAtMs,
             activeWorkoutId: undefined,
             workoutVersionId: row.workoutVersionId,
-            workoutNameSnapshot: row.workoutNameSnapshot ?? undefined,
             workoutSnapshot,
             totalDurationSec: row.totalDurationSec ?? undefined,
             stats,
@@ -83,7 +79,11 @@ describe('workoutSessionFromDbRow', () => {
         const row = createSessionRowFixture();
         const activeWorkoutId = 'active-workout-1';
 
-        const session = workoutSessionFromDbRow(row, workoutSnapshot, activeWorkoutId);
+        const session = workoutSessionFromDbRow(
+            row,
+            workoutSnapshot,
+            activeWorkoutId,
+        );
 
         expect(session.activeWorkoutId).toBe(activeWorkoutId);
     });

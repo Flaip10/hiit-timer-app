@@ -27,7 +27,6 @@ export interface WorkoutSession {
     workoutSnapshot: Workout;
     activeWorkoutId?: string;
     workoutVersionId: string;
-    workoutNameSnapshot?: string;
 
     totalDurationSec?: number;
 

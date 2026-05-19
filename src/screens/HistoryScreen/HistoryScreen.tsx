@@ -30,10 +30,9 @@ const HistoryScreen = () => {
         const searchTerm = search.trim().toLowerCase();
 
         if (!searchTerm) return sessions;
-        return sessions
-            .filter((session) =>
-                session.workoutNameSnapshot?.toLowerCase().includes(searchTerm)
-            );
+        return sessions.filter((session) =>
+            session.workoutSnapshot.name.toLowerCase().includes(searchTerm),
+        );
     }, [search, sessions]);
 
     return (

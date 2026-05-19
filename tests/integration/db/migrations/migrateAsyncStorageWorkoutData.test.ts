@@ -215,7 +215,7 @@ describe('migrateAsyncStorageWorkoutData', () => {
     });
 
     afterAll(() => {
-        testDb?.close();
+        testDb.close();
     });
 
     it('returns didRun: true with correct counts', () => {

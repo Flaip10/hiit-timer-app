@@ -91,7 +91,6 @@ export const workoutSessionsTable = sqliteTable('workout_sessions', {
     workoutVersionId: text('workout_version_id')
         .notNull()
         .references(() => workoutVersionsTable.id, { onDelete: 'restrict' }),
-    workoutNameSnapshot: text('workout_name_snapshot'),
     totalDurationSec: integer('total_duration_sec'),
     statsJson: text('stats_json'),
 }, (table) => [

@@ -329,8 +329,7 @@ const HistorySessionScreen = () => {
                                 numberOfLines={2}
                                 style={st.headerTitle}
                             >
-                                {session.workoutNameSnapshot ??
-                                    t('historySession.workoutSessionFallback')}
+                                {session.workoutSnapshot.name}
                             </AppText>
 
                             <View style={st.headerDateRow}>

@@ -16,7 +16,6 @@ export const workoutSessionToDbRow = (
     startedAtMs: session.startedAtMs,
     endedAtMs: session.endedAtMs,
     workoutVersionId: session.workoutVersionId,
-    workoutNameSnapshot: session.workoutNameSnapshot ?? null,
     totalDurationSec: session.totalDurationSec ?? null,
     statsJson: session.stats ? JSON.stringify(session.stats) : null,
 });
@@ -45,7 +44,6 @@ export const workoutSessionFromDbRow = (
     workoutSnapshot: workoutContent,
     activeWorkoutId,
     workoutVersionId: row.workoutVersionId,
-    workoutNameSnapshot: row.workoutNameSnapshot ?? undefined,
     totalDurationSec: row.totalDurationSec ?? undefined,
     stats: parseWorkoutSessionStats(row),
 });

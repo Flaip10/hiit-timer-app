@@ -42,7 +42,6 @@ CREATE TABLE `workout_sessions` (
 	`started_at_ms` integer NOT NULL,
 	`ended_at_ms` integer NOT NULL,
 	`workout_version_id` text NOT NULL,
-	`workout_name_snapshot` text,
 	`total_duration_sec` integer,
 	`stats_json` text,
 	FOREIGN KEY (`workout_version_id`) REFERENCES `workout_versions`(`id`) ON UPDATE no action ON DELETE restrict

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "a026ac2a-cd79-464a-8411-501a6a4dc10b",
+  "id": "741831ab-7db9-40b3-be5e-b1dec55cc1ba",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "exercise_definitions": {
@@ -299,13 +299,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "workout_name_snapshot": {
-          "name": "workout_name_snapshot",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         },
         "total_duration_sec": {

@@ -22,7 +22,6 @@ export interface SessionFixtureArgs {
     totalDurationSec?: number;
     activeWorkoutId?: string;
     workoutVersionId?: string;
-    workoutNameSnapshot?: string;
     stats?: WorkoutSessionStats;
 }
 
@@ -40,7 +39,6 @@ export const createSessionFixture = (
         workoutSnapshot,
         activeWorkoutId: args.activeWorkoutId,
         workoutVersionId: args.workoutVersionId ?? 'version-1',
-        workoutNameSnapshot: args.workoutNameSnapshot ?? workoutSnapshot.name,
         totalDurationSec,
         stats: 'stats' in args ? args.stats : createSessionStatsFixture(),
     };
@@ -56,7 +54,6 @@ export const createSessionRowFixture = (
         startedAtMs,
         endedAtMs: startedAtMs + 300_000,
         workoutVersionId: 'version-1',
-        workoutNameSnapshot: 'Quick Workout',
         totalDurationSec: 300,
         statsJson: JSON.stringify(createSessionStatsFixture()),
         ...overrides,

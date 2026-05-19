@@ -334,10 +334,6 @@ describe('isWorkoutSession', () => {
         expect(isWorkoutSession({ ...base, workoutVersionId: false })).toBe(
             false,
         ));
-    it('rejects non-string workoutNameSnapshot', () =>
-        expect(isWorkoutSession({ ...base, workoutNameSnapshot: [] })).toBe(
-            false,
-        ));
     it('rejects non-number totalDurationSec', () =>
         expect(isWorkoutSession({ ...base, totalDurationSec: '300' })).toBe(
             false,

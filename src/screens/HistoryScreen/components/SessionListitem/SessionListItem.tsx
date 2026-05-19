@@ -29,7 +29,7 @@ export const SessionListItem = ({ session, onPress }: Props) => {
 
     const durationText = useMemo(
         () => formatDuration(session.totalDurationSec),
-        [session.totalDurationSec]
+        [session.totalDurationSec],
     );
 
     return (
@@ -46,7 +46,7 @@ export const SessionListItem = ({ session, onPress }: Props) => {
                                 style={st.title}
                                 numberOfLines={2}
                             >
-                                {session.workoutNameSnapshot ?? 'Workout'}
+                                {session.workoutSnapshot.name}
                             </AppText>
                         </View>
                     </View>

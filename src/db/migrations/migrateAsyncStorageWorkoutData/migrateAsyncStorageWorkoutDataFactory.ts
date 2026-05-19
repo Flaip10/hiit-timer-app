@@ -101,11 +101,13 @@ const readPersistedWorkoutHistory = (
     return sessions;
 };
 
-const assertAllIdsWereCopied = (args: {
+interface AssertAllIdsWereCopiedArgs {
     label: string;
     expectedIds: string[];
     actualIds: Set<string>;
-}): void => {
+}
+
+const assertAllIdsWereCopied = (args: AssertAllIdsWereCopiedArgs): void => {
     const missingIds = args.expectedIds.filter((id) => !args.actualIds.has(id));
     if (missingIds.length > 0) {
         throw new Error(
@@ -124,10 +126,12 @@ const resetWorkoutTables = (db: RepositoryDb): void => {
     });
 };
 
-const resolveMigratedSessionWorkoutId = (args: {
+interface ResolveMigratedSessionWorkoutIdArgs {
     session: LegacyWorkoutSession;
     activeWorkoutIds: Set<string>;
-}): string | undefined => {
+}
+
+const resolveMigratedSessionWorkoutId = (args: ResolveMigratedSessionWorkoutIdArgs): string | undefined => {
     const { session, activeWorkoutIds } = args;
 
     if (!session.workoutId) return undefined;
@@ -137,21 +141,25 @@ const resolveMigratedSessionWorkoutId = (args: {
         : undefined;
 };
 
-const addVersionByContentEntry = (args: {
+interface AddVersionByContentEntryArgs {
     entriesByContent: Map<string, VersionByContentEntry[]>;
     contentKey: string;
     entry: VersionByContentEntry;
-}): void => {
+}
+
+const addVersionByContentEntry = (args: AddVersionByContentEntryArgs): void => {
     const currentEntries = args.entriesByContent.get(args.contentKey) ?? [];
 
     args.entriesByContent.set(args.contentKey, [...currentEntries, args.entry]);
 };
 
-const findReusableVersionId = (args: {
+interface FindReusableVersionIdArgs {
     entriesByContent: Map<string, VersionByContentEntry[]>;
     contentKey: string;
     workoutId?: string;
-}): string | undefined => {
+}
+
+const findReusableVersionId = (args: FindReusableVersionIdArgs): string | undefined => {
     const entries = args.entriesByContent.get(args.contentKey) ?? [];
 
     return entries.find(
@@ -251,8 +259,6 @@ export const createAsyncStorageMigration =
                 endedAtMs: session.endedAtMs,
                 workoutSnapshot,
                 workoutVersionId,
-                workoutNameSnapshot:
-                    session.workoutNameSnapshot ?? workoutSnapshot.name,
                 totalDurationSec: session.totalDurationSec,
                 stats: session.stats,
             };
