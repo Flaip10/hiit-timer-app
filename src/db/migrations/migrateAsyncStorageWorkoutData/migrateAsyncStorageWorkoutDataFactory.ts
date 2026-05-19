@@ -1,31 +1,52 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import type { Workout } from '@src/core/entities/entities';
 import type { WorkoutSession } from '@src/core/entities/workoutSession.interfaces';
+import { uid } from '@src/core/id';
 
-import { db } from '../client';
-import { createWorkoutContentKey } from '../mappers/workoutContent';
-import { isRecord, isWorkout, isWorkoutSession } from '../mappers/jsonGuards';
 import {
-    createWorkoutVersion,
-    workoutRepository,
-} from '../repositories/workoutRepository';
-import { workoutSessionRepository } from '../repositories/workoutSessionRepository';
+    isRecord,
+    isWorkout,
+    isWorkoutSession,
+} from '../../mappers/jsonGuards';
+import { createWorkoutContentKey } from '../../mappers/workouts/workoutContent';
+import type { ExerciseDefinitionService } from '../../services/exerciseDefinitions/exerciseDefinitionServiceFactory';
+import type {
+    WorkoutRepository,
+    RepositoryDb,
+} from '../../repositories/workouts/workoutRepositoryFactory';
+import type { WorkoutSessionRepository } from '../../repositories/workoutSessions/workoutSessionRepositoryFactory';
 import {
     workoutBlocksTable,
     workoutExercisesTable,
     workoutSessionsTable,
     workoutVersionsTable,
     workoutsTable,
-} from '../schema';
+} from '../../schema';
 
 const WORKOUTS_STORAGE_KEY = 'workouts-storage';
 const WORKOUT_HISTORY_STORAGE_KEY = 'workout-history-storage-v1';
 const SQLITE_WORKOUT_MIGRATION_KEY = 'sqlite-workout-migration-v1';
 
-interface MigrationCounts {
+export interface MigrationAsyncStorage {
+    getItem: (key: string) => Promise<string | null>;
+    setItem: (key: string, value: string) => Promise<void>;
+}
+
+export interface MigrationContext {
+    asyncStorage: MigrationAsyncStorage;
+    db: RepositoryDb;
+    exerciseDefinitionService: ExerciseDefinitionService;
+    workoutRepository: WorkoutRepository;
+    workoutSessionRepository: WorkoutSessionRepository;
+}
+
+export interface MigrationCounts {
     workouts: number;
     sessions: number;
+}
+
+export interface AsyncStorageWorkoutMigrationResult {
+    didRun: boolean;
+    counts: MigrationCounts;
 }
 
 interface VersionByContentEntry {
@@ -33,9 +54,8 @@ interface VersionByContentEntry {
     workoutId: string | null;
 }
 
-export interface AsyncStorageWorkoutMigrationResult {
-    didRun: boolean;
-    counts: MigrationCounts;
+interface LegacyWorkoutSession extends WorkoutSession {
+    workoutId?: string;
 }
 
 const readPersistedState = (raw: string | null): unknown | null => {
@@ -47,9 +67,7 @@ const readPersistedState = (raw: string | null): unknown | null => {
     return parsed.state ?? null;
 };
 
-const readPersistedWorkouts = (
-    raw: string | null,
-): Record<string, Workout> => {
+const readPersistedWorkouts = (raw: string | null): Record<string, Workout> => {
     const state = readPersistedState(raw);
     if (!isRecord(state)) return {};
 
@@ -67,11 +85,11 @@ const readPersistedWorkouts = (
 
 const readPersistedWorkoutHistory = (
     raw: string | null,
-): Record<string, WorkoutSession> => {
+): Record<string, LegacyWorkoutSession> => {
     const state = readPersistedState(raw);
     if (!isRecord(state)) return {};
 
-    const sessions: Record<string, WorkoutSession> = {};
+    const sessions: Record<string, LegacyWorkoutSession> = {};
     const sourceSessions = isRecord(state.sessions) ? state.sessions : {};
 
     Object.entries(sourceSessions).forEach(([id, session]) => {
@@ -96,17 +114,7 @@ const assertAllIdsWereCopied = (args: {
     }
 };
 
-const writeMigrationMarker = async (counts: MigrationCounts): Promise<void> => {
-    await AsyncStorage.setItem(
-        SQLITE_WORKOUT_MIGRATION_KEY,
-        JSON.stringify({
-            migratedAtMs: Date.now(),
-            counts,
-        }),
-    );
-};
-
-const resetWorkoutTables = (): void => {
+const resetWorkoutTables = (db: RepositoryDb): void => {
     db.transaction((transaction) => {
         transaction.delete(workoutSessionsTable).run();
         transaction.delete(workoutExercisesTable).run();
@@ -117,7 +125,7 @@ const resetWorkoutTables = (): void => {
 };
 
 const resolveMigratedSessionWorkoutId = (args: {
-    session: WorkoutSession;
+    session: LegacyWorkoutSession;
     activeWorkoutIds: Set<string>;
 }): string | undefined => {
     const { session, activeWorkoutIds } = args;
@@ -136,10 +144,7 @@ const addVersionByContentEntry = (args: {
 }): void => {
     const currentEntries = args.entriesByContent.get(args.contentKey) ?? [];
 
-    args.entriesByContent.set(args.contentKey, [
-        ...currentEntries,
-        args.entry,
-    ]);
+    args.entriesByContent.set(args.contentKey, [...currentEntries, args.entry]);
 };
 
 const findReusableVersionId = (args: {
@@ -155,12 +160,21 @@ const findReusableVersionId = (args: {
     )?.versionId;
 };
 
-export const migrateAsyncStorageWorkoutData =
+export const createAsyncStorageMigration =
+    (context: MigrationContext) =>
     async (): Promise<AsyncStorageWorkoutMigrationResult> => {
+        const {
+            asyncStorage,
+            db,
+            exerciseDefinitionService,
+            workoutRepository,
+            workoutSessionRepository,
+        } = context;
+
         const [workoutsRaw, historyRaw, existingMarker] = await Promise.all([
-            AsyncStorage.getItem(WORKOUTS_STORAGE_KEY),
-            AsyncStorage.getItem(WORKOUT_HISTORY_STORAGE_KEY),
-            AsyncStorage.getItem(SQLITE_WORKOUT_MIGRATION_KEY),
+            asyncStorage.getItem(WORKOUTS_STORAGE_KEY),
+            asyncStorage.getItem(WORKOUT_HISTORY_STORAGE_KEY),
+            asyncStorage.getItem(SQLITE_WORKOUT_MIGRATION_KEY),
         ]);
 
         if (existingMarker !== null) {
@@ -173,7 +187,7 @@ export const migrateAsyncStorageWorkoutData =
         const persistedWorkouts = readPersistedWorkouts(workoutsRaw);
         const persistedHistory = readPersistedWorkoutHistory(historyRaw);
 
-        resetWorkoutTables();
+        resetWorkoutTables(db);
 
         const workoutIds = Object.keys(persistedWorkouts);
         const sessionIds = Object.keys(persistedHistory);
@@ -181,27 +195,43 @@ export const migrateAsyncStorageWorkoutData =
 
         workoutIds.forEach((id, index) => {
             const workout = persistedWorkouts[id];
+            const resolvedWorkout =
+                exerciseDefinitionService.resolveWorkoutExerciseDefinitions(
+                    workout,
+                );
+            const currentVersionId = uid();
 
-            workoutRepository.upsert(workout, index);
-
-            const currentVersionId = workoutRepository.getCurrentVersionId(id);
-            if (currentVersionId !== null) {
-                addVersionByContentEntry({
-                    entriesByContent,
-                    contentKey: createWorkoutContentKey(workout),
-                    entry: {
-                        versionId: currentVersionId,
-                        workoutId: id,
-                    },
-                });
-            }
+            workoutRepository.insertWorkoutVersion(
+                resolvedWorkout,
+                currentVersionId,
+            );
+            workoutRepository.insertWorkout({
+                id,
+                name: resolvedWorkout.name,
+                currentVersionId,
+                createdAtMs: resolvedWorkout.updatedAtMs,
+                isFavorite: resolvedWorkout.isFavorite === true,
+                sortIndex: index,
+            });
+            addVersionByContentEntry({
+                entriesByContent,
+                contentKey: createWorkoutContentKey(resolvedWorkout),
+                entry: {
+                    versionId: currentVersionId,
+                    workoutId: id,
+                },
+            });
         });
 
         const activeWorkoutIds = workoutRepository.readExistingIds(workoutIds);
 
         sessionIds.forEach((id) => {
             const session = persistedHistory[id];
-            const contentKey = createWorkoutContentKey(session.workoutSnapshot);
+            const workoutSnapshot =
+                exerciseDefinitionService.resolveWorkoutExerciseDefinitions(
+                    session.workoutSnapshot,
+                );
+            const contentKey = createWorkoutContentKey(workoutSnapshot);
             const workoutId = resolveMigratedSessionWorkoutId({
                 session,
                 activeWorkoutIds,
@@ -213,20 +243,24 @@ export const migrateAsyncStorageWorkoutData =
             });
             const workoutVersionId =
                 existingVersionId ??
-                createWorkoutVersion(
-                    session.workoutSnapshot,
-                    workoutId ?? null,
-                );
+                workoutRepository.createWorkoutVersion(workoutSnapshot);
 
             const sessionToMigrate: WorkoutSession = {
-                ...session,
-                workoutId,
+                id: session.id,
+                startedAtMs: session.startedAtMs,
+                endedAtMs: session.endedAtMs,
+                workoutSnapshot,
                 workoutVersionId,
                 workoutNameSnapshot:
-                    session.workoutNameSnapshot ?? session.workoutSnapshot.name,
+                    session.workoutNameSnapshot ?? workoutSnapshot.name,
+                totalDurationSec: session.totalDurationSec,
+                stats: session.stats,
             };
 
-            workoutSessionRepository.upsert(sessionToMigrate);
+            workoutSessionRepository.insertSession({
+                ...sessionToMigrate,
+                workoutVersionId,
+            });
 
             if (existingVersionId === undefined) {
                 addVersionByContentEntry({
@@ -256,7 +290,13 @@ export const migrateAsyncStorageWorkoutData =
             sessions: sessionIds.length,
         };
 
-        await writeMigrationMarker(counts);
+        await asyncStorage.setItem(
+            SQLITE_WORKOUT_MIGRATION_KEY,
+            JSON.stringify({
+                migratedAtMs: Date.now(),
+                counts,
+            }),
+        );
 
         return {
             didRun: true,

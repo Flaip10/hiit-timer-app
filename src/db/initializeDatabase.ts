@@ -3,7 +3,7 @@ import { migrate } from 'drizzle-orm/expo-sqlite/migrator';
 import migrations from '../../drizzle/migrations';
 import { db } from './client';
 import { dbServices } from './dbServices';
-import { migrateAsyncStorageWorkoutData } from './migrations/migrateAsyncStorageWorkoutData';
+import { migrateAsyncStorageWorkoutData } from './migrations/migrateAsyncStorageWorkoutData/migrateAsyncStorageWorkoutData';
 import { seedSystemExerciseDefinitionsOnce } from './migrations/seedSystemExerciseDefinitions';
 
 let databaseInitializationPromise: Promise<void> | null = null;
