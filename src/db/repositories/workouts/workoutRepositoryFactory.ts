@@ -284,6 +284,7 @@ export const createWorkoutRepository = (
                 .select({ id: workoutsTable.id })
                 .from(workoutsTable)
                 .where(eq(workoutsTable.currentVersionId, versionId))
+                .limit(1)
                 .get();
 
             return workout !== undefined;

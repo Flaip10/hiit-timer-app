@@ -1,50 +1,24 @@
-import {
-    afterEach,
-    beforeEach,
-    describe,
-    expect,
-    it,
-} from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 import { eq } from 'drizzle-orm';
 
-import { createWorkoutRepository } from '@src/db/repositories/workoutRepositoryFactory';
-import {
-    createWorkoutSessionRepository,
-    type WorkoutSessionRepository,
-} from '@src/db/repositories/workoutSessionRepositoryFactory';
-import {
-    workoutSessionsTable,
-    workoutVersionsTable,
-} from '@src/db/schema';
+import { workoutSessionsTable, workoutVersionsTable } from '@src/db/schema';
 
 import { createTestDb, type TestDb } from '../../helpers/createTestDb';
 import {
     createChangedWorkoutContent,
+    createQuickWorkoutFixture,
     createWorkoutFixture,
 } from '../../fixtures/workouts';
 
 interface RepositoryContext {
     testDb: TestDb;
-    workoutRepositoryApi: ReturnType<typeof createWorkoutRepository>;
-    workoutSessionRepository: WorkoutSessionRepository;
 }
 
-const createRepositoryContext = (): RepositoryContext => {
-    const testDb = createTestDb();
-    const workoutRepositoryApi = createWorkoutRepository({ db: testDb.db });
-    const workoutSessionRepository = createWorkoutSessionRepository({
-        db: testDb.db,
-        workoutRepositoryApi,
-    });
+const createRepositoryContext = (): RepositoryContext => ({
+    testDb: createTestDb(),
+});
 
-    return {
-        testDb,
-        workoutRepositoryApi,
-        workoutSessionRepository,
-    };
-};
-
-describe('workoutSessionRepository integration', () => {
+describe('workoutSessionService integration', () => {
     let context: RepositoryContext;
 
     beforeEach(() => {
@@ -55,13 +29,14 @@ describe('workoutSessionRepository integration', () => {
         context.testDb.close();
     });
 
-    it('create persists a non-null workoutVersionId for quick workout sessions', () => {
-        const workout = createWorkoutFixture();
+    it('createSessionFromSnapshot persists a version and session for a quick workout', () => {
+        const workout = createQuickWorkoutFixture();
+        const { workoutSessionService } = context.testDb.dbServices;
 
-        const session = context.workoutSessionRepository.create({
+        const session = workoutSessionService.createSessionFromSnapshot({
             workout,
-            startedAtMs: 100,
-            endedAtMs: 220,
+            startedAtMs: 100_000,
+            endedAtMs: 220_000,
         });
 
         const sessionRow = context.testDb.db
@@ -72,85 +47,35 @@ describe('workoutSessionRepository integration', () => {
         const version = context.testDb.db
             .select()
             .from(workoutVersionsTable)
-            .where(eq(workoutVersionsTable.id, sessionRow?.workoutVersionId ?? ''))
+            .where(
+                eq(workoutVersionsTable.id, sessionRow?.workoutVersionId ?? ''),
+            )
             .get();
 
         expect(sessionRow?.workoutVersionId).toBeTruthy();
-        expect(sessionRow?.workoutId).toBeNull();
-        expect(version?.workoutId).toBeNull();
+        expect(version).toBeDefined();
+        expect(session.workoutSnapshot.name).toBe(workout.name);
+        expect(session.startedAtMs).toBe(100_000);
+        expect(session.endedAtMs).toBe(220_000);
+        expect(session.totalDurationSec).toBe(120);
     });
 
-    it('create uses the active saved workout version when the workout exists', () => {
+    it('createSession uses the saved workout version when the workout exists', () => {
         const workout = createWorkoutFixture();
-        context.workoutRepositoryApi.workoutRepository.upsert(workout, 0);
-        const currentVersionId =
-            context.workoutRepositoryApi.workoutRepository.getCurrentVersionId(
-                workout.id,
-            );
+        const { workoutService, workoutRepository, workoutSessionService } =
+            context.testDb.dbServices;
 
-        const session = context.workoutSessionRepository.create({
-            workout,
-            startedAtMs: 100,
-            endedAtMs: 220,
-        });
-
-        const sessionRow = context.testDb.db
-            .select()
-            .from(workoutSessionsTable)
-            .where(eq(workoutSessionsTable.id, session.id))
-            .get();
-
-        expect(sessionRow?.workoutId).toBe(workout.id);
-        expect(sessionRow?.workoutVersionId).toBe(currentVersionId);
-    });
-
-    it('create reuses matching sourceWorkoutVersionId for history runs', () => {
-        const workout = createWorkoutFixture();
-        const sourceVersionId =
-            context.workoutRepositoryApi.createWorkoutVersion(workout, null);
-
-        const session = context.workoutSessionRepository.create({
-            workout,
-            sourceWorkoutVersionId: sourceVersionId,
-            startedAtMs: 100,
-            endedAtMs: 220,
-        });
-
-        const sessionRow = context.testDb.db
-            .select()
-            .from(workoutSessionsTable)
-            .where(eq(workoutSessionsTable.id, session.id))
-            .get();
-
-        expect(sessionRow?.workoutVersionId).toBe(sourceVersionId);
-    });
-
-    it('create reuses matching sourceWorkoutVersionId without linking unrelated workoutId', () => {
-        const sourceWorkout = createWorkoutFixture({
-            id: 'source-workout',
-        });
-        const unrelatedWorkout = createWorkoutFixture({
-            id: 'unrelated-workout',
-        });
-
-        context.workoutRepositoryApi.workoutRepository.upsert(
-            unrelatedWorkout,
-            0,
+        workoutService.upsertWorkout({ workout });
+        const currentVersionId = workoutRepository.getCurrentVersionId(
+            workout.id,
         );
-        const sourceVersionId =
-            context.workoutRepositoryApi.createWorkoutVersion(
-                sourceWorkout,
-                null,
-            );
+        expect(currentVersionId).not.toBeNull();
+        if (!currentVersionId) throw new Error('Expected version');
 
-        const session = context.workoutSessionRepository.create({
-            workout: {
-                ...sourceWorkout,
-                id: unrelatedWorkout.id,
-            },
-            sourceWorkoutVersionId: sourceVersionId,
-            startedAtMs: 100,
-            endedAtMs: 220,
+        const session = workoutSessionService.createSession({
+            versionId: currentVersionId,
+            startedAtMs: 100_000,
+            endedAtMs: 220_000,
         });
 
         const sessionRow = context.testDb.db
@@ -159,36 +84,82 @@ describe('workoutSessionRepository integration', () => {
             .where(eq(workoutSessionsTable.id, session.id))
             .get();
 
-        expect(sessionRow?.workoutVersionId).toBe(sourceVersionId);
-        expect(sessionRow?.workoutId).toBeNull();
+        expect(sessionRow?.workoutVersionId).toBe(currentVersionId);
+        expect(session.workoutSnapshot.name).toBe(workout.name);
+        expect(session.workoutSnapshot.blocks).toHaveLength(2);
     });
 
-    it('create makes a new version when sourceWorkoutVersionId content no longer matches', () => {
+    it('createSession reuses the historical version for a re-run from history', () => {
         const workout = createWorkoutFixture();
-        const sourceVersionId =
-            context.workoutRepositoryApi.createWorkoutVersion(workout, null);
-        const changedWorkout = createChangedWorkoutContent(workout);
+        const { workoutSessionService } = context.testDb.dbServices;
 
-        const session = context.workoutSessionRepository.create({
-            workout: changedWorkout,
-            sourceWorkoutVersionId: sourceVersionId,
-            startedAtMs: 100,
-            endedAtMs: 220,
+        const firstSession = workoutSessionService.createSessionFromSnapshot({
+            workout,
+            startedAtMs: 100_000,
+            endedAtMs: 220_000,
+        });
+        const sourceVersionId = firstSession.workoutVersionId;
+        expect(sourceVersionId).toBeTruthy();
+        if (!sourceVersionId) throw new Error('Expected version');
+
+        const secondSession = workoutSessionService.createSession({
+            versionId: sourceVersionId,
+            startedAtMs: 300_000,
+            endedAtMs: 420_000,
         });
 
-        const sessionRow = context.testDb.db
+        const secondSessionRow = context.testDb.db
             .select()
             .from(workoutSessionsTable)
-            .where(eq(workoutSessionsTable.id, session.id))
+            .where(eq(workoutSessionsTable.id, secondSession.id))
             .get();
-        const versions = context.testDb.db.select().from(workoutVersionsTable).all();
 
-        expect(sessionRow?.workoutVersionId).toBeTruthy();
-        expect(sessionRow?.workoutVersionId).not.toBe(sourceVersionId);
+        expect(secondSessionRow?.workoutVersionId).toBe(sourceVersionId);
+        expect(secondSession.workoutSnapshot.name).toBe(workout.name);
+    });
+
+    it('createSession throws when the version does not exist', () => {
+        const { workoutSessionService } = context.testDb.dbServices;
+
+        expect(() => {
+            workoutSessionService.createSession({
+                versionId: 'non-existent-version',
+                startedAtMs: 100_000,
+                endedAtMs: 220_000,
+            });
+        }).toThrow('Workout version non-existent-version not found');
+    });
+
+    it('createSessionFromSnapshot creates a new version when content has changed since the previous run', () => {
+        const workout = createWorkoutFixture();
+        const { workoutSessionService } = context.testDb.dbServices;
+
+        const firstSession = workoutSessionService.createSessionFromSnapshot({
+            workout,
+            startedAtMs: 100_000,
+            endedAtMs: 220_000,
+        });
+
+        const changedWorkout = createChangedWorkoutContent(workout);
+        const secondSession = workoutSessionService.createSessionFromSnapshot({
+            workout: changedWorkout,
+            startedAtMs: 300_000,
+            endedAtMs: 420_000,
+        });
+
+        const versions = context.testDb.db
+            .select()
+            .from(workoutVersionsTable)
+            .all();
+
+        expect(secondSession.workoutVersionId).toBeTruthy();
+        expect(secondSession.workoutVersionId).not.toBe(
+            firstSession.workoutVersionId,
+        );
         expect(versions).toHaveLength(2);
     });
 
-    it('getAll and getRecent hydrate workout snapshots from version rows ordered by endedAtMs', () => {
+    it('getAll and getRecent hydrate workout snapshots ordered by endedAtMs descending', () => {
         const oldestWorkout = createWorkoutFixture({
             id: 'oldest-workout',
             name: 'Oldest Workout',
@@ -202,40 +173,154 @@ describe('workoutSessionRepository integration', () => {
             name: 'Newest Workout',
         });
 
-        context.workoutSessionRepository.create({
+        const { workoutSessionService } = context.testDb.dbServices;
+        workoutSessionService.createSessionFromSnapshot({
             workout: oldestWorkout,
-            startedAtMs: 100,
-            endedAtMs: 200,
+            startedAtMs: 100_000,
+            endedAtMs: 200_000,
         });
-        context.workoutSessionRepository.create({
+        workoutSessionService.createSessionFromSnapshot({
             workout: newestWorkout,
-            startedAtMs: 100,
-            endedAtMs: 400,
+            startedAtMs: 100_000,
+            endedAtMs: 400_000,
         });
-        context.workoutSessionRepository.create({
+        workoutSessionService.createSessionFromSnapshot({
             workout: middleWorkout,
-            startedAtMs: 100,
-            endedAtMs: 300,
+            startedAtMs: 100_000,
+            endedAtMs: 300_000,
         });
 
-        const allSessions = context.workoutSessionRepository.getAll();
-        const recentSessions = context.workoutSessionRepository.getRecent(2);
+        const allSessions = workoutSessionService.getAll();
+        const recentSessions = workoutSessionService.getRecent(2);
 
-        expect(
-            allSessions.map((session) => session.workoutSnapshot.name),
-        ).toEqual(['Newest Workout', 'Middle Workout', 'Oldest Workout']);
-        expect(
-            recentSessions.map((session) => session.workoutSnapshot.name),
-        ).toEqual(['Newest Workout', 'Middle Workout']);
+        expect(allSessions.map((s) => s.workoutSnapshot.name)).toEqual([
+            'Newest Workout',
+            'Middle Workout',
+            'Oldest Workout',
+        ]);
+        expect(recentSessions.map((s) => s.workoutSnapshot.name)).toEqual([
+            'Newest Workout',
+            'Middle Workout',
+        ]);
     });
 
-    it('remove deletes orphaned unowned versions but keeps active workout versions', () => {
-        const quickWorkout = createWorkoutFixture({ id: 'quick-workout' });
-        const quickSession = context.workoutSessionRepository.create({
-            workout: quickWorkout,
-            startedAtMs: 100,
-            endedAtMs: 220,
+    it('activeWorkoutId is set when the session version matches a saved workout', () => {
+        const workout = createWorkoutFixture();
+        const { workoutService, workoutRepository, workoutSessionService } =
+            context.testDb.dbServices;
+
+        workoutService.upsertWorkout({ workout });
+        const currentVersionId = workoutRepository.getCurrentVersionId(
+            workout.id,
+        );
+        expect(currentVersionId).not.toBeNull();
+        if (!currentVersionId) throw new Error('Expected version');
+
+        workoutSessionService.createSession({
+            versionId: currentVersionId,
+            startedAtMs: 100_000,
+            endedAtMs: 220_000,
         });
+
+        const sessions = workoutSessionService.getAll();
+        expect(sessions).toHaveLength(1);
+        expect(sessions[0]?.activeWorkoutId).toBe(workout.id);
+    });
+
+    it('createSessionFromSnapshot reuses the saved workout version when the workout exists', () => {
+        const workout = createWorkoutFixture();
+        const { workoutService, workoutRepository, workoutSessionService } =
+            context.testDb.dbServices;
+
+        workoutService.upsertWorkout({ workout });
+        const savedVersionId = workoutRepository.getCurrentVersionId(
+            workout.id,
+        );
+        expect(savedVersionId).toBeTruthy();
+        if (!savedVersionId) throw new Error('Expected version');
+
+        const session = workoutSessionService.createSessionFromSnapshot({
+            workout,
+            startedAtMs: 100_000,
+            endedAtMs: 220_000,
+        });
+
+        const versions = context.testDb.db
+            .select()
+            .from(workoutVersionsTable)
+            .all();
+
+        expect(session.workoutVersionId).toBe(savedVersionId);
+        expect(versions).toHaveLength(1);
+    });
+
+    it('workoutSnapshot.name reflects the active workout name when the workout has been renamed', () => {
+        const workout = createWorkoutFixture({ name: 'Morning Intervals' });
+        const { workoutService, workoutRepository, workoutSessionService } =
+            context.testDb.dbServices;
+
+        workoutService.upsertWorkout({ workout });
+        const currentVersionId = workoutRepository.getCurrentVersionId(
+            workout.id,
+        );
+        expect(currentVersionId).not.toBeNull();
+        if (!currentVersionId) throw new Error('Expected version');
+
+        workoutSessionService.createSession({
+            versionId: currentVersionId,
+            startedAtMs: 100_000,
+            endedAtMs: 220_000,
+        });
+
+        // Rename without changing blocks — no new version is created, the
+        // workout row name column is updated in place.
+        workoutService.upsertWorkout({
+            workout: { ...workout, name: 'HIIT Cardio' },
+        });
+
+        const [session] = workoutSessionService.getAll();
+
+        expect(session.activeWorkoutId).toBe(workout.id);
+        expect(session.workoutSnapshot.name).toBe('HIIT Cardio');
+    });
+
+    it('workoutSnapshot.name falls back to the version name when the workout has been deleted', () => {
+        const workout = createWorkoutFixture({ name: 'Morning Intervals' });
+        const { workoutService, workoutRepository, workoutSessionService } =
+            context.testDb.dbServices;
+
+        workoutService.upsertWorkout({ workout });
+        const currentVersionId = workoutRepository.getCurrentVersionId(
+            workout.id,
+        );
+        expect(currentVersionId).not.toBeNull();
+        if (!currentVersionId) throw new Error('Expected version');
+
+        workoutSessionService.createSession({
+            versionId: currentVersionId,
+            startedAtMs: 100_000,
+            endedAtMs: 220_000,
+        });
+
+        workoutService.deleteWorkout(workout.id);
+
+        const [session] = workoutSessionService.getAll();
+
+        expect(session.activeWorkoutId).toBeUndefined();
+        expect(session.workoutSnapshot.name).toBe('Morning Intervals');
+    });
+
+    it('deleteSession removes orphaned unowned versions but keeps active workout versions', () => {
+        const { workoutService, workoutRepository, workoutSessionService } =
+            context.testDb.dbServices;
+
+        const quickWorkout = createQuickWorkoutFixture({ id: 'quick-workout' });
+        const quickSession = workoutSessionService.createSessionFromSnapshot({
+            workout: quickWorkout,
+            startedAtMs: 100_000,
+            endedAtMs: 220_000,
+        });
+
         const quickSessionRow = context.testDb.db
             .select()
             .from(workoutSessionsTable)
@@ -245,7 +330,7 @@ describe('workoutSessionRepository integration', () => {
         expect(quickVersionId).toBeTruthy();
         if (!quickVersionId) throw new Error('Expected quick version');
 
-        context.workoutSessionRepository.remove(quickSession.id);
+        workoutSessionService.deleteSession(quickSession.id);
 
         const removedQuickVersion = context.testDb.db
             .select()
@@ -255,21 +340,20 @@ describe('workoutSessionRepository integration', () => {
         expect(removedQuickVersion).toBeUndefined();
 
         const savedWorkout = createWorkoutFixture({ id: 'saved-workout' });
-        context.workoutRepositoryApi.workoutRepository.upsert(savedWorkout, 0);
-        const savedVersionId =
-            context.workoutRepositoryApi.workoutRepository.getCurrentVersionId(
-                savedWorkout.id,
-            );
+        workoutService.upsertWorkout({ workout: savedWorkout });
+        const savedVersionId = workoutRepository.getCurrentVersionId(
+            savedWorkout.id,
+        );
         expect(savedVersionId).toBeTruthy();
         if (!savedVersionId) throw new Error('Expected saved version');
 
-        const savedSession = context.workoutSessionRepository.create({
-            workout: savedWorkout,
-            startedAtMs: 100,
-            endedAtMs: 220,
+        const savedSession = workoutSessionService.createSession({
+            versionId: savedVersionId,
+            startedAtMs: 100_000,
+            endedAtMs: 220_000,
         });
 
-        context.workoutSessionRepository.remove(savedSession.id);
+        workoutSessionService.deleteSession(savedSession.id);
 
         const retainedSavedVersion = context.testDb.db
             .select()

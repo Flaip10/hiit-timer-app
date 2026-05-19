@@ -64,6 +64,7 @@ export const createWorkoutSessionRepository = (
                 .select({ id: workoutSessionsTable.id })
                 .from(workoutSessionsTable)
                 .where(eq(workoutSessionsTable.workoutVersionId, versionId))
+                .limit(1)
                 .get();
 
             return session !== undefined;
