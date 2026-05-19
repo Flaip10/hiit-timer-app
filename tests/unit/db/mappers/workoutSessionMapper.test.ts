@@ -16,7 +16,7 @@ const stats = createSessionStatsFixture();
 
 describe('workoutSessionToDbRow', () => {
     it('maps a persisted session to a DB row without storing workout JSON', () => {
-        const session: WorkoutSession & { workoutVersionId: string } = {
+        const session: WorkoutSession = {
             id: 'session-1',
             startedAtMs: 1_700_000_000_000,
             endedAtMs: 1_700_000_300_000,
@@ -42,7 +42,7 @@ describe('workoutSessionToDbRow', () => {
     });
 
     it('maps optional session values to nullable DB columns', () => {
-        const session: WorkoutSession & { workoutVersionId: string } = {
+        const session: WorkoutSession = {
             id: 'session-1',
             startedAtMs: 1_700_000_000_000,
             endedAtMs: 1_700_000_300_000,
