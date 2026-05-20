@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
-import { eq } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 
 import type { Workout } from '@src/core/entities/entities';
 import type { Clock } from '@src/db/repositories/repositoryClock';
-import type { WorkoutService } from '@src/db/services/workouts/workoutServiceFactory';
 import {
+    exerciseDefinitionsTable,
     workoutBlocksTable,
     workoutExercisesTable,
     workoutSessionsTable,
@@ -17,9 +17,7 @@ import {
     createChangedWorkoutContent,
     createWorkoutFixture,
 } from '../../fixtures/workouts';
-import {
-    seedPersistedWorkout,
-} from '../../helpers/seedWorkout';
+import { seedPersistedWorkout } from '../../helpers/seedWorkout';
 import { seedWorkoutSession } from '../../helpers/seedWorkoutSession';
 
 const RESTORE_CREATED_AT_MS = 1_900_000_000_000;
@@ -28,28 +26,106 @@ interface RepositoryContext {
     testDb: TestDb;
 }
 
+type WorkoutRow = typeof workoutsTable.$inferSelect;
+
 const createRepositoryContext = (clock?: Clock): RepositoryContext => ({
     testDb: createTestDb(clock),
 });
 
-const getExerciseCount = (workout: Workout): number =>
-    workout.blocks.reduce(
-        (total, block) => total + block.exercises.length,
-        0,
-    );
-
-const getRequiredCurrentVersionId = (
-    workoutService: WorkoutService,
+const readWorkoutRowOrThrow = (
+    testDb: TestDb,
     workoutId: string,
-): string => {
-    const versionId = workoutService.getCurrentVersionId(workoutId);
+): WorkoutRow => {
+    const workout = testDb.db
+        .select()
+        .from(workoutsTable)
+        .where(eq(workoutsTable.id, workoutId))
+        .get();
 
-    expect(versionId).not.toBeNull();
-    if (versionId === null) {
-        throw new Error(`Expected current version for workout ${workoutId}`);
+    expect(workout).toBeDefined();
+    if (!workout) {
+        throw new Error(`Expected workout row ${workoutId}`);
     }
 
-    return versionId;
+    return workout;
+};
+
+const expectWorkoutVersionRowsToMatchFixture = (
+    testDb: TestDb,
+    versionId: string,
+    expected: Workout,
+): void => {
+    const version = testDb.db
+        .select()
+        .from(workoutVersionsTable)
+        .where(eq(workoutVersionsTable.id, versionId))
+        .get();
+
+    expect(version).toMatchObject({
+        id: versionId,
+        name: expected.name,
+        updatedAtMs: expected.updatedAtMs,
+    });
+
+    const blocks = testDb.db
+        .select()
+        .from(workoutBlocksTable)
+        .where(eq(workoutBlocksTable.workoutVersionId, versionId))
+        .orderBy(asc(workoutBlocksTable.sortIndex))
+        .all();
+
+    expect(blocks).toHaveLength(expected.blocks.length);
+
+    expected.blocks.forEach((expectedBlock, blockIndex) => {
+        const block = blocks[blockIndex];
+
+        expect(block).toMatchObject({
+            workoutVersionId: versionId,
+            sortIndex: blockIndex,
+            title: expectedBlock.title ?? null,
+            sets: expectedBlock.sets,
+            restBetweenSetsSec: expectedBlock.restBetweenSetsSec,
+            restBetweenExercisesSec: expectedBlock.restBetweenExercisesSec,
+        });
+
+        const exercises = testDb.db
+            .select()
+            .from(workoutExercisesTable)
+            .where(eq(workoutExercisesTable.blockId, block.id))
+            .orderBy(asc(workoutExercisesTable.sortIndex))
+            .all();
+
+        expect(exercises).toHaveLength(expectedBlock.exercises.length);
+
+        expectedBlock.exercises.forEach((expectedExercise, exerciseIndex) => {
+            const exercise = exercises[exerciseIndex];
+
+            expect(exercise).toMatchObject({
+                blockId: block.id,
+                sortIndex: exerciseIndex,
+                mode: expectedExercise.mode,
+                value: expectedExercise.value,
+                tempo: expectedExercise.tempo ?? null,
+            });
+
+            if (!expectedExercise.name) return;
+
+            const definition = exercise.exerciseDefinitionId
+                ? testDb.db
+                      .select()
+                      .from(exerciseDefinitionsTable)
+                      .where(
+                          eq(
+                              exerciseDefinitionsTable.id,
+                              exercise.exerciseDefinitionId,
+                          ),
+                      )
+                      .get()
+                : undefined;
+
+            expect(definition?.name).toBe(expectedExercise.name);
+        });
+    });
 };
 
 const expectHydratedWorkoutToMatchFixture = (
@@ -92,7 +168,7 @@ const expectHydratedWorkoutToMatchFixture = (
     });
 };
 
-describe('workoutRepository integration', () => {
+describe('workoutService integration', () => {
     let context: RepositoryContext;
 
     beforeEach(() => {
@@ -191,39 +267,23 @@ describe('workoutRepository integration', () => {
 
         workoutService.upsertWorkout({ workout });
 
-        const currentVersionId = getRequiredCurrentVersionId(
-            workoutService,
+        const activeWorkout = readWorkoutRowOrThrow(
+            context.testDb,
             workout.id,
         );
-        const activeWorkout = context.testDb.db
-            .select()
-            .from(workoutsTable)
-            .where(eq(workoutsTable.id, workout.id))
-            .get();
-        const hydratedWorkout = workoutService.getById(workout.id);
+        const currentVersionId = activeWorkout.currentVersionId;
 
-        expectHydratedWorkoutToMatchFixture(hydratedWorkout, workout);
-        expect(activeWorkout?.currentVersionId).toBe(currentVersionId);
-
-        const version = context.testDb.db
-            .select()
-            .from(workoutVersionsTable)
-            .where(eq(workoutVersionsTable.id, currentVersionId))
-            .get();
-        expect(version?.id).toBe(currentVersionId);
-
-        const blocks = context.testDb.db
-            .select()
-            .from(workoutBlocksTable)
-            .where(eq(workoutBlocksTable.workoutVersionId, currentVersionId))
-            .all();
-        expect(blocks).toHaveLength(workout.blocks.length);
-
-        const exercises = context.testDb.db
-            .select()
-            .from(workoutExercisesTable)
-            .all();
-        expect(exercises).toHaveLength(getExerciseCount(workout));
+        expect(activeWorkout).toMatchObject({
+            id: workout.id,
+            name: workout.name,
+            createdAtMs: workout.updatedAtMs,
+            isFavorite: false,
+        });
+        expectWorkoutVersionRowsToMatchFixture(
+            context.testDb,
+            currentVersionId,
+            workout,
+        );
     });
 
     it('upsertWorkout reuses current version when only metadata changes', () => {
@@ -247,15 +307,25 @@ describe('workoutRepository integration', () => {
             workout: metadataUpdate,
         });
 
-        const hydratedWorkout = workoutService.getById(workout.id);
+        const activeWorkout = readWorkoutRowOrThrow(
+            context.testDb,
+            workout.id,
+        );
         const versions = context.testDb.db
             .select()
             .from(workoutVersionsTable)
             .all();
 
-        expectHydratedWorkoutToMatchFixture(hydratedWorkout, updatedWorkout);
-        expect(workoutService.getCurrentVersionId(workout.id)).toBe(
+        expect(activeWorkout).toMatchObject({
+            id: updatedWorkout.id,
+            name: updatedWorkout.name,
+            currentVersionId: firstVersionId,
+            isFavorite: false,
+        });
+        expectWorkoutVersionRowsToMatchFixture(
+            context.testDb,
             firstVersionId,
+            workout,
         );
         expect(versions).toHaveLength(1);
     });
@@ -279,18 +349,22 @@ describe('workoutRepository integration', () => {
             workout: changedWorkout,
         });
 
-        const nextVersionId = getRequiredCurrentVersionId(
-            workoutService,
+        const activeWorkout = readWorkoutRowOrThrow(
+            context.testDb,
             workout.id,
         );
-        const hydratedWorkout = workoutService.getById(workout.id);
+        const nextVersionId = activeWorkout.currentVersionId;
         const nextBlockIds = context.testDb.db
             .select({ id: workoutBlocksTable.id })
             .from(workoutBlocksTable)
             .all()
             .map((block) => block.id);
 
-        expectHydratedWorkoutToMatchFixture(hydratedWorkout, changedWorkout);
+        expectWorkoutVersionRowsToMatchFixture(
+            context.testDb,
+            nextVersionId,
+            changedWorkout,
+        );
         expect(nextVersionId).not.toBe(firstVersionId);
         expect(nextBlockIds).toHaveLength(firstBlockIds.length);
         nextBlockIds.forEach((blockId) => {
@@ -353,14 +427,18 @@ describe('workoutRepository integration', () => {
             .where(eq(workoutSessionsTable.id, 'session-1'))
             .get();
 
-        expectHydratedWorkoutToMatchFixture(
-            workoutService.getById(restoredWorkout.id),
+        expect(activeWorkout).toMatchObject({
+            id: restoredWorkout.id,
+            name: restoredWorkout.name,
+            currentVersionId: sourceVersionId,
+            createdAtMs: RESTORE_CREATED_AT_MS,
+            isFavorite: false,
+        });
+        expectWorkoutVersionRowsToMatchFixture(
+            context.testDb,
+            sourceVersionId,
             restoredWorkout,
         );
-        expect(workoutService.getCurrentVersionId(restoredWorkout.id)).toBe(
-            sourceVersionId,
-        );
-        expect(activeWorkout?.createdAtMs).toBe(RESTORE_CREATED_AT_MS);
         expect(session?.workoutVersionId).toBe(sourceVersionId);
     });
 
@@ -380,8 +458,15 @@ describe('workoutRepository integration', () => {
             });
         }).toThrow(`Cannot restore workout ${workout.id}: already exists`);
 
-        expectHydratedWorkoutToMatchFixture(
-            workoutService.getById(workout.id),
+        const activeWorkout = readWorkoutRowOrThrow(
+            context.testDb,
+            workout.id,
+        );
+
+        expect(activeWorkout.currentVersionId).toBe(sourceVersionId);
+        expectWorkoutVersionRowsToMatchFixture(
+            context.testDb,
+            sourceVersionId,
             workout,
         );
     });
@@ -409,6 +494,10 @@ describe('workoutRepository integration', () => {
             sourceWorkoutVersionId: sourceVersionId,
         });
 
+        const activeWorkout = readWorkoutRowOrThrow(
+            context.testDb,
+            restoredWorkout.id,
+        );
         const sourceVersion = context.testDb.db
             .select()
             .from(workoutVersionsTable)
@@ -420,12 +509,11 @@ describe('workoutRepository integration', () => {
             .where(eq(workoutSessionsTable.id, 'session-1'))
             .get();
 
-        expectHydratedWorkoutToMatchFixture(
-            workoutService.getById(restoredWorkout.id),
+        expect(activeWorkout.currentVersionId).not.toBe(sourceVersionId);
+        expectWorkoutVersionRowsToMatchFixture(
+            context.testDb,
+            activeWorkout.currentVersionId,
             restoredWorkout,
-        );
-        expect(workoutService.getCurrentVersionId(restoredWorkout.id)).not.toBe(
-            sourceVersionId,
         );
         expect(sourceVersion?.id).toBe(sourceVersionId);
         expect(session?.workoutVersionId).toBe(sourceVersionId);
@@ -446,16 +534,21 @@ describe('workoutRepository integration', () => {
 
         workoutService.toggleFavorite(workout);
 
-        const updatedWorkout = workoutService.getById(workout.id);
+        const activeWorkout = readWorkoutRowOrThrow(
+            context.testDb,
+            workout.id,
+        );
         const versions = context.testDb.db
             .select()
             .from(workoutVersionsTable)
             .all();
 
-        expectHydratedWorkoutToMatchFixture(updatedWorkout, favoriteWorkout);
-        expect(workoutService.getCurrentVersionId(workout.id)).toBe(
-            originalVersionId,
-        );
+        expect(activeWorkout).toMatchObject({
+            id: favoriteWorkout.id,
+            name: favoriteWorkout.name,
+            currentVersionId: originalVersionId,
+            isFavorite: true,
+        });
         expect(versions).toHaveLength(1);
     });
 
@@ -465,17 +558,14 @@ describe('workoutRepository integration', () => {
 
         const { versionId } = seedPersistedWorkout(context.testDb, workout);
 
-        context.testDb.db
-            .insert(workoutSessionsTable)
-            .values({
-                id: 'session-1',
-                startedAtMs: 100,
-                endedAtMs: 200,
-                workoutVersionId: versionId,
-                totalDurationSec: 100,
-                statsJson: null,
-            })
-            .run();
+        seedWorkoutSession(context.testDb, {
+            id: 'session-1',
+            startedAtMs: 100,
+            endedAtMs: 200,
+            workoutSnapshot: workout,
+            workoutVersionId: versionId,
+            totalDurationSec: 100,
+        });
 
         workoutService.deleteWorkout(workout.id);
 
@@ -490,7 +580,13 @@ describe('workoutRepository integration', () => {
             .where(eq(workoutSessionsTable.id, 'session-1'))
             .get();
 
-        expect(workoutService.getById(workout.id)).toBeNull();
+        const activeWorkout = context.testDb.db
+            .select()
+            .from(workoutsTable)
+            .where(eq(workoutsTable.id, workout.id))
+            .get();
+
+        expect(activeWorkout).toBeUndefined();
         expect(version?.id).toBe(versionId);
         expect(session?.workoutVersionId).toBe(versionId);
     });
@@ -509,7 +605,13 @@ describe('workoutRepository integration', () => {
             .where(eq(workoutVersionsTable.id, versionId))
             .get();
 
-        expect(workoutService.getById(workout.id)).toBeNull();
+        const activeWorkout = context.testDb.db
+            .select()
+            .from(workoutsTable)
+            .where(eq(workoutsTable.id, workout.id))
+            .get();
+
+        expect(activeWorkout).toBeUndefined();
         expect(version).toBeUndefined();
     });
 });
