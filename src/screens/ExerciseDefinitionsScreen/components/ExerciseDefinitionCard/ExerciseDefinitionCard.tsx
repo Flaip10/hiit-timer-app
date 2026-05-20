@@ -7,7 +7,7 @@ import type { ExerciseDefinition } from '@src/core/entities/entities';
 import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { useTheme } from '@src/theme/ThemeProvider';
-import { useExerciseDefinitionCardStyles } from './styles';
+import { useExerciseDefinitionCardStyles } from './ExerciseDefinitionCard.styles';
 
 interface ExerciseDefinitionCardProps {
     item: ExerciseDefinition;

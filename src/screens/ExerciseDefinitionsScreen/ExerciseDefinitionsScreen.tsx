@@ -6,48 +6,14 @@ import { useTranslation } from 'react-i18next';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { SearchField } from '@src/components/ui/SearchField/SearchField';
 import { Button } from '@src/components/ui/Button/Button';
-import { AppText } from '@src/components/ui/Typography/AppText';
+import { ListEmptyState } from '@src/components/layout/ListEmptyState';
 import {
     useExerciseDefinitions,
     type ExerciseDefinitionListParams,
 } from '@src/data/exerciseDefinitions';
 import { ExerciseDefinitionCard } from './components/ExerciseDefinitionCard/ExerciseDefinitionCard';
 import { ExerciseDefinitionFormModal } from './components/ExerciseDefinitionFormModal/ExerciseDefinitionFormModal';
-import { useExerciseDefinitionsScreenStyles } from './styles';
-
-interface EmptyExerciseDefinitionsProps {
-    onPressButton: () => void;
-}
-
-const EmptyExerciseDefinitions = ({
-    onPressButton,
-}: EmptyExerciseDefinitionsProps) => {
-    const { t } = useTranslation();
-    const st = useExerciseDefinitionsScreenStyles();
-
-    return (
-        <View style={st.emptyContainer}>
-            <AppText variant="title3">
-                {t('exerciseDefinitions.emptyTitle')}
-            </AppText>
-
-            <AppText
-                variant="bodySmall"
-                tone="secondary"
-                style={st.emptyDescription}
-            >
-                {t('exerciseDefinitions.emptyDescription')}
-            </AppText>
-
-            <Button
-                title={t('exerciseDefinitions.createButton')}
-                variant="primary"
-                onPress={onPressButton}
-                style={st.emptyButton}
-            />
-        </View>
-    );
-};
+import { useExerciseDefinitionsScreenStyles } from './ExerciseDefinitionsScreen.styles';
 
 const ExerciseDefinitionsScreen = () => {
     const { t } = useTranslation();
@@ -67,6 +33,7 @@ const ExerciseDefinitionsScreen = () => {
         [search],
     );
     const { data: list = [] } = useExerciseDefinitions(listParams);
+    const hasSearch = search.trim().length > 0;
 
     const openModal = () => {
         setIsModalVisible(true);
@@ -118,7 +85,26 @@ const ExerciseDefinitionsScreen = () => {
                     />
                 )}
                 ListEmptyComponent={
-                    <EmptyExerciseDefinitions onPressButton={openModal} />
+                    <ListEmptyState
+                        title={
+                            hasSearch
+                                ? t('exerciseDefinitions.searchEmptyTitle')
+                                : t('exerciseDefinitions.emptyTitle')
+                        }
+                        description={
+                            hasSearch
+                                ? t(
+                                      'exerciseDefinitions.searchEmptyDescription',
+                                  )
+                                : t('exerciseDefinitions.emptyDescription')
+                        }
+                        actionLabel={
+                            hasSearch
+                                ? undefined
+                                : t('exerciseDefinitions.createButton')
+                        }
+                        onPressAction={hasSearch ? undefined : openModal}
+                    />
                 }
                 keyboardShouldPersistTaps="handled"
             />

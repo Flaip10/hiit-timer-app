@@ -12,7 +12,7 @@ import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { useExerciseDefinition } from '@src/data/exerciseDefinitions';
 import { ExerciseDefinitionFormModal } from '@src/screens/ExerciseDefinitionsScreen/components/ExerciseDefinitionFormModal/ExerciseDefinitionFormModal';
-import { useExerciseDefinitionDetailsScreenStyles } from './styles';
+import { useExerciseDefinitionDetailsScreenStyles } from './ExerciseDefinitionDetailsScreen.styles';
 
 const sourceLabelKeyBySource = {
     system: 'exerciseDefinitions.source.system',

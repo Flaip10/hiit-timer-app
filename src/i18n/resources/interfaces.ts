@@ -56,6 +56,8 @@ export interface I18nResource {
         clear: string;
         emptyTitle: string;
         emptyDescription: string;
+        searchEmptyTitle: string;
+        searchEmptyDescription: string;
         clearConfirm: {
             title: string;
             message: string;
@@ -235,6 +237,8 @@ export interface I18nResource {
         };
         emptyTitle: string;
         emptyDescription: string;
+        searchEmptyTitle: string;
+        searchEmptyDescription: string;
         item: {
             untitled: string;
         };
@@ -270,6 +274,8 @@ export interface I18nResource {
         createButton: string;
         emptyTitle: string;
         emptyDescription: string;
+        searchEmptyTitle: string;
+        searchEmptyDescription: string;
         notFound: string;
         overview: string;
         fields: {

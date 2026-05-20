@@ -3,7 +3,6 @@ import { FlatList, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
-import { AppText } from '@src/components/ui/Typography/AppText';
 import { Button } from '@src/components/ui/Button/Button';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 import {
@@ -14,6 +13,7 @@ import { useStyles } from './HistoryScreen.styles';
 import SessionListItem from './components/SessionListitem/SessionListItem';
 import { SearchField } from '@src/components/ui/SearchField/SearchField';
 import { useTranslation } from 'react-i18next';
+import { ListEmptyState } from '@src/components/layout/ListEmptyState';
 
 const HistoryScreen = () => {
     const { t } = useTranslation();
@@ -34,6 +34,7 @@ const HistoryScreen = () => {
             session.workoutSnapshot.name.toLowerCase().includes(searchTerm),
         );
     }, [search, sessions]);
+    const hasSearch = search.trim().length > 0;
 
     return (
         <MainContainer title={t('history.title')} scroll={false} noPadding>
@@ -54,7 +55,7 @@ const HistoryScreen = () => {
                             title={t('history.clear')}
                             variant="secondary"
                             onPress={() => setConfirmClear(true)}
-                            disabled={data.length === 0}
+                            disabled={sessions.length === 0}
                         />
                     </View>
                 }
@@ -66,14 +67,18 @@ const HistoryScreen = () => {
                     />
                 )}
                 ListEmptyComponent={
-                    <View style={st.empty}>
-                        <AppText variant="title3">
-                            {t('history.emptyTitle')}
-                        </AppText>
-                        <AppText variant="bodySmall" tone="secondary">
-                            {t('history.emptyDescription')}
-                        </AppText>
-                    </View>
+                    <ListEmptyState
+                        title={
+                            hasSearch
+                                ? t('history.searchEmptyTitle')
+                                : t('history.emptyTitle')
+                        }
+                        description={
+                            hasSearch
+                                ? t('history.searchEmptyDescription')
+                                : t('history.emptyDescription')
+                        }
+                    />
                 }
             />
 

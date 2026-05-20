@@ -59,6 +59,8 @@ export const ptPT: I18nResource = {
         clear: 'Limpar',
         emptyTitle: 'Ainda não existem sessões',
         emptyDescription: 'Executa um treino e ele aparecerá aqui.',
+        searchEmptyTitle: 'Nenhuma sessão encontrada',
+        searchEmptyDescription: 'Experimenta outro nome de treino.',
         clearConfirm: {
             title: 'Limpar histórico',
             message: 'Todas as sessões serão eliminadas.',
@@ -243,6 +245,8 @@ export const ptPT: I18nResource = {
         },
         emptyTitle: 'Ainda não existem treinos',
         emptyDescription: 'Cria o teu primeiro treino para começar.',
+        searchEmptyTitle: 'Nenhum treino encontrado',
+        searchEmptyDescription: 'Experimenta outro nome de treino.',
         item: {
             untitled: 'Treino sem nome',
         },
@@ -282,6 +286,8 @@ export const ptPT: I18nResource = {
         emptyTitle: 'Ainda não existem exercícios',
         emptyDescription:
             'Cria o teu primeiro exercício para construir o catálogo.',
+        searchEmptyTitle: 'Nenhum exercício encontrado',
+        searchEmptyDescription: 'Experimenta outro nome de exercício.',
         notFound: 'Exercício não encontrado.',
         overview: 'Visão geral',
         fields: {

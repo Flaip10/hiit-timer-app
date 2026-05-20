@@ -13,7 +13,7 @@ import { TextField } from '@src/components/ui/TextField/TextField';
 import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
 import { OptionPills } from '@src/screens/SettingsScreen/components/OptionPills';
 import { useUpsertExerciseDefinition } from '@src/data/exerciseDefinitions';
-import { useExerciseDefinitionFormModalStyles } from './styles';
+import { useExerciseDefinitionFormModalStyles } from './ExerciseDefinitionFormModal.styles';
 
 interface ExerciseDefinitionFormModalProps {
     definition?: ExerciseDefinition;

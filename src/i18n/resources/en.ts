@@ -59,6 +59,8 @@ export const en: I18nResource = {
         clear: 'Clear',
         emptyTitle: 'No sessions yet',
         emptyDescription: 'Run a workout and it will appear here.',
+        searchEmptyTitle: 'No sessions found',
+        searchEmptyDescription: 'Try a different workout name.',
         clearConfirm: {
             title: 'Clear history',
             message: 'All workout sessions will be deleted.',
@@ -241,6 +243,8 @@ export const en: I18nResource = {
         },
         emptyTitle: 'No workouts yet',
         emptyDescription: 'Create your first workout to get started.',
+        searchEmptyTitle: 'No workouts found',
+        searchEmptyDescription: 'Try a different workout name.',
         item: {
             untitled: 'Untitled workout',
         },
@@ -279,6 +283,8 @@ export const en: I18nResource = {
         emptyTitle: 'No exercises yet',
         emptyDescription:
             'Create your first exercise to build your catalog.',
+        searchEmptyTitle: 'No exercises found',
+        searchEmptyDescription: 'Try a different exercise name.',
         notFound: 'Exercise not found.',
         overview: 'Overview',
         fields: {
