@@ -79,6 +79,15 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 - If the legacy migration marker is absent, migration may reset SQLite workout/session tables before replaying old data.
 - Reuse workout versions only when content matches and the version is unowned or belongs to the same workout.
 
+## 5.2) Database Integration Tests
+
+- DB integration tests should primarily test service behavior under `src/db/services/`.
+- Avoid using a service method as test setup for another service method; that creates circular confidence.
+- Arrange existing DB state with seed helpers under `tests/helpers/` that write directly to Drizzle tables.
+- Use the service method being tested as the action under test, then assert service-visible results and the DB side effects that are part of that behavior.
+- Keep seed helpers focused and reusable by domain, e.g. workout, workout session, and exercise definition seed helpers.
+- Repository-specific tests, when added, should be narrower and focus on CRUD/query behavior only.
+
 ---
 
 ## 6) Animations
