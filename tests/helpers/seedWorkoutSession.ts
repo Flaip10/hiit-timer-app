@@ -1,4 +1,5 @@
 import type { WorkoutSession } from '@src/core/entities/workoutSession.interfaces';
+import { eq } from 'drizzle-orm';
 import {
     workoutBlocksTable,
     workoutExercisesTable,
@@ -21,6 +22,13 @@ const seedSessionWorkoutVersion = (
 ): SeedWorkoutSessionResult => {
     const workout = session.workoutSnapshot;
     const versionId = session.workoutVersionId;
+    const existingVersion = testDb.db
+        .select({ id: workoutVersionsTable.id })
+        .from(workoutVersionsTable)
+        .where(eq(workoutVersionsTable.id, versionId))
+        .get();
+
+    if (existingVersion) return { versionId };
 
     testDb.db
         .insert(workoutVersionsTable)
