@@ -84,11 +84,15 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 - DB integration tests should primarily test service behavior under `src/db/services/`.
 - Keep service integration tests in one file per service unless a split is explicitly requested.
 - Structure service integration tests with the service method as the major `describe`, then nested `describe` blocks for the business rule or scenario being protected.
+- Avoid nested `describe` blocks that only wrap a single obvious test. Prefer putting the condition in the `it` name unless the nested scenario groups multiple tests or clarifies a meaningful business branch.
 - Test names should describe the business invariant, not only the code path. Example: prefer “preserves referenced workout content when content changes” over “calls upsertWorkout with changed content”.
+- Keep service methods aligned with business intent. For example, same-identity updates, creating a new identity, and merging two identities should be separate service operations, even if a UI mutation chooses between them.
+- TanStack mutations may route the user’s chosen intent to the correct service method, but DB business rules and invariants belong in services, not hooks.
 - Avoid using a service method as test setup for another service method; that creates circular confidence.
 - Arrange existing DB state with seed helpers under `tests/helpers/` that write directly to Drizzle tables.
 - Use the service method being tested as the action under test, then assert service-visible results and the DB side effects that are part of that behavior.
 - Do not assert DB writes by comparing a row to the object returned from the same service call. Build expected values from fixtures, explicit inputs, and known clock values, then compare the DB row to those expected values.
+- When testing reference-moving behavior, assert the exact seeded row by ID points to the expected target after the action; do not rely only on aggregate “contains/does not contain” checks.
 - Deduplicate mechanics, not meaning: helper functions may hide repetitive DB query/assertion noise, but should not hide the business scenario being tested.
 - Keep seed helpers focused and reusable by domain, e.g. workout, workout session, and exercise definition seed helpers.
 - Repository-specific tests, when added, should be narrower and focus on CRUD/query behavior only.
