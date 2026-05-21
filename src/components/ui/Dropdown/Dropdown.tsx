@@ -45,15 +45,17 @@ export const Dropdown = ({
 
         anchorRef.current?.measureInWindow(
             (x: number, y: number, width: number, height: number) => {
-                setAnchorLayout({
-                    x,
-                    y,
-                    width,
-                    height,
+                portal.measureInWindow((portalX: number, portalY: number) => {
+                    setAnchorLayout({
+                        x: x - portalX,
+                        y: y - portalY,
+                        width,
+                        height,
+                    });
                 });
             },
         );
-    }, [anchorRef, visible]);
+    }, [anchorRef, portal, visible]);
 
     useEffect(() => {
         if (visible) return;
