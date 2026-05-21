@@ -12,6 +12,7 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import type {
     DropdownLayout,
+    DropdownPosition,
     DropdownProps,
 } from './Dropdown.interfaces';
 import { resolveDropdownLayout } from './Dropdown.helpers';
@@ -37,6 +38,9 @@ export const Dropdown = ({
     );
     const [dropdownLayout, setDropdownLayout] =
         useState<DropdownLayout | null>(null);
+    const [portalLayout, setPortalLayout] = useState<DropdownLayout | null>(
+        null,
+    );
     const entering = useMemo(() => FadeIn.duration(120), []);
     const exiting = useMemo(() => FadeOut.duration(90), []);
 
@@ -45,14 +49,27 @@ export const Dropdown = ({
 
         anchorRef.current?.measureInWindow(
             (x: number, y: number, width: number, height: number) => {
-                portal.measureInWindow((portalX: number, portalY: number) => {
-                    setAnchorLayout({
-                        x: x - portalX,
-                        y: y - portalY,
-                        width,
-                        height,
-                    });
-                });
+                portal.measureInWindow(
+                    (
+                        portalX: number,
+                        portalY: number,
+                        portalWidth: number,
+                        portalHeight: number,
+                    ) => {
+                        setPortalLayout({
+                            x: 0,
+                            y: 0,
+                            width: portalWidth,
+                            height: portalHeight,
+                        });
+                        setAnchorLayout({
+                            x: x - portalX,
+                            y: y - portalY,
+                            width,
+                            height,
+                        });
+                    },
+                );
             },
         );
     }, [anchorRef, portal, visible]);
@@ -62,6 +79,7 @@ export const Dropdown = ({
 
         setAnchorLayout(null);
         setDropdownLayout(null);
+        setPortalLayout(null);
         shouldMeasureDropdownRef.current = false;
     }, [visible]);
 
@@ -79,15 +97,53 @@ export const Dropdown = ({
         shouldMeasureDropdownRef.current = false;
     }, []);
 
+    const resolvedPosition = useMemo<DropdownPosition | undefined>(() => {
+        if (!anchorLayout || !dropdownLayout || !portalLayout) {
+            return position;
+        }
+
+        const side = position?.side ?? 'bottom';
+        const offsetY = position?.offset?.y ?? 0;
+        const bottomTop = anchorLayout.y + anchorLayout.height + offsetY;
+        const topTop = anchorLayout.y - dropdownLayout.height + offsetY;
+        const doesBottomFit =
+            bottomTop + dropdownLayout.height <= portalLayout.height;
+        const doesTopFit = topTop >= 0;
+
+        if (side === 'bottom' && !doesBottomFit && doesTopFit) {
+            return {
+                ...position,
+                offset: {
+                    ...position?.offset,
+                    y: -offsetY,
+                },
+                side: 'top',
+            };
+        }
+
+        if (side === 'top' && !doesTopFit && doesBottomFit) {
+            return {
+                ...position,
+                offset: {
+                    ...position?.offset,
+                    y: -offsetY,
+                },
+                side: 'bottom',
+            };
+        }
+
+        return position;
+    }, [anchorLayout, dropdownLayout, portalLayout, position]);
+
     const resolvedLayout = useMemo(
         () =>
             resolveDropdownLayout({
                 anchorLayout,
                 dropdownLayout,
-                position,
+                position: resolvedPosition,
                 matchAnchorWidth,
             }),
-        [anchorLayout, dropdownLayout, matchAnchorWidth, position],
+        [anchorLayout, dropdownLayout, matchAnchorWidth, resolvedPosition],
     );
 
     const dropdownContent = useMemo(() => {
