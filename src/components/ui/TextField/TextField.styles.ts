@@ -22,6 +22,7 @@ export const useTextFieldStyles = createStyles(
             },
 
             input: {
+                width: '100%',
                 flexDirection: 'row',
                 alignItems: props.multiline ? 'flex-start' : 'center',
                 borderRadius: 999,
@@ -38,9 +39,30 @@ export const useTextFieldStyles = createStyles(
                 textAlignVertical: props.multiline ? 'top' : 'center',
             },
 
+            inputAnchor: {
+                width: '100%',
+            },
             rightAccessoryContainer: {
                 marginLeft: 8,
                 alignSelf: 'center',
+            },
+            suggestionsSurface: {
+                backgroundColor: theme.palette.background.primary,
+                borderColor: theme.palette.accent.primary,
+                borderWidth: 0,
+            },
+            suggestionRow: {
+                justifyContent: 'center',
+                paddingVertical: 12,
+                paddingHorizontal: 14,
+                borderTopWidth: 1,
+                borderColor: theme.palette.border.subtle,
+            },
+            suggestionRowPressed: {
+                opacity: 0.55,
+            },
+            suggestionLabel: {
+                flexShrink: 1,
             },
             helperText: {
                 fontSize: 12,
@@ -50,5 +72,5 @@ export const useTextFieldStyles = createStyles(
                 fontSize: 12,
                 color: theme.palette.feedback.errorText,
             },
-        })
+        }),
 );

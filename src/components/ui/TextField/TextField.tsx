@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { TextInput, View, Text } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Pressable, TextInput, View, Text } from 'react-native';
 
 import type { TextFieldProps } from './TextField.interfaces';
 import { useTextFieldStyles } from './TextField.styles';
+import { useMainContainerKeyboard } from '@src/components/layout/MainContainer/MainContainerKeyboardContext';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { FieldLabel } from '../FieldLabel/FieldLabel';
+import { Dropdown } from '../Dropdown/Dropdown';
+import { AppText } from '../Typography/AppText';
 
 export const TextField: React.FC<TextFieldProps> = ({
     label,
@@ -14,6 +17,8 @@ export const TextField: React.FC<TextFieldProps> = ({
     containerStyle,
     inputStyle,
     rightAccessory,
+    suggestions = [],
+    onSuggestionPress,
     multiline,
     autoHideErrorOnChange = true,
     onFocus,
@@ -21,7 +26,12 @@ export const TextField: React.FC<TextFieldProps> = ({
     ...inputProps
 }) => {
     const { theme } = useTheme();
+    const keyboardContext = useMainContainerKeyboard();
+    const anchorRef = useRef<View | null>(null);
+    const inputRef = useRef<TextInput | null>(null);
     const [isFocused, setIsFocused] = useState(false);
+    const [areSuggestionsDismissed, setAreSuggestionsDismissed] =
+        useState(false);
     const [squelched, setSquelched] = useState(false);
 
     // Extract onChangeText so we can wrap it
@@ -44,15 +54,28 @@ export const TextField: React.FC<TextFieldProps> = ({
 
     const showHelper = !!helperText && !hasError;
     const showError = hasError;
+    const canShowSuggestionsForKeyboard =
+        !keyboardContext || keyboardContext.canShowInputDropdowns;
+    const showSuggestions =
+        isFocused &&
+        canShowSuggestionsForKeyboard &&
+        !areSuggestionsDismissed &&
+        suggestions.length > 0 &&
+        !!onSuggestionPress;
 
     const handleChangeText = (value: string) => {
         if (autoHideErrorOnChange && errorText && !squelched) {
             setSquelched(true);
         }
 
+        setAreSuggestionsDismissed(false);
         if (onChangeText) {
             onChangeText(value);
         }
+    };
+
+    const closeSuggestions = () => {
+        setAreSuggestionsDismissed(true);
     };
 
     return (
@@ -63,25 +86,73 @@ export const TextField: React.FC<TextFieldProps> = ({
                 </View>
             ) : null}
 
-            <TextInput
-                {...restInputProps}
-                multiline={multiline}
-                style={[st.input, inputStyle]}
-                placeholderTextColor={theme.palette.text.muted}
-                onFocus={(e) => {
-                    setIsFocused(true);
-                    onFocus?.(e);
-                }}
-                onBlur={(e) => {
-                    setIsFocused(false);
-                    onBlur?.(e);
-                }}
-                onChangeText={handleChangeText}
-            />
+            <View ref={anchorRef} style={st.inputAnchor}>
+                <TextInput
+                    {...restInputProps}
+                    ref={inputRef}
+                    multiline={multiline}
+                    style={[st.input, inputStyle]}
+                    placeholderTextColor={theme.palette.text.muted}
+                    onFocus={(e) => {
+                        setIsFocused(true);
+                        setAreSuggestionsDismissed(false);
+                        keyboardContext?.scrollFocusedInputIntoView(anchorRef);
+                        onFocus?.(e);
+                    }}
+                    onBlur={(e) => {
+                        setIsFocused(false);
+                        onBlur?.(e);
+                    }}
+                    onChangeText={handleChangeText}
+                />
 
-            {rightAccessory ? (
-                <View style={st.rightAccessoryContainer}>{rightAccessory}</View>
-            ) : null}
+                {rightAccessory ? (
+                    <View style={st.rightAccessoryContainer}>
+                        {rightAccessory}
+                    </View>
+                ) : null}
+            </View>
+
+            <Dropdown
+                visible={showSuggestions}
+                anchorRef={anchorRef}
+                position={{
+                    side: 'bottom',
+                    align: 'start',
+                    offset: {
+                        y: 4,
+                    },
+                }}
+                matchAnchorWidth
+                onClose={closeSuggestions}
+                surfaceStyle={st.suggestionsSurface}
+            >
+                <View>
+                    {suggestions.map((suggestion) => (
+                        <Pressable
+                            key={suggestion.id}
+                            onPress={() => {
+                                setAreSuggestionsDismissed(true);
+                                onSuggestionPress?.(suggestion);
+                                inputRef.current?.blur();
+                            }}
+                            style={({ pressed }) => [
+                                st.suggestionRow,
+                                pressed ? st.suggestionRowPressed : null,
+                            ]}
+                        >
+                            <AppText
+                                variant="body"
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                                style={st.suggestionLabel}
+                            >
+                                {suggestion.label}
+                            </AppText>
+                        </Pressable>
+                    ))}
+                </View>
+            </Dropdown>
 
             {showHelper && <Text style={st.helperText}>{helperText}</Text>}
             {showError && <Text style={st.errorText}>{errorText}</Text>}
