@@ -69,6 +69,10 @@ export interface ExerciseDefinitionRepository {
     getByNormalizedName: (normalizedName: string) => ExerciseDefinition | null;
     hasWorkoutExerciseReferences: (id: string) => boolean;
     list: (params?: ExerciseDefinitionListParams) => ExerciseDefinition[];
+    replaceWorkoutExerciseDefinitionReferences: (input: {
+        sourceId: string;
+        targetId: string;
+    }) => void;
     update: (input: UpdateExerciseDefinitionInput) => ExerciseDefinition;
 }
 
@@ -242,6 +246,16 @@ export const createExerciseDefinitionRepository = ({
                 limit === undefined ? query.all() : query.limit(limit).all();
 
             return rows.map(exerciseDefinitionFromRow);
+        },
+
+        replaceWorkoutExerciseDefinitionReferences: ({
+            sourceId,
+            targetId,
+        }): void => {
+            db.update(workoutExercisesTable)
+                .set({ exerciseDefinitionId: targetId })
+                .where(eq(workoutExercisesTable.exerciseDefinitionId, sourceId))
+                .run();
         },
 
         update: (input: UpdateExerciseDefinitionInput): ExerciseDefinition => {

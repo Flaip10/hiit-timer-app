@@ -26,12 +26,15 @@ export interface CreateUserExerciseDefinitionInput {
     name: string;
 }
 
-export type UpdateExerciseDefinitionMode = 'create-new' | 'relink-existing';
-
 export interface UpdateExerciseDefinitionInput {
     availability?: ExerciseDefinitionAvailability;
-    id?: string;
-    name: string;
+    id: string;
+    name?: string;
+}
+
+export interface MergeExerciseDefinitionInput {
+    sourceId: string;
+    targetId: string;
 }
 
 export interface ExerciseDefinitionService {
@@ -45,12 +48,14 @@ export interface ExerciseDefinitionService {
     getById: (id: string) => ExerciseDefinition | null;
     getByNormalizedName: (normalizedName: string) => ExerciseDefinition | null;
     list: (params?: ExerciseDefinitionListParams) => ExerciseDefinition[];
+    mergeExerciseDefinition: (
+        input: MergeExerciseDefinitionInput,
+    ) => ExerciseDefinition;
     resolveWorkoutExerciseDefinitions: (workout: Workout) => Workout;
     seedSystemDefinitions: () => void;
     updateExerciseDefinition: (
         input: UpdateExerciseDefinitionInput,
-        mode: UpdateExerciseDefinitionMode,
-    ) => ExerciseDefinition | null;
+    ) => ExerciseDefinition;
 }
 
 export interface CreateExerciseDefinitionServiceArgs {
@@ -156,6 +161,55 @@ export const createExerciseDefinitionService = ({
                 scope,
             }),
 
+        mergeExerciseDefinition: ({
+            sourceId,
+            targetId,
+        }: MergeExerciseDefinitionInput): ExerciseDefinition => {
+            if (sourceId === targetId) {
+                throw new Error(
+                    `Cannot merge exercise definition ${sourceId} into itself`,
+                );
+            }
+
+            const source = exerciseDefinitionRepository.getById(sourceId);
+            if (!source) {
+                throw new Error(
+                    `Exercise definition ${sourceId} was not found`,
+                );
+            }
+
+            const target = exerciseDefinitionRepository.getById(targetId);
+            if (!target) {
+                throw new Error(
+                    `Exercise definition ${targetId} was not found`,
+                );
+            }
+
+            const hasWorkoutReferences =
+                exerciseDefinitionRepository.hasWorkoutExerciseReferences(
+                    sourceId,
+                );
+            if (hasWorkoutReferences && target.availability === 'gym') {
+                throw new Error(
+                    `Cannot merge workout-referenced exercise definition ${sourceId} into gym-only definition ${targetId}`,
+                );
+            }
+            //Todo: Same checking but reversed when we have gym exercises references
+
+            exerciseDefinitionRepository.replaceWorkoutExerciseDefinitionReferences(
+                {
+                    sourceId,
+                    targetId,
+                },
+            );
+
+            if (source.source === 'user') {
+                exerciseDefinitionRepository.deleteById(sourceId);
+            }
+
+            return target;
+        },
+
         getById: (id: string): ExerciseDefinition | null =>
             exerciseDefinitionRepository.getById(id),
 
@@ -213,35 +267,45 @@ export const createExerciseDefinitionService = ({
             systemExerciseDefinitions.forEach(seedSystemDefinition);
         },
 
-        updateExerciseDefinition: (
-            { availability, id, name }: UpdateExerciseDefinitionInput,
-            mode: UpdateExerciseDefinitionMode,
-        ): ExerciseDefinition | null => {
-            if (mode === 'create-new') {
-                return service.findOrCreateUserExerciseDefinitionByName(name);
-            }
-
-            if (!id) {
-                throw new Error('Exercise definition id is required');
-            }
-
-            const nameInput = normalizeExerciseDefinitionName(name);
+        updateExerciseDefinition: ({
+            availability,
+            id,
+            name,
+        }: UpdateExerciseDefinitionInput): ExerciseDefinition => {
+            const nameInput =
+                name !== undefined
+                    ? normalizeExerciseDefinitionName(name)
+                    : undefined;
             const existing = exerciseDefinitionRepository.getById(id);
             if (!existing) {
                 throw new Error(`Exercise definition ${id} was not found`);
             }
 
+            if (
+                availability === 'gym' &&
+                existing.availability !== 'gym' &&
+                exerciseDefinitionRepository.hasWorkoutExerciseReferences(id)
+            ) {
+                throw new Error(
+                    `Cannot make workout-referenced exercise definition ${id} gym-only`,
+                );
+            }
+            //Todo: Same checking but reversed when we have gym exercises references
+
             if (existing.source === 'user') {
                 return exerciseDefinitionRepository.update({
                     id: existing.id,
-                    name: nameInput.name,
-                    normalizedName: nameInput.normalizedName,
+                    name: nameInput?.name,
+                    normalizedName: nameInput?.normalizedName,
                     availability,
                     updatedAtMs: clock.now(),
                 });
             }
 
-            if (existing.normalizedName === nameInput.normalizedName) {
+            if (
+                nameInput === undefined ||
+                existing.normalizedName === nameInput.normalizedName
+            ) {
                 return existing;
             }
 
