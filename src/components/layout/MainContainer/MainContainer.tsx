@@ -35,7 +35,7 @@ export const MainContainer = ({
         handleScroll,
         keyboardContextValue,
         scrollViewRef,
-        scrollViewportRef,
+        viewportRef,
     } = useKeyboardAwareScroll();
 
     const content = scroll ? (
@@ -67,7 +67,7 @@ export const MainContainer = ({
                     style={st.kav}
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
-                    <View ref={scrollViewportRef} style={st.viewport}>
+                    <View ref={viewportRef} style={st.viewport}>
                         {content}
                     </View>
                 </KeyboardAvoidingView>
