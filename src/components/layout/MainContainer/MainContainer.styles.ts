@@ -23,5 +23,8 @@ export const useMainContainerStyles = createStyles(
             kav: {
                 flex: 1,
             },
+            viewport: {
+                flex: 1,
+            },
         })
 );

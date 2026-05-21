@@ -1,15 +1,15 @@
 import React, { type ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 
-import {
-    TopBar,
-} from '@src/components/navigation/TopBar/TopBar';
+import { TopBar } from '@src/components/navigation/TopBar/TopBar';
 import type {
     TopBarLeftMode,
     TopBarOption,
 } from '@src/components/navigation/TopBar/TopBar.interfaces';
 import { ScreenShell } from '../ScreenShell';
 import { useMainContainerStyles } from './MainContainer.styles';
+import { MainContainerKeyboardProvider } from './MainContainerKeyboardContext';
+import { useKeyboardAwareScroll } from './useKeyboardAwareScroll';
 
 type MainContainerProps = {
     title?: string;
@@ -31,11 +31,20 @@ export const MainContainer = ({
     topBarLeftMode,
 }: MainContainerProps) => {
     const st = useMainContainerStyles({ gap, noPadding });
+    const {
+        handleScroll,
+        keyboardContextValue,
+        scrollViewRef,
+        scrollViewportRef,
+    } = useKeyboardAwareScroll();
 
     const content = scroll ? (
         <ScrollView
+            ref={scrollViewRef}
             contentContainerStyle={st.content}
             keyboardShouldPersistTaps="handled"
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
         >
             {children}
         </ScrollView>
@@ -53,12 +62,16 @@ export const MainContainer = ({
                 />
             ) : null}
 
-            <KeyboardAvoidingView
-                style={st.kav}
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            >
-                {content}
-            </KeyboardAvoidingView>
+            <MainContainerKeyboardProvider value={keyboardContextValue}>
+                <KeyboardAvoidingView
+                    style={st.kav}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                >
+                    <View ref={scrollViewportRef} style={st.viewport}>
+                        {content}
+                    </View>
+                </KeyboardAvoidingView>
+            </MainContainerKeyboardProvider>
         </ScreenShell>
     );
 };
