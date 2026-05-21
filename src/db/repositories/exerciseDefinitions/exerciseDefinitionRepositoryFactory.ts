@@ -45,6 +45,7 @@ export interface UpdateExerciseDefinitionInput {
 export interface ExerciseDefinitionListFilters {
     availability?: ExerciseDefinitionAvailability;
     name?: string;
+    namePrefix?: string;
     source?: ExerciseDefinitionSource;
 }
 
@@ -185,6 +186,9 @@ export const createExerciseDefinitionRepository = ({
             scope = 'active',
         }: ExerciseDefinitionListParams = {}): ExerciseDefinition[] => {
             const normalizedNameFilter = normalizeNameFilter(filters?.name);
+            const normalizedNamePrefixFilter = normalizeNameFilter(
+                filters?.namePrefix,
+            );
             const conditions = [
                 scope === 'active'
                     ? or(
@@ -218,6 +222,12 @@ export const createExerciseDefinitionRepository = ({
                     ? like(
                           exerciseDefinitionsTable.normalizedName,
                           `%${normalizedNameFilter}%`,
+                      )
+                    : undefined,
+                normalizedNamePrefixFilter
+                    ? like(
+                          exerciseDefinitionsTable.normalizedName,
+                          `${normalizedNamePrefixFilter}%`,
                       )
                     : undefined,
             ];
