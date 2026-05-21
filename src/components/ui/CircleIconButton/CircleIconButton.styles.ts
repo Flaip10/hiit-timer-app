@@ -7,7 +7,7 @@ export const useCircleIconButtonStyles = createStyles((theme: AppTheme) =>
         primaryCircle: {
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: theme.palette.accent.surfaces,
+            backgroundColor: theme.palette.accent.surface,
             shadowColor: '#000000',
             shadowOffset: { width: 0, height: 6 },
             shadowOpacity: 0.35,

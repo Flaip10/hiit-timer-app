@@ -18,12 +18,7 @@ export interface ThemePalette {
         subtle: string;
         strong: string;
     };
-    accent: {
-        primary: string; // brand color (buttons, key actions)
-        soft: string; // low-emphasis accent bg (chips, pills)
-        surfaces: string;
-        darkInk: string;
-    };
+    accent: AccentTokens;
     button: {
         primary: string;
         secondary: string;
@@ -182,8 +177,9 @@ export const buildLightPalette = (accent: AccentTokens): ThemePalette => ({
     },
     accent: {
         primary: accent.primary,
+        primaryStrong: accent.primaryStrong,
         soft: accent.soft,
-        surfaces: colors.gray[900],
+        surface: accent.surface,
         darkInk: accent.darkInk,
     },
     button: {
@@ -260,8 +256,9 @@ export const buildDarkPalette = (accent: AccentTokens): ThemePalette => ({
     },
     accent: {
         primary: accent.primary,
+        primaryStrong: accent.primaryStrong,
         soft: colors.gray[900],
-        surfaces: colors.gray[900],
+        surface: colors.gray[900],
         darkInk: accent.darkInk,
     },
     button: {
