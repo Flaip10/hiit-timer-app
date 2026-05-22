@@ -20,6 +20,7 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 - **Never use `any`.**
 - Prefer **interfaces over type aliases** unless there is a concrete reason.
 - Keep types explicit when they prevent ambiguity.
+- Avoid unnecessary generics. Use generics only when the implementation preserves, transforms, or links caller-specific types; prefer a concrete minimal interface when the code only needs a fixed subset of fields.
 - Avoid unnecessary type assertions (`as X`)—only use them when they truly change inference.
 - Boolean naming must be semantic:
     - `isX` (state/classification), `hasX` (presence), `canX` / `shouldX` (policy), `wasX` / `didX` (historical).
