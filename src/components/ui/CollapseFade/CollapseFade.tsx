@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { LayoutChangeEvent, StyleProp, ViewStyle } from 'react-native';
 import { View } from 'react-native';
 import Animated, {
@@ -22,24 +22,37 @@ export const CollapseFade = ({
     duration = 200,
     contentStyle,
 }: CollapseFadeProps) => {
-    const [contentHeight, setContentHeight] = useState(0);
-
     const height = useSharedValue(0);
     const opacity = useSharedValue(visible ? 1 : 0);
 
+    // Refs avoid the setState → re-render → useEffect chain; inside a Modal
+    // layout fires repeatedly during the open animation, which restarts
+    // withTiming each time and makes the expansion feel laggy.
+    const contentHeightRef = useRef(0);
+    const visibleRef = useRef(visible);
+    visibleRef.current = visible;
+    const durationRef = useRef(duration);
+    durationRef.current = duration;
+
     const handleContentLayout = (event: LayoutChangeEvent) => {
-        const measured = event.nativeEvent.layout.height;
-        if (measured <= 0) return;
-        setContentHeight((prev) => (prev === measured ? prev : measured));
+        // Math.ceil prevents sub-pixel float differences triggering spurious re-fires.
+        const measured = Math.ceil(event.nativeEvent.layout.height);
+        if (measured <= 0 || measured === contentHeightRef.current) return;
+        contentHeightRef.current = measured;
+
+        if (visibleRef.current) {
+            height.value = withTiming(measured, { duration: durationRef.current });
+            opacity.value = withTiming(1, { duration: durationRef.current });
+        }
     };
 
     useEffect(() => {
-        // Can't size the open state until the content has been measured.
-        if (visible && contentHeight <= 0) return;
-
-        height.value = withTiming(visible ? contentHeight : 0, { duration });
+        const h = contentHeightRef.current;
+        // Wait for layout if not yet measured; handleContentLayout will start the animation.
+        if (visible && h <= 0) return;
+        height.value = withTiming(visible ? h : 0, { duration });
         opacity.value = withTiming(visible ? 1 : 0, { duration });
-    }, [visible, contentHeight, duration, height, opacity]);
+    }, [visible, duration, height, opacity]);
 
     const animatedStyle = useAnimatedStyle(() => ({
         height: height.value,
