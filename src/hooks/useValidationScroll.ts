@@ -1,8 +1,8 @@
 import { createRef, useCallback, useRef, type RefObject } from 'react';
 import type { View } from 'react-native';
 
-export interface ValidationScrollTargetError {
-    targetId: string;
+export interface ValidationScrollTargetError<TargetId extends string> {
+    targetId: TargetId;
 }
 
 interface UseValidationScrollArgs {
@@ -12,20 +12,22 @@ interface UseValidationScrollArgs {
     ) => void;
 }
 
-interface UseValidationScrollResult {
-    refFor: (targetId: string) => RefObject<View | null>;
-    scrollToFirstError: (errors: ValidationScrollTargetError[]) => void;
+interface UseValidationScrollResult<TargetId extends string> {
+    refFor: (targetId: TargetId) => RefObject<View | null>;
+    scrollToFirstError: (
+        errors: ValidationScrollTargetError<TargetId>[],
+    ) => void;
 }
 
-export const useValidationScroll = ({
+export const useValidationScroll = <TargetId extends string>({
     scrollTargetIntoView,
-}: UseValidationScrollArgs): UseValidationScrollResult => {
+}: UseValidationScrollArgs): UseValidationScrollResult<TargetId> => {
     const targetRefs = useRef<
-        Partial<Record<string, RefObject<View | null>>>
+        Partial<Record<TargetId, RefObject<View | null>>>
     >({});
 
     const refFor = useCallback(
-        (targetId: string): RefObject<View | null> => {
+        (targetId: TargetId): RefObject<View | null> => {
             const existing = targetRefs.current[targetId];
             if (existing) return existing;
 
@@ -37,7 +39,7 @@ export const useValidationScroll = ({
     );
 
     const scrollToFirstError = useCallback(
-        (errors: ValidationScrollTargetError[]): void => {
+        (errors: ValidationScrollTargetError<TargetId>[]): void => {
             if (errors.length === 0) return;
 
             const firstError = errors[0];
