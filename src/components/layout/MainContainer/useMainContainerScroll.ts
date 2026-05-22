@@ -21,32 +21,38 @@ const TARGET_VIEWPORT_RATIO = 0.42;
 const LAYOUT_DELAY_MS = 32;
 const DROPDOWN_SETTLE_DELAY_MS = 280;
 
-interface UseKeyboardAwareScrollResult {
-    handleScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+interface UseMainContainerScrollResult {
+    monitorScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     scrollContextValue: MainContainerScrollContextValue;
+    scrollTargetIntoView: (
+        targetRef: RefObject<View | null>,
+        viewportRatio?: number,
+    ) => void;
     scrollViewRef: RefObject<ScrollView | null>;
     viewportRef: RefObject<View | null>;
 }
 
-export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
+export const useMainContainerScroll = (): UseMainContainerScrollResult => {
     const scrollViewRef = useRef<ScrollView | null>(null);
     const viewportRef = useRef<View | null>(null);
-    const focusedTargetRef = useRef<{
+    const focusedInputTargetRef = useRef<{
         ref: RefObject<View | null>;
         viewportRatio?: number;
     } | null>(null);
     const currentScrollYRef = useRef(0);
     const isKeyboardVisibleRef = useRef(false);
-    const layoutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const layoutSettleTimeoutRef = useRef<ReturnType<
+        typeof setTimeout
+    > | null>(null);
     const dropdownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
         null,
     );
     const [canShowInputDropdowns, setCanShowInputDropdowns] = useState(false);
 
     const clearPendingTimeouts = useCallback((): void => {
-        if (layoutTimeoutRef.current) {
-            clearTimeout(layoutTimeoutRef.current);
-            layoutTimeoutRef.current = null;
+        if (layoutSettleTimeoutRef.current) {
+            clearTimeout(layoutSettleTimeoutRef.current);
+            layoutSettleTimeoutRef.current = null;
         }
 
         if (dropdownTimeoutRef.current) {
@@ -107,14 +113,14 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
 
     const scheduleScrollAndDropdown = useCallback((): void => {
         clearPendingTimeouts();
-        layoutTimeoutRef.current = setTimeout(() => {
-            layoutTimeoutRef.current = null;
-            const focused = focusedTargetRef.current;
+        layoutSettleTimeoutRef.current = setTimeout(() => {
+            layoutSettleTimeoutRef.current = null;
+            const focusedInput = focusedInputTargetRef.current;
 
-            if (focused) {
+            if (focusedInput) {
                 scrollMeasuredTargetIntoView(
-                    focused.ref,
-                    focused.viewportRatio,
+                    focusedInput.ref,
+                    focusedInput.viewportRatio,
                     false,
                 );
             }
@@ -139,7 +145,7 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
         const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
             isKeyboardVisibleRef.current = false;
             setCanShowInputDropdowns(false);
-            focusedTargetRef.current = null;
+            focusedInputTargetRef.current = null;
             clearPendingTimeouts();
         });
         const frameSubscription =
@@ -160,7 +166,7 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
 
     const scrollFocusedInputIntoView = useCallback(
         (targetRef: RefObject<View | null>, viewportRatio?: number): void => {
-            focusedTargetRef.current = { ref: targetRef, viewportRatio };
+            focusedInputTargetRef.current = { ref: targetRef, viewportRatio };
 
             if (isKeyboardVisibleRef.current) {
                 setCanShowInputDropdowns(false);
@@ -183,15 +189,16 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
         ],
     );
 
-    const handleScroll = (
+    const monitorScroll = (
         event: NativeSyntheticEvent<NativeScrollEvent>,
     ): void => {
         currentScrollYRef.current = event.nativeEvent.contentOffset.y;
     };
 
     return {
-        handleScroll,
+        monitorScroll,
         scrollContextValue,
+        scrollTargetIntoView,
         scrollViewRef,
         viewportRef,
     };
