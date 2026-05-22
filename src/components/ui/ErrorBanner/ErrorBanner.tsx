@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { forwardRef, useRef, useState } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,13 +22,13 @@ interface DismissedBanner {
     message: string;
 }
 
-export const ErrorBanner = ({
+export const ErrorBanner = forwardRef<View, ErrorBannerProps>(({
     message,
     dismissalKey,
     isDismissible = false,
     onClose,
     style,
-}: ErrorBannerProps) => {
+}, ref) => {
     const { theme } = useTheme();
     const st = useStyles();
     const [dismissedBanner, setDismissedBanner] =
@@ -58,6 +58,7 @@ export const ErrorBanner = ({
     return (
         <CollapseFade visible={isVisible} duration={150}>
             <View
+                ref={ref}
                 style={[st.container, style]}
             >
                 <Ionicons
@@ -88,4 +89,6 @@ export const ErrorBanner = ({
             </View>
         </CollapseFade>
     );
-};
+});
+
+ErrorBanner.displayName = 'ErrorBanner';

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { Pressable, TextInput, View, Text } from 'react-native';
 
 import type { TextFieldProps } from './TextField.interfaces';
@@ -15,7 +15,7 @@ interface FieldMessage {
     isError: boolean;
 }
 
-export const TextField: React.FC<TextFieldProps> = ({
+export const TextField = forwardRef<View, TextFieldProps>(({
     label,
     labelTone = 'primary',
     helperText,
@@ -30,7 +30,7 @@ export const TextField: React.FC<TextFieldProps> = ({
     onFocus,
     onBlur,
     ...inputProps
-}) => {
+}, ref) => {
     const { theme } = useTheme();
     const scrollContext = useMainContainerScroll();
     const anchorRef = useRef<View | null>(null);
@@ -102,7 +102,7 @@ export const TextField: React.FC<TextFieldProps> = ({
     };
 
     return (
-        <View style={[st.container, containerStyle]}>
+        <View ref={ref} style={[st.container, containerStyle]}>
             {!!label && (
                 <View style={st.labelRow}>
                     <FieldLabel label={label} tone={labelTone} />
@@ -191,4 +191,6 @@ export const TextField: React.FC<TextFieldProps> = ({
             </CollapseFade>
         </View>
     );
-};
+});
+
+TextField.displayName = 'TextField';
