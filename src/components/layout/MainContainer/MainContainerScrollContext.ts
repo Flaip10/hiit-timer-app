@@ -1,19 +1,22 @@
 import { createContext, useContext, type RefObject } from 'react';
 import type { View } from 'react-native';
 
-export interface MainContainerKeyboardContextValue {
+export interface MainContainerScrollContextValue {
     canShowInputDropdowns: boolean;
+    scrollTargetIntoView: (
+        targetRef: RefObject<View | null>,
+        viewportRatio?: number,
+    ) => void;
     scrollFocusedInputIntoView: (
         targetRef: RefObject<View | null>,
         viewportRatio?: number,
     ) => void;
 }
 
-const MainContainerKeyboardContext =
-    createContext<MainContainerKeyboardContextValue | null>(null);
+const MainContainerScrollContext =
+    createContext<MainContainerScrollContextValue | null>(null);
 
-export const MainContainerKeyboardProvider =
-    MainContainerKeyboardContext.Provider;
+export const MainContainerScrollProvider = MainContainerScrollContext.Provider;
 
-export const useMainContainerKeyboard = () =>
-    useContext(MainContainerKeyboardContext);
+export const useMainContainerScroll = () =>
+    useContext(MainContainerScrollContext);

@@ -3,7 +3,7 @@ import { Pressable, TextInput, View, Text } from 'react-native';
 
 import type { TextFieldProps } from './TextField.interfaces';
 import { useTextFieldStyles } from './TextField.styles';
-import { useMainContainerKeyboard } from '@src/components/layout/MainContainer/MainContainerKeyboardContext';
+import { useMainContainerScroll } from '@src/components/layout/MainContainer/MainContainerScrollContext';
 import { useTheme } from '@src/theme/ThemeProvider';
 import { FieldLabel } from '../FieldLabel/FieldLabel';
 import { Dropdown } from '../Dropdown/Dropdown';
@@ -32,7 +32,7 @@ export const TextField: React.FC<TextFieldProps> = ({
     ...inputProps
 }) => {
     const { theme } = useTheme();
-    const keyboardContext = useMainContainerKeyboard();
+    const scrollContext = useMainContainerScroll();
     const anchorRef = useRef<View | null>(null);
     const inputRef = useRef<TextInput | null>(null);
     const [isFocused, setIsFocused] = useState(false);
@@ -78,7 +78,7 @@ export const TextField: React.FC<TextFieldProps> = ({
     const renderedMessage = lastMessageRef.current;
 
     const canShowSuggestionsForKeyboard =
-        !keyboardContext || keyboardContext.canShowInputDropdowns;
+        !scrollContext || scrollContext.canShowInputDropdowns;
     const showSuggestions =
         isFocused &&
         canShowSuggestionsForKeyboard &&
@@ -120,7 +120,7 @@ export const TextField: React.FC<TextFieldProps> = ({
                     onFocus={(e) => {
                         setIsFocused(true);
                         setAreSuggestionsDismissed(false);
-                        keyboardContext?.scrollFocusedInputIntoView(anchorRef);
+                        scrollContext?.scrollFocusedInputIntoView(anchorRef);
                         onFocus?.(e);
                     }}
                     onBlur={(e) => {

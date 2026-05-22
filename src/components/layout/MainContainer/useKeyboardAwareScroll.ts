@@ -15,7 +15,7 @@ import {
     type View,
 } from 'react-native';
 
-import type { MainContainerKeyboardContextValue } from './MainContainerKeyboardContext';
+import type { MainContainerScrollContextValue } from './MainContainerScrollContext';
 
 const TARGET_VIEWPORT_RATIO = 0.42;
 const LAYOUT_DELAY_MS = 32;
@@ -23,7 +23,7 @@ const DROPDOWN_SETTLE_DELAY_MS = 280;
 
 interface UseKeyboardAwareScrollResult {
     handleScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    keyboardContextValue: MainContainerKeyboardContextValue;
+    scrollContextValue: MainContainerScrollContextValue;
     scrollViewRef: RefObject<ScrollView | null>;
     viewportRef: RefObject<View | null>;
 }
@@ -55,8 +55,12 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
         }
     }, []);
 
-    const scrollTargetIntoView = useCallback(
-        (targetRef: RefObject<View | null>, viewportRatio?: number): void => {
+    const scrollMeasuredTargetIntoView = useCallback(
+        (
+            targetRef: RefObject<View | null>,
+            viewportRatio: number | undefined,
+            shouldScrollUp: boolean,
+        ): void => {
             const scrollView = scrollViewRef.current;
             const viewport = viewportRef.current;
             const target = targetRef.current;
@@ -77,7 +81,7 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
                                 viewportY + viewportHeight * ratio;
                             const scrollDelta = targetY - desiredTargetY;
 
-                            if (scrollDelta <= 0) return;
+                            if (!shouldScrollUp && scrollDelta <= 0) return;
 
                             scrollView.scrollTo({
                                 y: Math.max(
@@ -94,6 +98,13 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
         [],
     );
 
+    const scrollTargetIntoView = useCallback(
+        (targetRef: RefObject<View | null>, viewportRatio?: number): void => {
+            scrollMeasuredTargetIntoView(targetRef, viewportRatio, true);
+        },
+        [scrollMeasuredTargetIntoView],
+    );
+
     const scheduleScrollAndDropdown = useCallback((): void => {
         clearPendingTimeouts();
         layoutTimeoutRef.current = setTimeout(() => {
@@ -101,7 +112,11 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
             const focused = focusedTargetRef.current;
 
             if (focused) {
-                scrollTargetIntoView(focused.ref, focused.viewportRatio);
+                scrollMeasuredTargetIntoView(
+                    focused.ref,
+                    focused.viewportRatio,
+                    false,
+                );
             }
 
             // Portal dropdowns should measure only after the scroll animation settles.
@@ -113,7 +128,7 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
                 }
             }, DROPDOWN_SETTLE_DELAY_MS);
         }, LAYOUT_DELAY_MS);
-    }, [clearPendingTimeouts, scrollTargetIntoView]);
+    }, [clearPendingTimeouts, scrollMeasuredTargetIntoView]);
 
     useEffect(() => {
         const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
@@ -155,12 +170,17 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
         [scheduleScrollAndDropdown],
     );
 
-    const keyboardContextValue = useMemo(
+    const scrollContextValue = useMemo(
         () => ({
             canShowInputDropdowns,
+            scrollTargetIntoView,
             scrollFocusedInputIntoView,
         }),
-        [canShowInputDropdowns, scrollFocusedInputIntoView],
+        [
+            canShowInputDropdowns,
+            scrollFocusedInputIntoView,
+            scrollTargetIntoView,
+        ],
     );
 
     const handleScroll = (
@@ -171,7 +191,7 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
 
     return {
         handleScroll,
-        keyboardContextValue,
+        scrollContextValue,
         scrollViewRef,
         viewportRef,
     };

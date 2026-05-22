@@ -5,7 +5,7 @@ import { useStepperStyles } from './Stepper.styles';
 import { MiniButton } from './MiniButton';
 import { FieldLabel } from '@src/components/ui/FieldLabel/FieldLabel';
 import type { TextTone } from '@src/components/ui/Typography/AppText';
-import { useMainContainerKeyboard } from '@src/components/layout/MainContainer/MainContainerKeyboardContext';
+import { useMainContainerScroll } from '@src/components/layout/MainContainer/MainContainerScrollContext';
 
 interface Props {
     value: number;
@@ -38,7 +38,7 @@ export const Stepper: React.FC<Props> = ({
 }) => {
     const [isFocused, setIsFocused] = useState(false);
     const st = useStepperStyles({ isFocused });
-    const keyboardContext = useMainContainerKeyboard();
+    const scrollContext = useMainContainerScroll();
     const anchorRef = useRef<View | null>(null);
 
     const inc = useCallback(
@@ -86,7 +86,7 @@ export const Stepper: React.FC<Props> = ({
                     style={st.input}
                     onFocus={() => {
                         setIsFocused(true);
-                        keyboardContext?.scrollFocusedInputIntoView(
+                        scrollContext?.scrollFocusedInputIntoView(
                             anchorRef,
                             0.5,
                         );

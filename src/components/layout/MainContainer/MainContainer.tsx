@@ -8,7 +8,7 @@ import type {
 } from '@src/components/navigation/TopBar/TopBar.interfaces';
 import { ScreenShell } from '../ScreenShell';
 import { useMainContainerStyles } from './MainContainer.styles';
-import { MainContainerKeyboardProvider } from './MainContainerKeyboardContext';
+import { MainContainerScrollProvider } from './MainContainerScrollContext';
 import { useKeyboardAwareScroll } from './useKeyboardAwareScroll';
 
 type MainContainerProps = {
@@ -33,7 +33,7 @@ export const MainContainer = ({
     const st = useMainContainerStyles({ gap, noPadding });
     const {
         handleScroll,
-        keyboardContextValue,
+        scrollContextValue,
         scrollViewRef,
         viewportRef,
     } = useKeyboardAwareScroll();
@@ -62,7 +62,7 @@ export const MainContainer = ({
                 />
             ) : null}
 
-            <MainContainerKeyboardProvider value={keyboardContextValue}>
+            <MainContainerScrollProvider value={scrollContextValue}>
                 <KeyboardAvoidingView
                     style={st.kav}
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -71,7 +71,7 @@ export const MainContainer = ({
                         {content}
                     </View>
                 </KeyboardAvoidingView>
-            </MainContainerKeyboardProvider>
+            </MainContainerScrollProvider>
         </ScreenShell>
     );
 };
