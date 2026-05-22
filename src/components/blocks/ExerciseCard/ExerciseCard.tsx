@@ -1,24 +1,25 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import type { WorkoutExercise } from '@src/core/entities/entities';
 import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
 import { TextField } from '@src/components/ui/TextField/TextField';
 import { Stepper } from '@src/components/ui/Stepper/Stepper';
 import { useTheme } from '@src/theme/ThemeProvider';
-import { useTranslation } from 'react-i18next';
 
 import { useExerciseCardStyles } from './ExerciseCard.styles';
+import { useExerciseCard } from './useExerciseCard';
 
-type Props = {
+interface ExerciseCardProps {
     index: number;
     exercise: WorkoutExercise;
     onChange: (next: WorkoutExercise) => void;
     onRemove: () => void;
-};
+}
 
-export const ExerciseCard: React.FC<Props> = ({
+export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     index,
     exercise,
     onChange,
@@ -27,34 +28,12 @@ export const ExerciseCard: React.FC<Props> = ({
     const { t } = useTranslation();
     const { theme } = useTheme();
     const st = useExerciseCardStyles();
+    const { nameField, setDurationSec } = useExerciseCard({
+        exercise,
+        onChange,
+    });
 
     const label = t('common.labels.exerciseWithIndex', { index: index + 1 });
-
-    const setName = (v: string) => {
-        onChange({
-            ...exercise,
-            name: v,
-        });
-    };
-
-    const commitName = () => {
-        const trimmed = exercise.name?.trim();
-
-        onChange({
-            ...exercise,
-            name: trimmed && trimmed.length > 0 ? trimmed : undefined,
-        });
-    };
-
-    const setDurationSec = (n: number) => {
-        // For now we treat everything as time-based.
-        // Ensure mode stays 'time' while editing in this screen.
-        onChange({
-            ...exercise,
-            mode: 'time',
-            value: n,
-        });
-    };
 
     return (
         <MetaCard
@@ -85,10 +64,12 @@ export const ExerciseCard: React.FC<Props> = ({
             <View style={st.body}>
                 <TextField
                     label={t('editWorkout.fields.name')}
-                    value={exercise.name ?? ''}
+                    value={nameField.value}
                     placeholder={label}
-                    onChangeText={setName}
-                    onBlur={commitName}
+                    onChangeText={nameField.handleChangeText}
+                    onBlur={nameField.handleBlur}
+                    suggestions={nameField.suggestions}
+                    onSuggestionPress={nameField.handleSuggestionPress}
                 />
 
                 <View style={st.durationRow}>
