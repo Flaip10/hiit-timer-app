@@ -41,7 +41,7 @@ export const TextField: React.FC<TextFieldProps> = ({
     const [squelched, setSquelched] = useState(false);
 
     // Extract onChangeText so we can wrap it
-    const { onChangeText, ...restInputProps } = inputProps;
+    const { onChangeText, returnKeyType = 'done', ...restInputProps } = inputProps;
 
     // Reset squelch whenever the external error changes / clears
     useEffect(() => {
@@ -114,6 +114,7 @@ export const TextField: React.FC<TextFieldProps> = ({
                     {...restInputProps}
                     ref={inputRef}
                     multiline={multiline}
+                    returnKeyType={returnKeyType}
                     style={[st.input, inputStyle]}
                     placeholderTextColor={theme.palette.text.muted}
                     onFocus={(e) => {
