@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,22 +11,49 @@ import GuardedPressable from '../GuardedPressable/GuardedPressable';
 
 interface ErrorBannerProps {
     message: string;
+    dismissalKey?: string | number;
+    isDismissible?: boolean;
     onClose?: () => void;
     style?: StyleProp<ViewStyle>;
 }
 
-export const ErrorBanner = ({ message, onClose, style }: ErrorBannerProps) => {
+interface DismissedBanner {
+    dismissalKey: string | number | undefined;
+    message: string;
+}
+
+export const ErrorBanner = ({
+    message,
+    dismissalKey,
+    isDismissible = false,
+    onClose,
+    style,
+}: ErrorBannerProps) => {
     const { theme } = useTheme();
     const st = useStyles();
+    const [dismissedBanner, setDismissedBanner] =
+        useState<DismissedBanner | null>(null);
 
     const trimmedMessage = message.trim();
-    const isVisible = !!trimmedMessage;
+    const isDismissed =
+        dismissedBanner?.message === trimmedMessage &&
+        dismissedBanner.dismissalKey === dismissalKey;
+    const isVisible = !!trimmedMessage && !isDismissed;
+    const canDismiss = isDismissible || !!onClose;
 
     const lastMessageRef = useRef('');
     if (trimmedMessage) {
         lastMessageRef.current = trimmedMessage;
     }
     const renderedMessage = lastMessageRef.current;
+
+    const handleClose = () => {
+        setDismissedBanner({
+            dismissalKey,
+            message: trimmedMessage,
+        });
+        onClose?.();
+    };
 
     return (
         <CollapseFade visible={isVisible} duration={150}>
@@ -43,8 +70,8 @@ export const ErrorBanner = ({ message, onClose, style }: ErrorBannerProps) => {
                     </AppText>
                 </View>
 
-                {onClose && (
-                    <GuardedPressable onPress={onClose} hitSlop={12}>
+                {canDismiss && (
+                    <GuardedPressable onPress={handleClose} hitSlop={12}>
                         <Ionicons
                             name="close"
                             size={18}
