@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import type { WorkoutBlock } from '@src/core/entities/entities';
@@ -8,7 +8,10 @@ import { useUpsertWorkout, useWorkout } from '@src/data/workouts';
 
 import { WorkoutBlockItem } from './components/WorkoutBlockItem/WorkoutBlockItem';
 import { Button } from '@src/components/ui/Button/Button';
-import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
+import {
+    MainContainer,
+    type MainContainerHandle,
+} from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
 import { TextField } from '@src/components/ui/TextField/TextField';
 import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
@@ -20,8 +23,12 @@ import {
     getFieldError,
     formatErrorList,
 } from '@src/core/validation/formErrors';
-import type { WorkoutEditError } from './EditWorkoutScreen.interfaces';
+import type {
+    WorkoutEditError,
+    WorkoutEditField,
+} from './EditWorkoutScreen.interfaces';
 import { useTranslation } from 'react-i18next';
+import { useValidationScroll } from '@src/hooks/useValidationScroll';
 
 const createEmptyBlock = (): WorkoutBlock => ({
     id: uid(),
@@ -70,8 +77,17 @@ const EditWorkoutScreen = () => {
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState<WorkoutEditError[]>([]);
     const [blockToRemove, setBlockToRemove] = useState<string | null>(null);
+    const mainContainerRef = useRef<MainContainerHandle | null>(null);
+    const [dismissalKey, setDismissalKey] = useState(0);
 
     const { theme } = useTheme();
+
+    const { refFor, scrollToFirstError } =
+        useValidationScroll<WorkoutEditField>({
+            scrollTargetIntoView: (targetRef) => {
+                mainContainerRef.current?.scrollTargetIntoView(targetRef);
+            },
+        });
 
     // initialise / cleanup draft
     useEffect(() => {
@@ -127,7 +143,7 @@ const EditWorkoutScreen = () => {
         setDraftBlocks(next);
     };
 
-    const validate = (): boolean => {
+    const validate = (): WorkoutEditError[] => {
         const trimmedName = name.trim();
 
         const errs: WorkoutEditError[] = [];
@@ -135,12 +151,14 @@ const EditWorkoutScreen = () => {
             errs.push({
                 field: 'name',
                 message: t('editWorkout.validation.nameRequired'),
+                targetId: 'name',
             });
         }
         if (blocks.length === 0) {
             errs.push({
                 field: 'blocks',
                 message: t('editWorkout.validation.addBlock'),
+                targetId: 'blocks',
             });
         }
         const hasUnnamedExercise = blocks.some((block) =>
@@ -151,16 +169,17 @@ const EditWorkoutScreen = () => {
                     exercise.name.trim().length > 0;
 
                 return !hasDefinition && !hasName;
-            })
+            }),
         );
         if (hasUnnamedExercise) {
             errs.push({
                 field: 'exercises',
                 message: t('editWorkout.validation.exerciseNamesRequired'),
+                targetId: 'blocks',
             });
         }
         setErrors(errs);
-        return errs.length === 0;
+        return errs;
     };
 
     const isEditingSavedWorkout = !!id;
@@ -168,7 +187,12 @@ const EditWorkoutScreen = () => {
     const onSave = async () => {
         if (saving) return;
         if (!draft) return;
-        if (!validate()) return;
+        const validationErrors = validate();
+        setDismissalKey((prev) => prev + 1);
+        if (validationErrors.length) {
+            scrollToFirstError(validationErrors);
+            return;
+        }
 
         setSaving(true);
         try {
@@ -199,6 +223,7 @@ const EditWorkoutScreen = () => {
     return (
         <>
             <MainContainer
+                ref={mainContainerRef}
                 title={
                     isEditingSavedWorkout
                         ? t('editWorkout.title.edit')
@@ -207,6 +232,7 @@ const EditWorkoutScreen = () => {
                 gap={theme.layout.mainContainer.gap}
             >
                 <TextField
+                    ref={refFor('name')}
                     label={t('editWorkout.fields.name')}
                     value={name}
                     onChangeText={(value) => {
@@ -230,7 +256,12 @@ const EditWorkoutScreen = () => {
                         {t('editWorkout.hints.tapBlockToEdit')}
                     </AppText>
 
-                    <ErrorBanner message={bannerMessage} />
+                    <ErrorBanner
+                        ref={refFor('blocks')}
+                        message={bannerMessage}
+                        isDismissible
+                        dismissalKey={dismissalKey}
+                    />
 
                     {blocks.map((block, index) => (
                         <WorkoutBlockItem
