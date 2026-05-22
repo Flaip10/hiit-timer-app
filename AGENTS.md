@@ -31,6 +31,14 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 
 ---
 
+## 2.1) Comments
+
+- Keep comments **short and single-line**. The code should be clear enough on its own.
+- Use comments only to provide context that the code cannot express: *why* a non-obvious choice was made, or an important caveat (e.g. a platform gotcha, a workaround, a performance reason).
+- Do **not** restate what the code does — if a comment would just paraphrase the next line, delete it.
+
+---
+
 ## 3) React / React Native Rules
 
 - Prefer **arrow functions** wherever possible.
