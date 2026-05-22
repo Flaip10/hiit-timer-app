@@ -15,6 +15,7 @@ import { useExerciseCard } from './useExerciseCard';
 interface ExerciseCardProps {
     index: number;
     exercise: WorkoutExercise;
+    nameErrorText?: string;
     onChange: (next: WorkoutExercise) => void;
     onRemove: () => void;
 }
@@ -22,6 +23,7 @@ interface ExerciseCardProps {
 export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     index,
     exercise,
+    nameErrorText,
     onChange,
     onRemove,
 }) => {
@@ -70,6 +72,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                     onBlur={nameField.handleBlur}
                     suggestions={nameField.suggestions}
                     onSuggestionPress={nameField.handleSuggestionPress}
+                    errorText={nameErrorText}
                 />
 
                 <View style={st.durationRow}>
