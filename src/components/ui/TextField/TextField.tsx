@@ -113,46 +113,48 @@ export const TextField: React.FC<TextFieldProps> = ({
                 ) : null}
             </View>
 
-            <Dropdown
-                visible={showSuggestions}
-                anchorRef={anchorRef}
-                position={{
-                    side: 'bottom',
-                    align: 'start',
-                    offset: {
-                        y: 4,
-                    },
-                }}
-                matchAnchorWidth
-                onClose={closeSuggestions}
-                surfaceStyle={st.suggestionsSurface}
-            >
-                <View>
-                    {suggestions.map((suggestion) => (
-                        <Pressable
-                            key={suggestion.id}
-                            onPress={() => {
-                                setAreSuggestionsDismissed(true);
-                                onSuggestionPress?.(suggestion);
-                                inputRef.current?.blur();
-                            }}
-                            style={({ pressed }) => [
-                                st.suggestionRow,
-                                pressed ? st.suggestionRowPressed : null,
-                            ]}
-                        >
-                            <AppText
-                                variant="body"
-                                numberOfLines={1}
-                                ellipsizeMode="tail"
-                                style={st.suggestionLabel}
+            {suggestions.length > 0 && !!onSuggestionPress && (
+                <Dropdown
+                    visible={showSuggestions}
+                    anchorRef={anchorRef}
+                    position={{
+                        side: 'bottom',
+                        align: 'start',
+                        offset: {
+                            y: 4,
+                        },
+                    }}
+                    matchAnchorWidth
+                    onClose={closeSuggestions}
+                    surfaceStyle={st.suggestionsSurface}
+                >
+                    <View>
+                        {suggestions.map((suggestion) => (
+                            <Pressable
+                                key={suggestion.id}
+                                onPress={() => {
+                                    setAreSuggestionsDismissed(true);
+                                    onSuggestionPress(suggestion);
+                                    inputRef.current?.blur();
+                                }}
+                                style={({ pressed }) => [
+                                    st.suggestionRow,
+                                    pressed ? st.suggestionRowPressed : null,
+                                ]}
                             >
-                                {suggestion.label}
-                            </AppText>
-                        </Pressable>
-                    ))}
-                </View>
-            </Dropdown>
+                                <AppText
+                                    variant="body"
+                                    numberOfLines={1}
+                                    ellipsizeMode="tail"
+                                    style={st.suggestionLabel}
+                                >
+                                    {suggestion.label}
+                                </AppText>
+                            </Pressable>
+                        ))}
+                    </View>
+                </Dropdown>
+            )}
 
             {showHelper && <Text style={st.helperText}>{helperText}</Text>}
             {showError && <Text style={st.errorText}>{errorText}</Text>}
