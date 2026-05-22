@@ -302,6 +302,8 @@ export interface I18nResource {
         };
         validation: {
             nameRequired: string;
+            duplicateName: string;
+            gymOnlyRestricted: string;
         };
     };
     workoutSummary: {

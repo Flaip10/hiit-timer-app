@@ -4,6 +4,7 @@ import type {
     Workout,
 } from '@src/core/entities/entities';
 import { normalizeExerciseDefinitionName } from '@src/core/exercises/normalizeExerciseDefinitionName';
+import { buildExerciseDefinitionError } from '../../repositories/exerciseDefinitions/exerciseDefinitionErrors';
 import { normalizeExerciseName } from '@src/core/exercises/normalizeExerciseName';
 import { systemExerciseDefinitions } from '@src/core/exercises/systemExerciseDefinitions';
 import { uid } from '@src/core/id';
@@ -286,7 +287,8 @@ export const createExerciseDefinitionService = ({
                 existing.availability !== 'gym' &&
                 exerciseDefinitionRepository.hasWorkoutExerciseReferences(id)
             ) {
-                throw new Error(
+                throw buildExerciseDefinitionError(
+                    'GYM_ONLY_RESTRICTED',
                     `Cannot make workout-referenced exercise definition ${id} gym-only`,
                 );
             }

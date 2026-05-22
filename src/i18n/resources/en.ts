@@ -281,8 +281,7 @@ export const en: I18nResource = {
         newButton: '＋ New',
         createButton: '＋ Create exercise',
         emptyTitle: 'No exercises yet',
-        emptyDescription:
-            'Create your first exercise to build your catalog.',
+        emptyDescription: 'Create your first exercise to build your catalog.',
         searchEmptyTitle: 'No exercises found',
         searchEmptyDescription: 'Try a different exercise name.',
         notFound: 'Exercise not found.',
@@ -311,6 +310,9 @@ export const en: I18nResource = {
         },
         validation: {
             nameRequired: 'Exercise name is required.',
+            duplicateName: 'An exercise with this name already exists.',
+            gymOnlyRestricted:
+                'This exercise is used in a workout and cannot be set to gym only.',
         },
     },
     workoutSummary: {

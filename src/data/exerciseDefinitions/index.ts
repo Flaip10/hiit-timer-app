@@ -18,3 +18,8 @@ export type {
     ExerciseDefinitionListParams,
     ExerciseDefinitionListScope,
 } from '@src/db/services/exerciseDefinitions/exerciseDefinitionServiceFactory';
+export {
+    isExerciseDefinitionError,
+    buildExerciseDefinitionError,
+} from '@src/db/repositories/exerciseDefinitions/exerciseDefinitionErrors';
+export type { ExerciseDefinitionErrorCode } from '@src/db/repositories/exerciseDefinitions/exerciseDefinitionErrors';

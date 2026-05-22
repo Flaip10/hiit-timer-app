@@ -314,6 +314,9 @@ export const ptPT: I18nResource = {
         },
         validation: {
             nameRequired: 'O nome do exercício é obrigatório.',
+            duplicateName: 'Já existe um exercício com este nome.',
+            gymOnlyRestricted:
+                'Este exercício está a ser usado num treino e não pode ser definido apenas para ginásio.',
         },
     },
     workoutSummary: {

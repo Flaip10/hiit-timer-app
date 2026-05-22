@@ -12,6 +12,7 @@ import {
     exerciseDefinitionsTable,
     workoutExercisesTable,
 } from '../../schema';
+import { buildExerciseDefinitionError } from './exerciseDefinitionErrors';
 import type * as schema from '../../schema';
 
 export type ExerciseDefinitionRepositoryDb = BaseSQLiteDatabase<
@@ -105,7 +106,8 @@ export const createExerciseDefinitionRepository = ({
 
         const existing = repository.getByNormalizedName(normalizedName);
         if (existing && existing.id !== existingId) {
-            throw new Error(
+            throw buildExerciseDefinitionError(
+                'DUPLICATE_NAME',
                 `Exercise definition already exists for normalized name "${normalizedName}"`,
             );
         }
