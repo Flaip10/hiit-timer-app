@@ -165,7 +165,7 @@ export const ptPT: I18nResource = {
         },
         fields: {
             blockTitle: 'Nome do bloco',
-            exerciseDurationSec: 'Duração',
+            exerciseDurationSec: 'Duração padrão',
             restBetweenExercisesSec: 'Entre exercícios',
             setsInBlock: 'Séries',
             restBetweenSetsSec: 'Entre séries',

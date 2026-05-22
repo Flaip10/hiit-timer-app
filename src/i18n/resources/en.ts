@@ -164,7 +164,7 @@ export const en: I18nResource = {
         },
         fields: {
             blockTitle: 'Block name',
-            exerciseDurationSec: 'Duration',
+            exerciseDurationSec: 'Default duration',
             restBetweenExercisesSec: 'Between exercises',
             setsInBlock: 'Sets',
             restBetweenSetsSec: 'Between sets',
