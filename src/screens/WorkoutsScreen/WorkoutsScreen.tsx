@@ -13,7 +13,6 @@ import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 import { WorkoutItem } from '@components/workouts/WorkoutItem';
 import { importWorkoutFromFile } from '@src/core/importWorkout/importWorkout';
 import { ErrorBanner } from '@src/components/ui/ErrorBanner/ErrorBanner';
-import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
 import NewWorkoutModal from './components/NewWorkoutModal';
 
 import { Button } from '@src/components/ui/Button/Button';
@@ -126,12 +125,10 @@ const WorkoutsScreen = () => {
                                 style={st.newButton}
                             />
                         </View>
-                        <AppearingView visible={!!importError}>
-                            <ErrorBanner
-                                message={importError ?? ''}
-                                onClose={() => setImportError(null)}
-                            />
-                        </AppearingView>
+                        <ErrorBanner
+                            message={importError ?? ''}
+                            onClose={() => setImportError(null)}
+                        />
                     </View>
                 }
                 stickyHeaderIndices={[0]} // make headerRow stick to the top

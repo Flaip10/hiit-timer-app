@@ -18,7 +18,6 @@ import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
 import { AppIcon } from '@src/components/ui/Icon/AppIcon';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { ErrorBanner } from '@src/components/ui/ErrorBanner/ErrorBanner';
-import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
 import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
 import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
@@ -245,12 +244,10 @@ const WorkoutSummaryScreen = () => {
                         }
                     />
 
-                    <AppearingView visible={!!exportError}>
-                        <ErrorBanner
-                            message={exportError ?? ''}
-                            onClose={() => setExportError(null)}
-                        />
-                    </AppearingView>
+                    <ErrorBanner
+                        message={exportError ?? ''}
+                        onClose={() => setExportError(null)}
+                    />
                 </ScreenSection>
 
                 {/* Blocks Section*/}
