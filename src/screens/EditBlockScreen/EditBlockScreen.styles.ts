@@ -45,16 +45,6 @@ export const useBlockEditStyles = createStyles((theme: AppTheme) =>
         pressed: {
             opacity: 0.9,
         },
-
-        errorBox: {
-            marginTop: 10,
-            padding: 10,
-            borderRadius: 10,
-            borderWidth: 1,
-            backgroundColor: theme.palette.feedback.errorBg,
-            borderColor: theme.palette.feedback.errorBorder,
-            gap: 4,
-        },
         err: {
             marginBottom: 12,
         },

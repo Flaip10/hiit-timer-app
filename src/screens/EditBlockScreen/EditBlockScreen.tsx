@@ -1,14 +1,18 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Stepper } from '@src/components/ui/Stepper/Stepper';
 import { ExerciseCard } from '@components/blocks/ExerciseCard';
 import { FooterBar } from '@src/components/layout/FooterBar';
-import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
+import {
+    MainContainer,
+    type MainContainerHandle,
+} from '@src/components/layout/MainContainer/MainContainer';
 import { Button } from '@src/components/ui/Button/Button';
 import { TextField } from '@src/components/ui/TextField/TextField';
 import { ScreenSection } from '@src/components/layout/ScreenSection/ScreenSection';
+import { ErrorBanner } from '@src/components/ui/ErrorBanner/ErrorBanner';
 
 import { useWorkoutDraftStore } from '@src/state/stores/useWorkoutDraftStore';
 import { useBlockEditor } from './useBlockEditor';
@@ -16,7 +20,8 @@ import { useBlockEditStyles } from './EditBlockScreen.styles';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
-import type { BlockValidationError } from './helpers';
+import type { BlockValidationError, BlockValidationTargetId } from './helpers';
+import { useValidationScroll } from '@src/hooks/useValidationScroll';
 
 const EditBlockScreen = () => {
     const { t } = useTranslation();
@@ -55,6 +60,18 @@ const EditBlockScreen = () => {
     const [exerciseToRemove, setExerciseToRemove] = useState<number | null>(
         null,
     );
+    const [dismissalKey, setDismissalKey] = useState(0);
+    const mainContainerRef = useRef<MainContainerHandle | null>(null);
+
+    const { refFor, scrollToFirstError } =
+        useValidationScroll<BlockValidationTargetId>({
+            scrollTargetIntoView: (targetRef, viewportRatio) => {
+                mainContainerRef.current?.scrollTargetIntoView(
+                    targetRef,
+                    viewportRatio,
+                );
+            },
+        });
 
     const formatValidationError = useCallback(
         (error: BlockValidationError): string => {
@@ -64,9 +81,7 @@ const EditBlockScreen = () => {
                 case 'exercisesMin':
                     return t('editBlock.validation.exercisesMin');
                 case 'exerciseNameRequired':
-                    return t('editBlock.validation.exerciseNameRequired', {
-                        index: error.exerciseIndex ?? 1,
-                    });
+                    return t('editBlock.validation.exerciseNameRequired');
                 case 'exerciseDurationMin':
                     return t('editBlock.validation.exerciseDurationMin', {
                         index: error.exerciseIndex ?? 1,
@@ -80,19 +95,24 @@ const EditBlockScreen = () => {
         [t],
     );
 
-    const errorBox = useMemo(
-        () =>
-            errors.length ? (
-                <View style={st.errorBox}>
-                    {errors.map((e, i) => (
-                        <AppText key={i} variant="bodySmall" tone="danger">
-                            • {formatValidationError(e)}
-                        </AppText>
-                    ))}
-                </View>
-            ) : null,
-        [errors, formatValidationError, st.errorBox],
+    const getExerciseNameErrorText = useCallback(
+        (exerciseId: string): string | undefined => {
+            const exerciseNameError = errors.find(
+                (error) =>
+                    error.key === 'exerciseNameRequired' &&
+                    error.targetId === `exercise:${exerciseId}`,
+            );
+
+            if (!exerciseNameError) return undefined;
+            return formatValidationError(exerciseNameError);
+        },
+        [errors, formatValidationError],
     );
+
+    const bannerMessage = errors
+        .filter((error) => error.key !== 'exerciseNameRequired')
+        .map((error) => `• ${formatValidationError(error)}`)
+        .join('\n');
 
     if (notFound || !block || labelIndex === null) {
         return (
@@ -110,7 +130,14 @@ const EditBlockScreen = () => {
 
     const onSave = () => {
         if (saving) return;
-        if (!validate({ shouldRequireExerciseNames: !isQuick })) return;
+        const validationErrors = validate({
+            shouldRequireExerciseNames: !isQuick,
+        });
+        setDismissalKey((prev) => prev + 1);
+        if (validationErrors.length) {
+            scrollToFirstError(validationErrors);
+            return;
+        }
 
         setSaving(true);
         try {
@@ -135,6 +162,7 @@ const EditBlockScreen = () => {
     return (
         <>
             <MainContainer
+                ref={mainContainerRef}
                 title={
                     isQuick
                         ? t('editBlock.title.quick')
@@ -148,6 +176,7 @@ const EditBlockScreen = () => {
                     gap={18}
                 >
                     <TextField
+                        ref={refFor('setup')}
                         label={t('editBlock.fields.blockTitle')}
                         value={block.title ?? ''}
                         onChangeText={onTitle}
@@ -245,17 +274,25 @@ const EditBlockScreen = () => {
                 >
                     <View style={st.exercisesGap}>
                         {block.exercises.map((ex, ei) => (
-                            <ExerciseCard
-                                key={ex.id}
-                                index={ei}
-                                exercise={ex}
-                                onChange={(next) => onExChange(ei, next)}
-                                onRemove={() => setExerciseToRemove(ei)}
-                            />
+                            <View key={ex.id} ref={refFor(`exercise:${ex.id}`)}>
+                                <ExerciseCard
+                                    index={ei}
+                                    exercise={ex}
+                                    nameErrorText={getExerciseNameErrorText(
+                                        ex.id,
+                                    )}
+                                    onChange={(next) => onExChange(ei, next)}
+                                    onRemove={() => setExerciseToRemove(ei)}
+                                />
+                            </View>
                         ))}
                     </View>
 
-                    {errorBox}
+                    <ErrorBanner
+                        message={bannerMessage}
+                        isDismissible
+                        dismissalKey={dismissalKey}
+                    />
 
                     <Button
                         title={t('editBlock.actions.addExercise')}

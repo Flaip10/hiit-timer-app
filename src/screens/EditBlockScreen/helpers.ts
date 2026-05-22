@@ -1,6 +1,8 @@
 import type { WorkoutBlock } from '@src/core/entities/entities';
 import { uid } from '@core/id';
 
+export type BlockValidationTargetId = 'setup' | `exercise:${string}`;
+
 export interface BlockValidationError {
     key:
         | 'setsMin'
@@ -9,6 +11,7 @@ export interface BlockValidationError {
         | 'exerciseDurationMin'
         | 'exerciseRepsMin';
     exerciseIndex?: number;
+    targetId: BlockValidationTargetId;
 }
 
 export interface ValidateBlockOptions {
@@ -68,11 +71,17 @@ export const validateBlock = (
     const errors: BlockValidationError[] = [];
 
     if (block.sets <= 0) {
-        errors.push({ key: 'setsMin' });
+        errors.push({
+            key: 'setsMin',
+            targetId: 'setup',
+        });
     }
 
     if (block.exercises.length === 0) {
-        errors.push({ key: 'exercisesMin' });
+        errors.push({
+            key: 'exercisesMin',
+            targetId: 'setup',
+        });
     }
 
     block.exercises.forEach((ex, ei) => {
@@ -88,6 +97,7 @@ export const validateBlock = (
             errors.push({
                 key: 'exerciseNameRequired',
                 exerciseIndex: ei + 1,
+                targetId: `exercise:${ex.id}`,
             });
         }
 
@@ -95,6 +105,7 @@ export const validateBlock = (
             errors.push({
                 key: 'exerciseDurationMin',
                 exerciseIndex: ei + 1,
+                targetId: `exercise:${ex.id}`,
             });
         }
 
@@ -102,6 +113,7 @@ export const validateBlock = (
             errors.push({
                 key: 'exerciseRepsMin',
                 exerciseIndex: ei + 1,
+                targetId: `exercise:${ex.id}`,
             });
         }
     });

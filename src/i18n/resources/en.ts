@@ -187,8 +187,7 @@ export const en: I18nResource = {
         validation: {
             setsMin: 'Block must have at least one set.',
             exercisesMin: 'Add at least one exercise.',
-            exerciseNameRequired:
-                'Exercise {{index}}: name is required before saving.',
+            exerciseNameRequired: 'Exercise name is required before saving.',
             exerciseDurationMin:
                 'Exercise {{index}}: duration must be > 0 seconds.',
             exerciseRepsMin: 'Exercise {{index}}: reps must be > 0.',

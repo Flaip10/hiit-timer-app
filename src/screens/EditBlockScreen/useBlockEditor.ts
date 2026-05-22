@@ -164,10 +164,12 @@ export const useBlockEditor = ({ draft, blockId }: UseBlockEditorArgs) => {
         );
 
     // ----- validation -----
-    const validate = (options?: ValidateBlockOptions): boolean => {
+    const validate = (
+        options?: ValidateBlockOptions,
+    ): BlockValidationError[] => {
         const errs = validateBlock(block, options);
         setErrors(errs);
-        return errs.length === 0;
+        return errs;
     };
 
     return {

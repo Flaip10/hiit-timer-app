@@ -84,8 +84,11 @@ const EditWorkoutScreen = () => {
 
     const { refFor, scrollToFirstError } =
         useValidationScroll<WorkoutEditField>({
-            scrollTargetIntoView: (targetRef) => {
-                mainContainerRef.current?.scrollTargetIntoView(targetRef);
+            scrollTargetIntoView: (targetRef, viewportRatio) => {
+                mainContainerRef.current?.scrollTargetIntoView(
+                    targetRef,
+                    viewportRatio,
+                );
             },
         });
 

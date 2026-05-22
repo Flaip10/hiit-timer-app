@@ -10,6 +10,7 @@ interface UseValidationScrollArgs {
         targetRef: RefObject<View | null>,
         viewportRatio?: number,
     ) => void;
+    viewportRatio?: number;
 }
 
 interface UseValidationScrollResult<TargetId extends string> {
@@ -21,22 +22,20 @@ interface UseValidationScrollResult<TargetId extends string> {
 
 export const useValidationScroll = <TargetId extends string>({
     scrollTargetIntoView,
+    viewportRatio = 0.25,
 }: UseValidationScrollArgs): UseValidationScrollResult<TargetId> => {
     const targetRefs = useRef<
         Partial<Record<TargetId, RefObject<View | null>>>
     >({});
 
-    const refFor = useCallback(
-        (targetId: TargetId): RefObject<View | null> => {
-            const existing = targetRefs.current[targetId];
-            if (existing) return existing;
+    const refFor = useCallback((targetId: TargetId): RefObject<View | null> => {
+        const existing = targetRefs.current[targetId];
+        if (existing) return existing;
 
-            const next = createRef<View>();
-            targetRefs.current[targetId] = next;
-            return next;
-        },
-        [],
-    );
+        const next = createRef<View>();
+        targetRefs.current[targetId] = next;
+        return next;
+    }, []);
 
     const scrollToFirstError = useCallback(
         (errors: ValidationScrollTargetError<TargetId>[]): void => {
@@ -44,9 +43,9 @@ export const useValidationScroll = <TargetId extends string>({
 
             const firstError = errors[0];
 
-            scrollTargetIntoView(refFor(firstError.targetId));
+            scrollTargetIntoView(refFor(firstError.targetId), viewportRatio);
         },
-        [refFor, scrollTargetIntoView],
+        [refFor, scrollTargetIntoView, viewportRatio],
     );
 
     return { refFor, scrollToFirstError };
