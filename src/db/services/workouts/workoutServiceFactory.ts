@@ -3,6 +3,7 @@ import { uid } from '@src/core/id';
 
 import { hasSameWorkoutContent } from '../../mappers/workouts/workoutContent';
 import type { WorkoutRepository } from '../../repositories/workouts/workoutRepositoryFactory';
+import { buildWorkoutError } from '../../repositories/workouts/workoutErrors';
 import type { WorkoutSessionRepository } from '../../repositories/workoutSessions/workoutSessionRepositoryFactory';
 import { systemClock, type Clock } from '../../repositories/repositoryClock';
 import type { ExerciseDefinitionService } from '../exerciseDefinitions/exerciseDefinitionServiceFactory';
@@ -38,7 +39,10 @@ const assertWorkoutExercisesCanBePersisted = (workout: Workout): void => {
                 exercise.name !== undefined && exercise.name.trim().length > 0;
 
             if (!hasDefinition && !hasName) {
-                throw new Error('Cannot save a workout with unnamed exercises');
+                throw buildWorkoutError(
+                    'UNNAMED_EXERCISES',
+                    'Cannot save a workout with unnamed exercises',
+                );
             }
         });
     });

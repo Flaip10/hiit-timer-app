@@ -120,13 +120,15 @@ export const createExerciseDefinitionService = ({
             }
 
             if (existing.source === 'system') {
-                throw new Error(
+                throw buildExerciseDefinitionError(
+                    'DELETE_SYSTEM_FORBIDDEN',
                     `Cannot delete system exercise definition ${id}`,
                 );
             }
 
             if (exerciseDefinitionRepository.hasWorkoutExerciseReferences(id)) {
-                throw new Error(
+                throw buildExerciseDefinitionError(
+                    'DELETE_REFERENCED',
                     `Cannot delete referenced exercise definition ${id}`,
                 );
             }
@@ -191,7 +193,8 @@ export const createExerciseDefinitionService = ({
                     sourceId,
                 );
             if (hasWorkoutReferences && target.availability === 'gym') {
-                throw new Error(
+                throw buildExerciseDefinitionError(
+                    'MERGE_GYM_ONLY_CONFLICT',
                     `Cannot merge workout-referenced exercise definition ${sourceId} into gym-only definition ${targetId}`,
                 );
             }
