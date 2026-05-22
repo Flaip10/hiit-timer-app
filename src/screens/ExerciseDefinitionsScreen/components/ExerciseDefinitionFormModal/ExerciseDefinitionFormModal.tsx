@@ -12,7 +12,11 @@ import { Button } from '@src/components/ui/Button/Button';
 import { TextField } from '@src/components/ui/TextField/TextField';
 import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
 import { OptionPills } from '@src/screens/SettingsScreen/components/OptionPills';
-import { useUpsertExerciseDefinition } from '@src/data/exerciseDefinitions';
+import {
+    useSaveExerciseDefinition,
+    isExerciseDefinitionError,
+    type UpdateExerciseDefinitionChanges,
+} from '@src/data/exerciseDefinitions';
 import { useExerciseDefinitionFormModalStyles } from './ExerciseDefinitionFormModal.styles';
 
 interface ExerciseDefinitionFormModalProps {
@@ -30,12 +34,15 @@ export const ExerciseDefinitionFormModal = ({
 }: ExerciseDefinitionFormModalProps) => {
     const { t } = useTranslation();
     const st = useExerciseDefinitionFormModalStyles();
-    const upsertExerciseDefinition = useUpsertExerciseDefinition();
+    const saveExerciseDefinition = useSaveExerciseDefinition();
 
     const [name, setName] = useState('');
     const [availability, setAvailability] =
         useState<ExerciseDefinitionAvailability>(DEFAULT_AVAILABILITY);
     const [nameError, setNameError] = useState<string | undefined>();
+    const [availabilityError, setAvailabilityError] = useState<
+        string | undefined
+    >();
 
     const isEditing = !!definition;
 
@@ -45,6 +52,7 @@ export const ExerciseDefinitionFormModal = ({
         setName(definition?.name ?? '');
         setAvailability(definition?.availability ?? DEFAULT_AVAILABILITY);
         setNameError(undefined);
+        setAvailabilityError(undefined);
     }, [definition, visible]);
 
     const availabilityOptions = useMemo(
@@ -72,12 +80,59 @@ export const ExerciseDefinitionFormModal = ({
             return;
         }
 
-        await upsertExerciseDefinition.mutateAsync({
-            availability,
-            id: definition?.id,
-            name: trimmedName,
-        });
-        onClose();
+        try {
+            if (definition) {
+                const changes: UpdateExerciseDefinitionChanges = {};
+
+                if (trimmedName !== definition.name) {
+                    changes.name = trimmedName;
+                }
+
+                if (availability !== definition.availability) {
+                    changes.availability = availability;
+                }
+
+                if (Object.keys(changes).length > 0) {
+                    await saveExerciseDefinition.mutateAsync({
+                        changes,
+                        id: definition.id,
+                        intent: 'update',
+                    });
+                }
+
+                onClose();
+                return;
+            }
+
+            await saveExerciseDefinition.mutateAsync({
+                availability,
+                intent: 'create',
+                name: trimmedName,
+            });
+            onClose();
+        } catch (e) {
+            if (isExerciseDefinitionError(e)) {
+                switch (e.code) {
+                    case 'DUPLICATE_NAME':
+                        setNameError(
+                            t('exerciseDefinitions.validation.duplicateName'),
+                        );
+                        return;
+                    case 'GYM_ONLY_RESTRICTED':
+                        setAvailabilityError(
+                            t(
+                                'exerciseDefinitions.validation.gymOnlyRestricted',
+                            ),
+                        );
+                        return;
+                    case 'DELETE_REFERENCED':
+                    case 'DELETE_SYSTEM_FORBIDDEN':
+                    case 'MERGE_GYM_ONLY_CONFLICT':
+                        throw e;
+                }
+            }
+            throw e;
+        }
     };
 
     return (
@@ -123,8 +178,16 @@ export const ExerciseDefinitionFormModal = ({
                         <OptionPills
                             options={availabilityOptions}
                             selectedValue={availability}
-                            onSelect={setAvailability}
+                            onSelect={(value) => {
+                                setAvailability(value);
+                                setAvailabilityError(undefined);
+                            }}
                         />
+                        {!!availabilityError && (
+                            <AppText variant="caption" tone="danger">
+                                {availabilityError}
+                            </AppText>
+                        )}
                     </View>
                 </View>
 
@@ -137,13 +200,10 @@ export const ExerciseDefinitionFormModal = ({
                         }
                         variant="primary"
                         onPress={handleSave}
-                        loading={upsertExerciseDefinition.isPending}
+                        loading={saveExerciseDefinition.isPending}
                     />
 
-                    <GuardedPressable
-                        onPress={onClose}
-                        style={st.cancelButton}
-                    >
+                    <GuardedPressable onPress={onClose} style={st.cancelButton}>
                         <AppText variant="bodySmall" tone="muted">
                             {t('common.actions.cancel')}
                         </AppText>
