@@ -31,7 +31,10 @@ interface UseKeyboardAwareScrollResult {
 export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
     const scrollViewRef = useRef<ScrollView | null>(null);
     const viewportRef = useRef<View | null>(null);
-    const focusedTargetRef = useRef<RefObject<View | null> | null>(null);
+    const focusedTargetRef = useRef<{
+        ref: RefObject<View | null>;
+        viewportRatio?: number;
+    } | null>(null);
     const currentScrollYRef = useRef(0);
     const isKeyboardVisibleRef = useRef(false);
     const layoutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -53,7 +56,7 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
     }, []);
 
     const scrollTargetIntoView = useCallback(
-        (targetRef: RefObject<View | null>): void => {
+        (targetRef: RefObject<View | null>, viewportRatio?: number): void => {
             const scrollView = scrollViewRef.current;
             const viewport = viewportRef.current;
             const target = targetRef.current;
@@ -68,9 +71,10 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
                 ) => {
                     target.measureInWindow(
                         (_targetX: number, targetY: number) => {
+                            const ratio =
+                                viewportRatio ?? TARGET_VIEWPORT_RATIO;
                             const desiredTargetY =
-                                viewportY +
-                                viewportHeight * TARGET_VIEWPORT_RATIO;
+                                viewportY + viewportHeight * ratio;
                             const scrollDelta = targetY - desiredTargetY;
 
                             if (scrollDelta <= 0) return;
@@ -94,10 +98,10 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
         clearPendingTimeouts();
         layoutTimeoutRef.current = setTimeout(() => {
             layoutTimeoutRef.current = null;
-            const targetRef = focusedTargetRef.current;
+            const focused = focusedTargetRef.current;
 
-            if (targetRef) {
-                scrollTargetIntoView(targetRef);
+            if (focused) {
+                scrollTargetIntoView(focused.ref, focused.viewportRatio);
             }
 
             // Portal dropdowns should measure only after the scroll animation settles.
@@ -140,8 +144,8 @@ export const useKeyboardAwareScroll = (): UseKeyboardAwareScrollResult => {
     }, [clearPendingTimeouts, scheduleScrollAndDropdown]);
 
     const scrollFocusedInputIntoView = useCallback(
-        (targetRef: RefObject<View | null>): void => {
-            focusedTargetRef.current = targetRef;
+        (targetRef: RefObject<View | null>, viewportRatio?: number): void => {
+            focusedTargetRef.current = { ref: targetRef, viewportRatio };
 
             if (isKeyboardVisibleRef.current) {
                 setCanShowInputDropdowns(false);

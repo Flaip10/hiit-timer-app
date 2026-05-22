@@ -3,7 +3,10 @@ import type { View } from 'react-native';
 
 export interface MainContainerKeyboardContextValue {
     canShowInputDropdowns: boolean;
-    scrollFocusedInputIntoView: (targetRef: RefObject<View | null>) => void;
+    scrollFocusedInputIntoView: (
+        targetRef: RefObject<View | null>,
+        viewportRatio?: number,
+    ) => void;
 }
 
 const MainContainerKeyboardContext =
