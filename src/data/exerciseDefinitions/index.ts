@@ -1,10 +1,17 @@
 export { exerciseDefinitionKeys } from './exerciseDefinitionKeys';
-export { useUpsertExerciseDefinition } from './exerciseDefinitionMutations';
+export { useSaveExerciseDefinition } from './exerciseDefinitionMutations';
 export {
     useExerciseDefinition,
     useExerciseDefinitions,
 } from './exerciseDefinitionQueries';
-export type { UpsertExerciseDefinitionArgs } from './exerciseDefinitionMutations';
+export { useExerciseDefinitionSuggestions } from './useExerciseDefinitionSuggestions';
+export type {
+    CreateExerciseDefinitionMutationArgs,
+    MergeExerciseDefinitionMutationArgs,
+    SaveExerciseDefinitionArgs,
+    UpdateExerciseDefinitionChanges,
+    UpdateExerciseDefinitionMutationArgs,
+} from './exerciseDefinitionMutations';
 export type {
     ExerciseDefinitionListFilters,
     ExerciseDefinitionListPagination,
