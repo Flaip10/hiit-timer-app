@@ -13,7 +13,6 @@ export const useTextFieldStyles = createStyles(
         StyleSheet.create({
             container: {
                 width: '100%',
-                gap: 6,
             },
             labelRow: {
                 flexDirection: 'row',
@@ -37,6 +36,7 @@ export const useTextFieldStyles = createStyles(
                       ? theme.palette.accent.primary
                       : theme.palette.border.subtle,
                 textAlignVertical: props.multiline ? 'top' : 'center',
+                marginVertical: 6,
             },
 
             inputAnchor: {

@@ -8,6 +8,12 @@ import { useTheme } from '@src/theme/ThemeProvider';
 import { FieldLabel } from '../FieldLabel/FieldLabel';
 import { Dropdown } from '../Dropdown/Dropdown';
 import { AppText } from '../Typography/AppText';
+import { CollapseFade } from '../CollapseFade/CollapseFade';
+
+interface FieldMessage {
+    text: string;
+    isError: boolean;
+}
 
 export const TextField: React.FC<TextFieldProps> = ({
     label,
@@ -54,6 +60,23 @@ export const TextField: React.FC<TextFieldProps> = ({
 
     const showHelper = !!helperText && !hasError;
     const showError = hasError;
+    let activeMessageText: string | undefined;
+    if (showError) activeMessageText = errorText;
+    else if (showHelper) activeMessageText = helperText;
+
+    // Retain the last message so it stays readable while the slot collapses.
+    // Updated synchronously during render (not via effect) so the text is
+    // present in the same render where visible becomes true — avoiding an
+    // empty-content onLayout measurement that clips the slot.
+    const lastMessageRef = useRef<FieldMessage | null>(null);
+    if (activeMessageText) {
+        lastMessageRef.current = {
+            text: activeMessageText,
+            isError: showError,
+        };
+    }
+    const renderedMessage = lastMessageRef.current;
+
     const canShowSuggestionsForKeyboard =
         !keyboardContext || keyboardContext.canShowInputDropdowns;
     const showSuggestions =
@@ -80,11 +103,11 @@ export const TextField: React.FC<TextFieldProps> = ({
 
     return (
         <View style={[st.container, containerStyle]}>
-            {label ? (
+            {!!label && (
                 <View style={st.labelRow}>
                     <FieldLabel label={label} tone={labelTone} />
                 </View>
-            ) : null}
+            )}
 
             <View ref={anchorRef} style={st.inputAnchor}>
                 <TextInput
@@ -106,11 +129,11 @@ export const TextField: React.FC<TextFieldProps> = ({
                     onChangeText={handleChangeText}
                 />
 
-                {rightAccessory ? (
+                {!!rightAccessory && (
                     <View style={st.rightAccessoryContainer}>
                         {rightAccessory}
                     </View>
-                ) : null}
+                )}
             </View>
 
             {suggestions.length > 0 && !!onSuggestionPress && (
@@ -156,8 +179,15 @@ export const TextField: React.FC<TextFieldProps> = ({
                 </Dropdown>
             )}
 
-            {showHelper && <Text style={st.helperText}>{helperText}</Text>}
-            {showError && <Text style={st.errorText}>{errorText}</Text>}
+            <CollapseFade visible={!!activeMessageText}>
+                <Text
+                    style={
+                        renderedMessage?.isError ? st.errorText : st.helperText
+                    }
+                >
+                    {renderedMessage?.text}
+                </Text>
+            </CollapseFade>
         </View>
     );
 };
