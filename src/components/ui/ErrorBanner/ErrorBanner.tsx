@@ -57,7 +57,9 @@ export const ErrorBanner = ({
 
     return (
         <CollapseFade visible={isVisible} duration={150}>
-            <View style={[st.container, style]}>
+            <View
+                style={[st.container, style]}
+            >
                 <Ionicons
                     name="alert-circle"
                     size={18}
@@ -71,7 +73,11 @@ export const ErrorBanner = ({
                 </View>
 
                 {canDismiss && (
-                    <GuardedPressable onPress={handleClose} hitSlop={12}>
+                    <GuardedPressable
+                        onPress={handleClose}
+                        hitSlop={12}
+                        style={st.closeButton}
+                    >
                         <Ionicons
                             name="close"
                             size={18}
