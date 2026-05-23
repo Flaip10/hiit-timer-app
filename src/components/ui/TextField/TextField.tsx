@@ -153,7 +153,7 @@ export const TextField = forwardRef<View, TextFieldProps>(({
                     surfaceStyle={st.suggestionsSurface}
                 >
                     <View>
-                        {suggestions.map((suggestion) => (
+                        {suggestions.map((suggestion, index) => (
                             <Pressable
                                 key={suggestion.id}
                                 onPress={() => {
@@ -163,6 +163,7 @@ export const TextField = forwardRef<View, TextFieldProps>(({
                                 }}
                                 style={({ pressed }) => [
                                     st.suggestionRow,
+                                    index === 0 ? st.suggestionRowFirst : null,
                                     pressed ? st.suggestionRowPressed : null,
                                 ]}
                             >

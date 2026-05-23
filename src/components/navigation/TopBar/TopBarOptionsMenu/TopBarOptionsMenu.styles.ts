@@ -17,6 +17,9 @@ export const useTopBarOptionsMenuStyles = createStyles((theme: AppTheme) =>
             borderTopWidth: 1,
             borderColor: theme.palette.border.subtle,
         },
+        optionFirst: {
+            borderTopWidth: 0,
+        },
         optionPressed: {
             opacity: 0.5,
         },
@@ -25,7 +28,7 @@ export const useTopBarOptionsMenuStyles = createStyles((theme: AppTheme) =>
         },
         optionLabel: { flexShrink: 1 },
         optionLabelDestructive: {
-            color: theme.palette.feedback.errorText,
+            color: theme.palette.text.error,
         },
     }),
 );

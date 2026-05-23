@@ -31,7 +31,7 @@ export const useTextFieldStyles = createStyles(
                 borderWidth: 1,
                 color: theme.palette.text.primary,
                 borderColor: props.hasError
-                    ? theme.palette.feedback.errorBorder
+                    ? theme.palette.border.error
                     : props.isFocused
                       ? theme.palette.accent.primary
                       : theme.palette.border.subtle,
@@ -58,6 +58,9 @@ export const useTextFieldStyles = createStyles(
                 borderTopWidth: 1,
                 borderColor: theme.palette.border.subtle,
             },
+            suggestionRowFirst: {
+                borderTopWidth: 0,
+            },
             suggestionRowPressed: {
                 opacity: 0.55,
             },
@@ -70,7 +73,7 @@ export const useTextFieldStyles = createStyles(
             },
             errorText: {
                 fontSize: 12,
-                color: theme.palette.feedback.errorText,
+                color: theme.palette.text.error,
             },
         }),
 );
