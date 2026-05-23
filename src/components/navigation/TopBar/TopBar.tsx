@@ -119,6 +119,7 @@ export const TopBar = ({
         if (leftAction) {
             return (
                 <GuardedPressable
+                    disabled={leftAction.disabled}
                     onPress={leftAction.onPress}
                     style={[st.action, st.leftAction]}
                 >
