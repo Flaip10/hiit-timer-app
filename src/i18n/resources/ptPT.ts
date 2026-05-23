@@ -359,7 +359,7 @@ export const ptPT: I18nResource = {
         },
         blocksSection: 'Blocos',
         hint: 'Podes editar este treino ou iniciá-lo agora.',
-        shareWorkout: 'Partilhar treino',
+        exportWorkout: 'Exportar treino',
         actions: {
             edit: 'Editar',
             start: 'Iniciar',

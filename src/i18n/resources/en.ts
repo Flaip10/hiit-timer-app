@@ -352,7 +352,7 @@ export const en: I18nResource = {
         },
         blocksSection: 'Blocks',
         hint: 'You can edit this workout or start it now.',
-        shareWorkout: 'Share workout',
+        exportWorkout: 'Export workout',
         actions: {
             edit: 'Edit',
             start: 'Start',

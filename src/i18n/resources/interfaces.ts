@@ -343,7 +343,7 @@ export interface I18nResource {
         };
         blocksSection: string;
         hint: string;
-        shareWorkout: string;
+        exportWorkout: string;
         actions: {
             edit: string;
             start: string;
