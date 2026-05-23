@@ -7,7 +7,7 @@ import type {
 import { dbServices } from '@src/db/dbServices';
 
 import { workoutSessionKeys } from '../workoutSessions';
-import { workoutKeys } from '../workouts';
+import { workoutKeys } from '../workouts/workoutKeys';
 import { exerciseDefinitionKeys } from './exerciseDefinitionKeys';
 
 export interface CreateExerciseDefinitionMutationArgs {

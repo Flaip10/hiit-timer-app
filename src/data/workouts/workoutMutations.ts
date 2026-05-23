@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Workout } from '@src/core/entities/entities';
 import { dbServices } from '@src/db/dbServices';
 
-import { exerciseDefinitionKeys } from '../exerciseDefinitions';
+import { exerciseDefinitionKeys } from '../exerciseDefinitions/exerciseDefinitionKeys';
 import { workoutSessionKeys } from '../workoutSessions';
 import { workoutKeys } from './workoutKeys';
 
