@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file.
 - Add workout version tracking so historical sessions keep stable workout snapshots after edits or deletion
 - Add React Query data hooks for workout, session and exercise definition reads, mutations and cache invalidation
 - Add Jest setup, service-focused integration tests, seed helpers and mapper unit tests for the SQLite data layer
+- Add selection mode UI for workouts and history sessions with selected item outlines and bulk removal confirmations
+- Add reusable top bar direct actions and shared selection state for list selection flows
 
 ### Changed
 
@@ -24,10 +26,9 @@ All notable changes to this project will be documented in this file.
 - Replace persisted workout and history Zustand stores with repository-backed data access and a draft-only workout store
 - Replace app JSON configuration with variant-aware Expo config and guarded native build scripts
 - Replace custom ID generation with `nanoid`
+- Revamp the light theme palette for neutral card, field, button and meta-card surfaces
 
 ### Fixed
-
-- Fix accent theme structure usage for icon button styling
 
 ## [v1.0.1] - 2026-05-08
 
