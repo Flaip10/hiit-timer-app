@@ -3,16 +3,20 @@ import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { AppText } from '@src/components/ui/Typography/AppText';
+import { AppIcon } from '@src/components/ui/Icon/AppIcon';
 import type { WorkoutSession } from '@src/core/entities/workoutSession.interfaces';
 import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
 import { useTheme } from '@src/theme/ThemeProvider';
 
 import { useStyles } from './SessionListItem.styles';
 
-type Props = {
+interface Props {
     session: WorkoutSession;
     onPress: () => void;
-};
+    isSelectMode?: boolean;
+    isSelected?: boolean;
+    onSelect?: () => void;
+}
 
 const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
 
@@ -23,7 +27,13 @@ const formatDuration = (sec?: number) => {
     return `${mm}:${pad2(ss)}`;
 };
 
-export const SessionListItem = ({ session, onPress }: Props) => {
+const SessionListItem = ({
+    session,
+    onPress,
+    isSelectMode = false,
+    isSelected = false,
+    onSelect,
+}: Props) => {
     const st = useStyles();
     const { theme } = useTheme();
 
@@ -32,15 +42,28 @@ export const SessionListItem = ({ session, onPress }: Props) => {
         [session.totalDurationSec],
     );
 
+    const selectionIcon = isSelectMode ? (
+        <AppIcon
+            id={isSelected ? 'checkmarkCircle' : 'radioButtonOff'}
+            size={22}
+            color={
+                isSelected
+                    ? theme.palette.accent.primary
+                    : theme.palette.text.secondary
+            }
+        />
+    ) : null;
+
     return (
         <MetaCard
-            onPress={onPress}
+            onPress={isSelectMode ? onSelect : onPress}
             containerStyle={st.card}
             date={new Date(session.startedAtMs).toISOString()}
             summaryContent={
                 <View style={st.row}>
                     <View style={st.left}>
                         <View style={st.titleRow}>
+                            {selectionIcon}
                             <AppText
                                 variant="subtitle"
                                 style={st.title}
