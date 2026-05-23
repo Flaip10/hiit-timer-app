@@ -13,6 +13,8 @@ export interface ThemeLayout {
     card: {
         padding: number;
         borderRadius: number;
+        borderWidth: number;
+        selectedBorderWidth: number;
     };
     tile: {
         borderRadius: number;
@@ -40,6 +42,8 @@ const BASE_LAYOUT: ThemeLayout = {
     card: {
         padding: 14,
         borderRadius: 14,
+        borderWidth: 1,
+        selectedBorderWidth: 1,
     },
     tile: { borderRadius: 20 },
     listItem: {
@@ -65,6 +69,10 @@ export const createLayout = (scale: number): ThemeLayout => ({
     card: {
         padding: Math.round(BASE_LAYOUT.card.padding * scale),
         borderRadius: Math.round(BASE_LAYOUT.card.borderRadius * scale),
+        borderWidth: Math.round(BASE_LAYOUT.card.borderWidth * scale),
+        selectedBorderWidth: Math.round(
+            BASE_LAYOUT.card.selectedBorderWidth * scale,
+        ),
     },
     tile: {
         borderRadius: Math.round(BASE_LAYOUT.tile.borderRadius * scale),

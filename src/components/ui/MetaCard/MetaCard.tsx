@@ -43,6 +43,7 @@ const getPillDate = (
 
 export const MetaCard: FC<MetaCardProps> = ({
     containerStyle,
+    selectionOutlineColor,
     date,
     topLeftContent,
     children,
@@ -77,6 +78,7 @@ export const MetaCard: FC<MetaCardProps> = ({
         hasCollapsibleContent: !!collapsibleContent,
         hasSummaryContent: !!summaryContent,
         hasTopContent: !noTopContent,
+        selectionOutlineColor,
     });
     const { theme } = useTheme();
     const locale = i18n.resolvedLanguage ?? i18n.language;
@@ -345,6 +347,10 @@ export const MetaCard: FC<MetaCardProps> = ({
                         color={theme.palette.text.secondary}
                     />
                 </GuardedPressable>
+            )}
+
+            {selectionOutlineColor && (
+                <View pointerEvents="none" style={st.selectionOutline} />
             )}
         </GuardedPressable>
     );
