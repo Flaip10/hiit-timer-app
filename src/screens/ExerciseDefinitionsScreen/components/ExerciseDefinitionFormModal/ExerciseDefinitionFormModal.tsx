@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -17,6 +17,7 @@ import {
     isExerciseDefinitionError,
     type UpdateExerciseDefinitionChanges,
 } from '@src/data/exerciseDefinitions';
+import { CollapseFade } from '@src/components/ui/CollapseFade/CollapseFade';
 import { useExerciseDefinitionFormModalStyles } from './ExerciseDefinitionFormModal.styles';
 
 interface ExerciseDefinitionFormModalProps {
@@ -43,8 +44,14 @@ export const ExerciseDefinitionFormModal = ({
     const [availabilityError, setAvailabilityError] = useState<
         string | undefined
     >();
+    const [saveError, setSaveError] = useState<string | undefined>();
 
     const isEditing = !!definition;
+
+    const lastAvailabilityErrorRef = useRef<string | undefined>(undefined);
+    if (availabilityError) {
+        lastAvailabilityErrorRef.current = availabilityError;
+    }
 
     useEffect(() => {
         if (!visible) return;
@@ -53,6 +60,7 @@ export const ExerciseDefinitionFormModal = ({
         setAvailability(definition?.availability ?? DEFAULT_AVAILABILITY);
         setNameError(undefined);
         setAvailabilityError(undefined);
+        setSaveError(undefined);
     }, [definition, visible]);
 
     const availabilityOptions = useMemo(
@@ -75,6 +83,7 @@ export const ExerciseDefinitionFormModal = ({
 
     const handleSave = async () => {
         const trimmedName = name.trim();
+        setSaveError(undefined);
         if (!trimmedName) {
             setNameError(t('exerciseDefinitions.validation.nameRequired'));
             return;
@@ -128,10 +137,13 @@ export const ExerciseDefinitionFormModal = ({
                     case 'DELETE_REFERENCED':
                     case 'DELETE_SYSTEM_FORBIDDEN':
                     case 'MERGE_GYM_ONLY_CONFLICT':
-                        throw e;
+                        setSaveError(
+                            t('exerciseDefinitions.validation.saveFailed'),
+                        );
+                        return;
                 }
             }
-            throw e;
+            setSaveError(t('exerciseDefinitions.validation.saveFailed'));
         }
     };
 
@@ -162,6 +174,7 @@ export const ExerciseDefinitionFormModal = ({
                         onChangeText={(value) => {
                             setName(value);
                             setNameError(undefined);
+                            setSaveError(undefined);
                         }}
                         placeholder={t(
                             'exerciseDefinitions.fields.namePlaceholder',
@@ -181,14 +194,25 @@ export const ExerciseDefinitionFormModal = ({
                             onSelect={(value) => {
                                 setAvailability(value);
                                 setAvailabilityError(undefined);
+                                setSaveError(undefined);
                             }}
                         />
-                        {!!availabilityError && (
+                        <CollapseFade visible={!!availabilityError}>
                             <AppText variant="caption" tone="danger">
-                                {availabilityError}
+                                {lastAvailabilityErrorRef.current}
                             </AppText>
-                        )}
+                        </CollapseFade>
                     </View>
+
+                    {!!saveError && (
+                        <AppText
+                            variant="caption"
+                            tone="danger"
+                            style={st.saveError}
+                        >
+                            {saveError}
+                        </AppText>
+                    )}
                 </View>
 
                 <View style={st.buttonsContainer}>

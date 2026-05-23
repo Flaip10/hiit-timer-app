@@ -33,6 +33,9 @@ export const useExerciseDefinitionFormModalStyles = createStyles(
             availabilityContainer: {
                 gap: 6,
             },
+            saveError: {
+                paddingHorizontal: 2,
+            },
             buttonsContainer: {
                 gap: 14,
             },
