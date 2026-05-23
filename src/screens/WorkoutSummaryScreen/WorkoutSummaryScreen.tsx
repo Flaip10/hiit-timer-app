@@ -276,12 +276,17 @@ const WorkoutSummaryScreen = () => {
                         {t('workoutSummary.hint')}
                     </AppText>
 
-                    <View style={st.exportContainer}>
+                    <GuardedPressable
+                        onPress={handleExport}
+                        disabled={exporting}
+                        style={st.exportContainer}
+                    >
                         <CircleIconButton
                             onPress={handleExport}
                             variant="secondary"
                             size={50}
                             disabled={exporting}
+                            style={st.exportButton}
                         >
                             <Ionicons
                                 name="share-outline"
@@ -294,9 +299,9 @@ const WorkoutSummaryScreen = () => {
                             tone="muted"
                             style={st.exportText}
                         >
-                            {t('workoutSummary.shareWorkout')}
+                            {t('workoutSummary.exportWorkout')}
                         </AppText>
-                    </View>
+                    </GuardedPressable>
                 </ScreenSection>
             </MainContainer>
 
