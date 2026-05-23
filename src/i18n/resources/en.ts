@@ -27,6 +27,15 @@ export const en: I18nResource = {
             blockWithIndex: 'Block {{index}}',
             exerciseWithIndex: 'Exercise {{index}}',
         },
+        selectMode: {
+            enter: 'Select',
+            countSelected_zero: 'Select items',
+            countSelected_one: '{{count}} selected',
+            countSelected_other: '{{count}} selected',
+            selectAll: 'Select all',
+            deleteSelected_one: 'Delete {{count}} item',
+            deleteSelected_other: 'Delete {{count}} items',
+        },
     },
     drawer: {
         home: 'Home',
@@ -66,6 +75,13 @@ export const en: I18nResource = {
             message: 'All workout sessions will be deleted.',
             confirm: 'Clear',
             cancel: 'Cancel',
+        },
+        confirmRemoveBulk: {
+            title_one: 'Delete {{count}} session',
+            title_other: 'Delete {{count}} sessions',
+            message_one: 'This will permanently delete the selected session.',
+            message_other:
+                'This will permanently delete the {{count}} selected sessions.',
         },
     },
     historySession: {
@@ -253,6 +269,13 @@ export const en: I18nResource = {
             message: 'This will permanently delete the workout.',
             confirm: 'Remove',
             cancel: 'Cancel',
+        },
+        confirmRemoveBulk: {
+            title_one: 'Remove {{count}} workout',
+            title_other: 'Remove {{count}} workouts',
+            message_one: 'This will permanently delete the selected workout.',
+            message_other:
+                'This will permanently delete the {{count}} selected workouts.',
         },
         modal: {
             title: 'New workout',

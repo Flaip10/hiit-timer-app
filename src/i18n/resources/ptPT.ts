@@ -27,6 +27,15 @@ export const ptPT: I18nResource = {
             blockWithIndex: 'Bloco {{index}}',
             exerciseWithIndex: 'Exercício {{index}}',
         },
+        selectMode: {
+            enter: 'Selecionar',
+            countSelected_zero: 'Selecionar itens',
+            countSelected_one: '{{count}} selecionado',
+            countSelected_other: '{{count}} selecionados',
+            selectAll: 'Selecionar tudo',
+            deleteSelected_one: 'Eliminar {{count}} item',
+            deleteSelected_other: 'Eliminar {{count}} itens',
+        },
     },
     drawer: {
         home: 'Início',
@@ -66,6 +75,13 @@ export const ptPT: I18nResource = {
             message: 'Todas as sessões serão eliminadas.',
             confirm: 'Limpar',
             cancel: 'Cancelar',
+        },
+        confirmRemoveBulk: {
+            title_one: 'Eliminar {{count}} sessão',
+            title_other: 'Eliminar {{count}} sessões',
+            message_one: 'A sessão selecionada será eliminada permanentemente.',
+            message_other:
+                'As {{count}} sessões selecionadas serão eliminadas permanentemente.',
         },
     },
     historySession: {
@@ -191,7 +207,7 @@ export const ptPT: I18nResource = {
             setsMin: 'O bloco tem de ter pelo menos uma série.',
             exercisesMin: 'Adiciona pelo menos um exercício.',
             exerciseNameRequired:
-                'Exercício {{index}}: o nome é obrigatório antes de guardar.',
+                'O nome do exercício é obrigatório antes de guardar.',
             exerciseDurationMin:
                 'Exercício {{index}}: a duração tem de ser > 0 segundos.',
             exerciseRepsMin:
@@ -257,6 +273,13 @@ export const ptPT: I18nResource = {
             message: 'Este treino será removido permanentemente.',
             confirm: 'Remover',
             cancel: 'Cancelar',
+        },
+        confirmRemoveBulk: {
+            title_one: 'Remover {{count}} treino',
+            title_other: 'Remover {{count}} treinos',
+            message_one: 'O treino selecionado será removido permanentemente.',
+            message_other:
+                'Os {{count}} treinos selecionados serão removidos permanentemente.',
         },
         modal: {
             title: 'Novo treino',
