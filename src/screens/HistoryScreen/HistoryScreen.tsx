@@ -14,6 +14,7 @@ import SessionListItem from './components/SessionListitem/SessionListItem';
 import { SearchField } from '@src/components/ui/SearchField/SearchField';
 import { useTranslation } from 'react-i18next';
 import { ListEmptyState } from '@src/components/layout/ListEmptyState';
+import { useHistorySelection } from './useHistorySelection';
 
 const HistoryScreen = () => {
     const { t } = useTranslation();
@@ -36,8 +37,30 @@ const HistoryScreen = () => {
     }, [search, sessions]);
     const hasSearch = search.trim().length > 0;
 
+    const {
+        screenTitle,
+        topBarOptions,
+        topBarLeftAction,
+        topBarRightAction,
+        isSelectMode,
+        isSelected,
+        toggleItem,
+        hasPendingRemoval,
+        confirmTitle,
+        confirmMessage,
+        confirmRemoval,
+        cancelRemoval,
+    } = useHistorySelection();
+
     return (
-        <MainContainer title={t('history.title')} scroll={false} noPadding>
+        <MainContainer
+            title={screenTitle}
+            scroll={false}
+            noPadding
+            topBarOptions={topBarOptions}
+            topBarLeftAction={topBarLeftAction}
+            topBarRightAction={topBarRightAction}
+        >
             <FlatList
                 data={data}
                 keyExtractor={(s) => s.id}
@@ -51,12 +74,14 @@ const HistoryScreen = () => {
                             fullWidth
                             placeholder={t('history.searchPlaceholder')}
                         />
-                        <Button
-                            title={t('history.clear')}
-                            variant="secondary"
-                            onPress={() => setConfirmClear(true)}
-                            disabled={sessions.length === 0}
-                        />
+                        {!isSelectMode && (
+                            <Button
+                                title={t('history.clear')}
+                                variant="secondary"
+                                onPress={() => setConfirmClear(true)}
+                                disabled={sessions.length === 0}
+                            />
+                        )}
                     </View>
                 }
                 stickyHeaderIndices={[0]}
@@ -64,6 +89,9 @@ const HistoryScreen = () => {
                     <SessionListItem
                         session={item}
                         onPress={() => router.push(`/history/${item.id}`)}
+                        isSelectMode={isSelectMode}
+                        isSelected={isSelected(item.id)}
+                        onSelect={() => toggleItem(item.id)}
                     />
                 )}
                 ListEmptyComponent={
@@ -94,6 +122,17 @@ const HistoryScreen = () => {
                     setConfirmClear(false);
                 }}
                 onCancel={() => setConfirmClear(false)}
+            />
+
+            <ConfirmDialog
+                visible={hasPendingRemoval}
+                title={confirmTitle}
+                message={confirmMessage}
+                confirmLabel={t('historySession.actions.delete')}
+                cancelLabel={t('common.actions.cancel')}
+                destructive
+                onConfirm={confirmRemoval}
+                onCancel={cancelRemoval}
             />
         </MainContainer>
     );
