@@ -18,12 +18,30 @@ export const useAddWorkoutSession = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ versionId, workout, startedAtMs, endedAtMs, stats }: AddWorkoutSessionArgs) => {
+        mutationFn: async ({
+            versionId,
+            workout,
+            startedAtMs,
+            endedAtMs,
+            stats,
+        }: AddWorkoutSessionArgs) => {
             if (versionId) {
-                return dbServices.workoutSessionService.createSession({ versionId, startedAtMs, endedAtMs, stats });
+                return dbServices.workoutSessionService.createSession({
+                    versionId,
+                    startedAtMs,
+                    endedAtMs,
+                    stats,
+                });
             }
-            if (!workout) throw new Error('workout is required when versionId is absent');
-            return dbServices.workoutSessionService.createSessionFromSnapshot({ workout, startedAtMs, endedAtMs, stats });
+            if (!workout) {
+                throw new Error('workout is required when versionId is absent');
+            }
+            return dbServices.workoutSessionService.createSessionFromSnapshot({
+                workout,
+                startedAtMs,
+                endedAtMs,
+                stats,
+            });
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({
