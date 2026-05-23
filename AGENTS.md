@@ -9,6 +9,7 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 - Prefer **clarity and correctness** over speed.
 - Do **not** propose large refactors unless explicitly requested.
 - When code changes are needed, provide them **file-by-file**.
+- Do **not** create or update tests unless explicitly requested.
 - If **no changes** are needed for a file, reply exactly:
     - `no changes to the <file_name>`
 
@@ -19,9 +20,23 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 - **Never use `any`.**
 - Prefer **interfaces over type aliases** unless there is a concrete reason.
 - Keep types explicit when they prevent ambiguity.
+- Avoid unnecessary generics. Use generics only when the implementation preserves, transforms, or links caller-specific types; prefer a concrete minimal interface when the code only needs a fixed subset of fields.
 - Avoid unnecessary type assertions (`as X`)—only use them when they truly change inference.
 - Boolean naming must be semantic:
     - `isX` (state/classification), `hasX` (presence), `canX` / `shouldX` (policy), `wasX` / `didX` (historical).
+- Avoid unnecessary export/import duplication:
+    - Do not export a constant only to immediately re-import or re-export it from another file.
+    - Do not create wrapper files that only alias a singleton from another module unless they are preserving a deliberate public API.
+    - Prefer one clear module boundary. Export factories for dependency injection/testing when useful, and export app singletons only from the boundary where consumers should import them.
+    - Barrel files (`index.ts`) should expose intentional public APIs only; do not use them to mirror every internal symbol.
+
+---
+
+## 2.1) Comments
+
+- Keep comments **short and single-line**. The code should be clear enough on its own.
+- Use comments only to provide context that the code cannot express: *why* a non-obvious choice was made, or an important caveat (e.g. a platform gotcha, a workaround, a performance reason).
+- Do **not** restate what the code does — if a comment would just paraphrase the next line, delete it.
 
 ---
 
@@ -33,6 +48,14 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
     - ✅ put styles in the styles file or a hook.
 - Keep logic stable and predictable:
     - Don’t change existing logic the user didn’t ask to modify unless you **explicitly call it out** and justify why.
+- **Never use multi-line ternaries** — they trigger a TypeScript LSP panic (`semantic tokens: token spans multiple lines`). This applies to JSX, TypeScript expressions, and JSX props:
+    - ❌ `{condition ? (\n  <Component />\n) : null}`
+    - ✅ `{condition && <Component />}`
+    - ✅ extract to a variable or helper component above the return if you need the else branch.
+    - ❌ `const x = a\n  ? b\n  : c ? d : undefined`
+    - ✅ use `if/else` blocks for multi-branch TypeScript expressions
+    - ❌ `style={\n  condition ? st.a : st.b\n}`
+    - ✅ `style={condition ? st.a : st.b}` (keep JSX prop ternaries on a single line)
 
 ---
 
@@ -50,6 +73,7 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 ## 5) State And Persistence
 
 - Durable workout/session persistence belongs in SQLite/Drizzle repositories under `src/db/`.
+- Repository factory public methods should be defined inline on the returned repository object, not as separate local functions that are later returned by shorthand. Keep separate local functions only for private helpers shared by multiple methods. Order repository methods by behavior: reads, existence checks, inserts/creates, updates/relinks/detaches, then deletes.
 - UI reads and writes for workouts/history should go through TanStack Query hooks under `src/data/`.
 - Zustand stores should:
     - Keep state minimal and derived values in selectors when possible.
@@ -71,6 +95,24 @@ You are working in a React Native / Expo Router project (Arc Timer). Follow thes
 - The legacy AsyncStorage workout/history migration is one-time and marker-based.
 - If the legacy migration marker is absent, migration may reset SQLite workout/session tables before replaying old data.
 - Reuse workout versions only when content matches and the version is unowned or belongs to the same workout.
+
+## 5.2) Database Integration Tests
+
+- DB integration tests should primarily test service behavior under `src/db/services/`.
+- Keep service integration tests in one file per service unless a split is explicitly requested.
+- Structure service integration tests with the service method as the major `describe`, then nested `describe` blocks for the business rule or scenario being protected.
+- Avoid nested `describe` blocks that only wrap a single obvious test. Prefer putting the condition in the `it` name unless the nested scenario groups multiple tests or clarifies a meaningful business branch.
+- Test names should describe the business invariant, not only the code path. Example: prefer “preserves referenced workout content when content changes” over “calls upsertWorkout with changed content”.
+- Keep service methods aligned with business intent. For example, same-identity updates, creating a new identity, and merging two identities should be separate service operations, even if a UI mutation chooses between them.
+- TanStack mutations may route the user’s chosen intent to the correct service method, but DB business rules and invariants belong in services, not hooks.
+- Avoid using a service method as test setup for another service method; that creates circular confidence.
+- Arrange existing DB state with seed helpers under `tests/helpers/` that write directly to Drizzle tables.
+- Use the service method being tested as the action under test, then assert service-visible results and the DB side effects that are part of that behavior.
+- Do not assert DB writes by comparing a row to the object returned from the same service call. Build expected values from fixtures, explicit inputs, and known clock values, then compare the DB row to those expected values.
+- When testing reference-moving behavior, assert the exact seeded row by ID points to the expected target after the action; do not rely only on aggregate “contains/does not contain” checks.
+- Deduplicate mechanics, not meaning: helper functions may hide repetitive DB query/assertion noise, but should not hide the business scenario being tested.
+- Keep seed helpers focused and reusable by domain, e.g. workout, workout session, and exercise definition seed helpers.
+- Repository-specific tests, when added, should be narrower and focus on CRUD/query behavior only.
 
 ---
 
@@ -146,3 +188,11 @@ Allowed exception:
 - Don’t “clean up” unrelated code while doing a requested change.
 
 ---
+
+## 11) Verification
+
+Before finalizing changes, run:
+
+- `check`
+
+Do not ignore failing checks.

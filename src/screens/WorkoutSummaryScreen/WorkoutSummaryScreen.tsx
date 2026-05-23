@@ -7,7 +7,9 @@ import {
     useRemoveWorkout,
     useToggleFavoriteWorkout,
     useWorkout,
+    useWorkoutCurrentVersionId,
 } from '@src/data/workouts';
+import { useWorkoutRunStore } from '@src/state/stores/useWorkoutRunStore';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { FooterBar } from '@src/components/layout/FooterBar';
 import { Button } from '@src/components/ui/Button/Button';
@@ -16,7 +18,6 @@ import { MetaCard } from '@src/components/ui/MetaCard/MetaCard';
 import { AppIcon } from '@src/components/ui/Icon/AppIcon';
 import { AppText } from '@src/components/ui/Typography/AppText';
 import { ErrorBanner } from '@src/components/ui/ErrorBanner/ErrorBanner';
-import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
 import { CircleIconButton } from '@src/components/ui/CircleIconButton/CircleIconButton';
 import GuardedPressable from '@src/components/ui/GuardedPressable/GuardedPressable';
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
@@ -37,6 +38,7 @@ const WorkoutSummaryScreen = () => {
     const { id } = useLocalSearchParams<{ id?: string }>();
     const router = useRouter();
     const { data: workout } = useWorkout(id);
+    const { data: currentVersionId } = useWorkoutCurrentVersionId(id);
     const removeWorkout = useRemoveWorkout();
     const toggleFavoriteWorkout = useToggleFavoriteWorkout();
     const { theme } = useTheme();
@@ -44,7 +46,7 @@ const WorkoutSummaryScreen = () => {
 
     const summary = useMemo(
         () => summarizeWorkout(workout ?? undefined),
-        [workout]
+        [workout],
     );
 
     const [exportError, setExportError] = useState<string | null>(null);
@@ -55,7 +57,7 @@ const WorkoutSummaryScreen = () => {
         return (
             <MainContainer title={t('workoutSummary.title')} scroll={false}>
                 <View style={st.center}>
-                    <AppText variant="body" tone="danger" style={st.errorText}>
+                    <AppText variant="body" tone="error" style={st.errorText}>
                         {t('workoutSummary.notFound')}
                     </AppText>
                     <Button
@@ -138,7 +140,9 @@ const WorkoutSummaryScreen = () => {
                     gap={12}
                     rightAccessory={
                         <GuardedPressable
-                            onPress={() => toggleFavoriteWorkout.mutate(workout)}
+                            onPress={() =>
+                                toggleFavoriteWorkout.mutate(workout)
+                            }
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                             style={st.favoriteToggle}
                         >
@@ -224,7 +228,9 @@ const WorkoutSummaryScreen = () => {
                                         tone="muted"
                                         style={st.metricLabel}
                                     >
-                                        {t('workoutSummary.metrics.estimatedTime')}
+                                        {t(
+                                            'workoutSummary.metrics.estimatedTime',
+                                        )}
                                     </AppText>
                                     <AppText
                                         variant="bodySmall"
@@ -238,12 +244,10 @@ const WorkoutSummaryScreen = () => {
                         }
                     />
 
-                    <AppearingView visible={!!exportError}>
-                        <ErrorBanner
-                            message={exportError ?? ''}
-                            onClose={() => setExportError(null)}
-                        />
-                    </AppearingView>
+                    <ErrorBanner
+                        message={exportError ?? ''}
+                        onClose={() => setExportError(null)}
+                    />
                 </ScreenSection>
 
                 {/* Blocks Section*/}
@@ -312,12 +316,15 @@ const WorkoutSummaryScreen = () => {
                     title={t('workoutSummary.actions.start')}
                     variant="primary"
                     flex={1}
-                    onPress={() =>
+                    onPress={() => {
+                        useWorkoutRunStore
+                            .getState()
+                            .setSourceVersionId(currentVersionId ?? null);
                         router.push({
                             pathname: `/run/${id}`,
                             params: { autoStart: '1' },
-                        })
-                    }
+                        });
+                    }}
                 />
             </FooterBar>
 

@@ -13,14 +13,13 @@ import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 import { WorkoutItem } from '@components/workouts/WorkoutItem';
 import { importWorkoutFromFile } from '@src/core/importWorkout/importWorkout';
 import { ErrorBanner } from '@src/components/ui/ErrorBanner/ErrorBanner';
-import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
 import NewWorkoutModal from './components/NewWorkoutModal';
 
-import { AppText } from '@src/components/ui/Typography/AppText';
 import { Button } from '@src/components/ui/Button/Button';
 import { useWorkoutsScreenStyles } from './WorkoutsScreen.styles';
 import { SearchField } from '@src/components/ui/SearchField/SearchField';
 import { useTranslation } from 'react-i18next';
+import { ListEmptyState } from '@src/components/layout/ListEmptyState';
 
 interface ImportErrorTranslationMap {
     INVALID_EXTENSION: 'workouts.import.errors.invalidExtension';
@@ -29,32 +28,6 @@ interface ImportErrorTranslationMap {
     PARSE_FAILED: 'workouts.import.errors.parseFailed';
     READ_FAILED: 'workouts.import.errors.readFailed';
 }
-
-const EmptyWorkouts = ({ onPressButton }: { onPressButton: () => void }) => {
-    const st = useWorkoutsScreenStyles();
-    const { t } = useTranslation();
-
-    return (
-        <View style={st.emptyContainer}>
-            <AppText variant="title3">{t('workouts.emptyTitle')}</AppText>
-
-            <AppText
-                variant="bodySmall"
-                tone="secondary"
-                style={st.emptyDescription}
-            >
-                {t('workouts.emptyDescription')}
-            </AppText>
-
-            <Button
-                title={t('workouts.createButton')}
-                variant="primary"
-                onPress={onPressButton}
-                style={st.emptyButton}
-            />
-        </View>
-    );
-};
 
 const WorkoutsScreen = () => {
     const { t } = useTranslation();
@@ -80,6 +53,7 @@ const WorkoutsScreen = () => {
         if (!searchTerm) return list;
         return list.filter((w) => w.name.toLowerCase().includes(searchTerm));
     }, [list, search]);
+    const hasSearch = search.trim().length > 0;
 
     const closeModal = () => {
         setModalVisible(false);
@@ -151,12 +125,10 @@ const WorkoutsScreen = () => {
                                 style={st.newButton}
                             />
                         </View>
-                        <AppearingView visible={!!importError}>
-                            <ErrorBanner
-                                message={importError ?? ''}
-                                onClose={() => setImportError(null)}
-                            />
-                        </AppearingView>
+                        <ErrorBanner
+                            message={importError ?? ''}
+                            onClose={() => setImportError(null)}
+                        />
                     </View>
                 }
                 stickyHeaderIndices={[0]} // make headerRow stick to the top
@@ -171,8 +143,25 @@ const WorkoutsScreen = () => {
                     />
                 )}
                 ListEmptyComponent={
-                    <EmptyWorkouts
-                        onPressButton={() => setModalVisible(true)}
+                    <ListEmptyState
+                        title={
+                            hasSearch
+                                ? t('workouts.searchEmptyTitle')
+                                : t('workouts.emptyTitle')
+                        }
+                        description={
+                            hasSearch
+                                ? t('workouts.searchEmptyDescription')
+                                : t('workouts.emptyDescription')
+                        }
+                        actionLabel={
+                            hasSearch ? undefined : t('workouts.createButton')
+                        }
+                        onPressAction={
+                            hasSearch
+                                ? undefined
+                                : () => setModalVisible(true)
+                        }
                     />
                 }
                 keyboardShouldPersistTaps="handled"

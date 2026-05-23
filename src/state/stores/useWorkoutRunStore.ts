@@ -17,6 +17,7 @@ export interface StartRunPayload {
 export interface WorkoutRunState {
     steps: Step[];
     totalSets: number;
+    sourceVersionId: string | null;
 
     running: boolean;
     remainingMs: number;
@@ -25,12 +26,14 @@ export interface WorkoutRunState {
     startRun: (payload: StartRunPayload) => void;
     resetRun: () => void;
     setEngineSnapshot: (snap: EngineSnapshot) => void;
+    setSourceVersionId: (id: string | null) => void;
 }
 
 export const useWorkoutRunStore = create<WorkoutRunState>()(
     immer((set) => ({
         steps: [],
         totalSets: 1,
+        sourceVersionId: null,
 
         running: false,
         remainingMs: 0,
@@ -52,6 +55,7 @@ export const useWorkoutRunStore = create<WorkoutRunState>()(
             set((s) => {
                 s.steps = [];
                 s.totalSets = 1;
+                s.sourceVersionId = null;
 
                 s.running = false;
                 s.remainingMs = 0;
@@ -64,5 +68,10 @@ export const useWorkoutRunStore = create<WorkoutRunState>()(
                 s.remainingMs = snap.remainingMs;
                 s.currentStep = snap.currentStep;
             }),
-    }))
+
+        setSourceVersionId: (id) =>
+            set((s) => {
+                s.sourceVersionId = id;
+            }),
+    })),
 );

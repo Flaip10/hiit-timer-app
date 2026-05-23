@@ -1,18 +1,48 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import {
-    type CreateWorkoutSessionArgs,
-    workoutSessionRepository,
-} from '@src/db/repositories/workoutSessionRepository';
+import { dbServices } from '@src/db/dbServices';
+import type { Workout } from '@src/core/entities/entities';
+import type { WorkoutSessionStats } from '@src/core/entities/workoutSession.interfaces';
 
 import { workoutSessionKeys } from './workoutSessionKeys';
+
+export interface AddWorkoutSessionArgs {
+    versionId?: string;
+    workout?: Workout;
+    startedAtMs: number;
+    endedAtMs: number;
+    stats?: WorkoutSessionStats;
+}
 
 export const useAddWorkoutSession = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (args: CreateWorkoutSessionArgs) =>
-            workoutSessionRepository.create(args),
+        mutationFn: async ({
+            versionId,
+            workout,
+            startedAtMs,
+            endedAtMs,
+            stats,
+        }: AddWorkoutSessionArgs) => {
+            if (versionId) {
+                return dbServices.workoutSessionService.createSession({
+                    versionId,
+                    startedAtMs,
+                    endedAtMs,
+                    stats,
+                });
+            }
+            if (!workout) {
+                throw new Error('workout is required when versionId is absent');
+            }
+            return dbServices.workoutSessionService.createSessionFromSnapshot({
+                workout,
+                startedAtMs,
+                endedAtMs,
+                stats,
+            });
+        },
         onSuccess: async () => {
             await queryClient.invalidateQueries({
                 queryKey: workoutSessionKeys.all,
@@ -26,7 +56,7 @@ export const useRemoveWorkoutSession = () => {
 
     return useMutation({
         mutationFn: async (id: string) => {
-            workoutSessionRepository.remove(id);
+            dbServices.workoutSessionService.deleteSession(id);
             return id;
         },
         onSuccess: async (id) => {
@@ -45,7 +75,7 @@ export const useClearWorkoutSessions = () => {
 
     return useMutation({
         mutationFn: async () => {
-            workoutSessionRepository.clear();
+            dbServices.workoutSessionService.clearSessions();
         },
         onSuccess: async () => {
             queryClient.removeQueries({

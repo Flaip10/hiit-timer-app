@@ -6,6 +6,20 @@ export type UUID = string;
  */
 export type ExerciseMode = 'time' | 'reps';
 
+export type ExerciseDefinitionSource = 'system' | 'user';
+
+export type ExerciseDefinitionAvailability = 'both' | 'workout' | 'gym';
+
+export interface ExerciseDefinition {
+    id: UUID;
+    name: string;
+    normalizedName: string;
+    source: ExerciseDefinitionSource;
+    availability: ExerciseDefinitionAvailability;
+    createdAtMs: number;
+    updatedAtMs: number;
+}
+
 /**
  * Option 1:
  *   mode: 'time'
@@ -16,9 +30,10 @@ export type ExerciseMode = 'time' | 'reps';
  *   value: <reps>
  *   tempo?: '3-1-3' | '2-0-2' | string
  */
-export interface Exercise {
+export interface WorkoutExercise {
     id: UUID;
     name?: string;
+    exerciseDefinitionId?: UUID;
 
     mode: ExerciseMode;
 
@@ -41,7 +56,7 @@ export interface WorkoutBlock {
     restBetweenSetsSec: number;
     restBetweenExercisesSec: number;
 
-    exercises: Exercise[];
+    exercises: WorkoutExercise[];
 }
 
 export interface Workout {

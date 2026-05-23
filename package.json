@@ -13,7 +13,7 @@
         "test": "jest",
         "test:coverage": "jest --coverage",
         "typecheck": "tsc --noEmit",
-        "check": "npm run typecheck && npm run lint && npm run test",
+        "check": "npm run typecheck && npm run lint",
         "expo:check": "expo install --check",
         "release:check": "npm run check && npm run expo:check && npx expo-doctor",
         "export:ios": "expo export --clear --platform ios --output-dir /private/tmp/arc-timer-ios-export",

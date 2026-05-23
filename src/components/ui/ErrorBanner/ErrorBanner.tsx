@@ -1,146 +1,94 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { forwardRef, useRef, useState } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@src/theme/ThemeProvider';
-import { createStyles } from '@src/theme/createStyles';
 import { AppText } from '@src/components/ui/Typography/AppText';
-import { AppearingView } from '@src/components/ui/AppearingView/AppearingView';
-import MinHeightCollapse from '../MinHeightCollapse/MinHeightCollapse';
+import { useStyles } from './ErrorBanner.styles';
+import { CollapseFade } from '@src/components/ui/CollapseFade/CollapseFade';
 import GuardedPressable from '../GuardedPressable/GuardedPressable';
 
-type ErrorBannerProps = {
+interface ErrorBannerProps {
     message: string;
+    dismissalKey?: string | number;
+    isDismissible?: boolean;
     onClose?: () => void;
     style?: StyleProp<ViewStyle>;
-};
+}
 
-const useStyles = createStyles((theme) => ({
-    container: {
-        flexDirection: 'row' as const,
-        alignItems: 'center' as const,
-        justifyContent: 'center' as const,
-        padding: theme.layout.card.padding,
-        borderRadius: theme.layout.card.borderRadius,
-        backgroundColor: theme.palette.feedback.errorBg,
-        borderWidth: 1,
-        borderColor: theme.palette.feedback.errorBorder,
-        gap: 8,
-        width: '100%',
-    },
-    textContainer: {
-        flex: 1,
-    },
-    dismissRow: {
-        flexDirection: 'row' as const,
-        alignItems: 'center' as const,
-        gap: 4,
-    },
-}));
+interface DismissedBanner {
+    dismissalKey: string | number | undefined;
+    message: string;
+}
 
-export const ErrorBanner = ({ message, onClose, style }: ErrorBannerProps) => {
+export const ErrorBanner = forwardRef<View, ErrorBannerProps>(({
+    message,
+    dismissalKey,
+    isDismissible = false,
+    onClose,
+    style,
+}, ref) => {
     const { theme } = useTheme();
     const st = useStyles();
+    const [dismissedBanner, setDismissedBanner] =
+        useState<DismissedBanner | null>(null);
 
-    const ANIMATION_DURATION = 150;
-    const EXIT_DURATION = 150;
+    const trimmedMessage = message.trim();
+    const isDismissed =
+        dismissedBanner?.message === trimmedMessage &&
+        dismissedBanner.dismissalKey === dismissalKey;
+    const isVisible = !!trimmedMessage && !isDismissed;
+    const canDismiss = isDismissible || !!onClose;
 
-    const [visible, setVisible] = useState<boolean>(!!message.trim());
-    const [expanded, setExpanded] = useState<boolean>(!!message.trim());
-
-    const hideTimeoutRef = useRef<number | null>(null);
-
-    const clearHideTimeout = () => {
-        if (hideTimeoutRef.current != null) {
-            clearTimeout(hideTimeoutRef.current);
-            hideTimeoutRef.current = null;
-        }
-    };
-
-    // Cleanup on unmount
-    useEffect(() => {
-        return () => {
-            clearHideTimeout();
-        };
-    }, []);
-
-    // React to message changes from parent
-    useEffect(() => {
-        const hasMessage = !!message.trim();
-
-        clearHideTimeout();
-
-        if (hasMessage) {
-            // New / updated errors → show and expand immediately
-            setExpanded(true);
-            setVisible(true);
-        } else {
-            // Parent cleared message entirely → fade out then collapse
-            setVisible(false);
-            hideTimeoutRef.current = setTimeout(() => {
-                setExpanded(false);
-            }, EXIT_DURATION) as unknown as number;
-        }
-    }, [message, EXIT_DURATION]);
+    const lastMessageRef = useRef('');
+    if (trimmedMessage) {
+        lastMessageRef.current = trimmedMessage;
+    }
+    const renderedMessage = lastMessageRef.current;
 
     const handleClose = () => {
-        // Local dismiss: fade out + delayed collapse
-        clearHideTimeout();
-        setVisible(false);
-
-        hideTimeoutRef.current = setTimeout(() => {
-            setExpanded(false);
-        }, EXIT_DURATION) as unknown as number;
-
+        setDismissedBanner({
+            dismissalKey,
+            message: trimmedMessage,
+        });
         onClose?.();
     };
 
     return (
-        <MinHeightCollapse
-            expanded={expanded}
-            minHeight={0}
-            timeout={EXIT_DURATION}
-            withBottomFade={false}
-        >
-            <AppearingView
-                visible={visible}
-                offsetY={8}
-                duration={ANIMATION_DURATION}
-                delay={EXIT_DURATION}
+        <CollapseFade visible={isVisible} duration={150}>
+            <View
+                ref={ref}
+                style={[st.container, style]}
             >
-                <View style={[st.container, style]}>
-                    <Ionicons
-                        name="alert-circle"
-                        size={18}
-                        color={theme.palette.feedback.errorIcon}
-                    />
+                <Ionicons
+                    name="alert-circle"
+                    size={18}
+                    color={theme.palette.icon.error}
+                />
 
-                    <View style={st.textContainer}>
-                        <AppText
-                            variant="bodySmall"
-                            style={{ color: theme.palette.feedback.errorText }}
-                        >
-                            {message}
-                        </AppText>
-                    </View>
-
-                    {onClose && (
-                        <GuardedPressable onPress={handleClose} hitSlop={8}>
-                            <View style={st.dismissRow}>
-                                <Ionicons
-                                    name="close"
-                                    size={16}
-                                    color={theme.palette.text.muted}
-                                />
-                                <AppText variant="caption" tone="muted">
-                                    Dismiss
-                                </AppText>
-                            </View>
-                        </GuardedPressable>
-                    )}
+                <View style={st.textContainer}>
+                    <AppText variant="bodySmall" style={st.messageText}>
+                        {renderedMessage}
+                    </AppText>
                 </View>
-            </AppearingView>
-        </MinHeightCollapse>
+
+                {canDismiss && (
+                    <GuardedPressable
+                        onPress={handleClose}
+                        hitSlop={12}
+                        style={st.closeButton}
+                    >
+                        <Ionicons
+                            name="close"
+                            size={18}
+                            color={theme.palette.text.muted}
+                        />
+                    </GuardedPressable>
+                )}
+            </View>
+        </CollapseFade>
     );
-};
+});
+
+ErrorBanner.displayName = 'ErrorBanner';

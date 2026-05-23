@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
 
 import { useWorkoutDraftStore } from '@src/state/stores/useWorkoutDraftStore';
+import { useWorkoutRunStore } from '@src/state/stores/useWorkoutRunStore';
 import { useWorkout } from '@src/data/workouts';
 import { useAddWorkoutSession } from '@src/data/workoutSessions';
 
@@ -49,9 +50,6 @@ export const WorkoutRunScreen = () => {
 
     const { data: savedWorkout } = useWorkout(id);
     const draftWorkout = useWorkoutDraftStore((s) => s.draft);
-    const sourceWorkoutVersionId = useWorkoutDraftStore(
-        (s) => s.sourceWorkoutVersionId,
-    );
     const {
         isIdle: isSessionSaveIdle,
         mutate: addWorkoutSession,
@@ -143,8 +141,8 @@ export const WorkoutRunScreen = () => {
         if (!workout) return;
 
         addWorkoutSession({
+            versionId: useWorkoutRunStore.getState().sourceVersionId ?? undefined,
             workout,
-            sourceWorkoutVersionId: sourceWorkoutVersionId ?? undefined,
             startedAtMs,
             endedAtMs,
             stats: runStats,
@@ -155,7 +153,6 @@ export const WorkoutRunScreen = () => {
         running,
         isFinished,
         workout,
-        sourceWorkoutVersionId,
         runStats,
     ]);
 

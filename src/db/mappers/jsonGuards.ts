@@ -1,6 +1,6 @@
 import type {
-    Exercise,
     ExerciseMode,
+    WorkoutExercise,
     Workout,
     WorkoutBlock,
 } from '@src/core/entities/entities';
@@ -12,8 +12,7 @@ import type {
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const isString = (value: unknown): value is string =>
-    typeof value === 'string';
+const isString = (value: unknown): value is string => typeof value === 'string';
 
 const isNumber = (value: unknown): value is number =>
     typeof value === 'number' && Number.isFinite(value);
@@ -27,12 +26,18 @@ const isNumberArray = (value: unknown): value is number[] =>
 const isExerciseMode = (value: unknown): value is ExerciseMode =>
     value === 'time' || value === 'reps';
 
-export const isExercise = (value: unknown): value is Exercise => {
+export const isWorkoutExercise = (value: unknown): value is WorkoutExercise => {
     if (!isRecord(value)) return false;
     if (!isString(value.id)) return false;
     if (!isExerciseMode(value.mode)) return false;
     if (!isNumber(value.value)) return false;
     if (value.name !== undefined && !isString(value.name)) return false;
+    if (
+        value.exerciseDefinitionId !== undefined &&
+        !isString(value.exerciseDefinitionId)
+    ) {
+        return false;
+    }
     if (value.tempo !== undefined && !isString(value.tempo)) return false;
 
     return true;
@@ -47,7 +52,7 @@ export const isWorkoutBlock = (value: unknown): value is WorkoutBlock => {
     if (!isNumber(value.restBetweenExercisesSec)) return false;
     if (!Array.isArray(value.exercises)) return false;
 
-    return value.exercises.every(isExercise);
+    return value.exercises.every(isWorkoutExercise);
 };
 
 export const isWorkout = (value: unknown): value is Workout => {
@@ -55,7 +60,10 @@ export const isWorkout = (value: unknown): value is Workout => {
     if (!isString(value.id)) return false;
     if (!isString(value.name)) return false;
     if (!isNumber(value.updatedAtMs)) return false;
-    if (value.isFavorite !== undefined && typeof value.isFavorite !== 'boolean') {
+    if (
+        value.isFavorite !== undefined &&
+        typeof value.isFavorite !== 'boolean'
+    ) {
         return false;
     }
     if (!Array.isArray(value.blocks)) return false;
@@ -64,7 +72,7 @@ export const isWorkout = (value: unknown): value is Workout => {
 };
 
 export const isWorkoutSessionStats = (
-    value: unknown
+    value: unknown,
 ): value is WorkoutSessionStats => {
     if (!isRecord(value)) return false;
     if (!isNumber(value.completedSets)) return false;
@@ -96,13 +104,22 @@ export const isWorkoutSessionStats = (
     ) {
         return false;
     }
-    if (value.workSecByBlock !== undefined && !isNumberArray(value.workSecByBlock)) {
+    if (
+        value.workSecByBlock !== undefined &&
+        !isNumberArray(value.workSecByBlock)
+    ) {
         return false;
     }
-    if (value.restSecByBlock !== undefined && !isNumberArray(value.restSecByBlock)) {
+    if (
+        value.restSecByBlock !== undefined &&
+        !isNumberArray(value.restSecByBlock)
+    ) {
         return false;
     }
-    if (value.prepSecByBlock !== undefined && !isNumberArray(value.prepSecByBlock)) {
+    if (
+        value.prepSecByBlock !== undefined &&
+        !isNumberArray(value.prepSecByBlock)
+    ) {
         return false;
     }
 
@@ -115,16 +132,15 @@ export const isWorkoutSession = (value: unknown): value is WorkoutSession => {
     if (!isNumber(value.startedAtMs)) return false;
     if (!isNumber(value.endedAtMs)) return false;
     if (!isWorkout(value.workoutSnapshot)) return false;
-    if (value.workoutId !== undefined && !isString(value.workoutId)) return false;
     if (
-        value.workoutVersionId !== undefined &&
-        !isString(value.workoutVersionId)
+        value.activeWorkoutId !== undefined &&
+        !isString(value.activeWorkoutId)
     ) {
         return false;
     }
     if (
-        value.workoutNameSnapshot !== undefined &&
-        !isString(value.workoutNameSnapshot)
+        value.workoutVersionId !== undefined &&
+        !isString(value.workoutVersionId)
     ) {
         return false;
     }

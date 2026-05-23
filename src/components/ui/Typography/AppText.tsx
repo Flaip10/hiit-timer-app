@@ -9,7 +9,7 @@ export type TextTone =
     | 'secondary'
     | 'muted'
     | 'inverted'
-    | 'danger'
+    | 'error'
     | 'success';
 
 export interface AppTextProps extends TextProps {

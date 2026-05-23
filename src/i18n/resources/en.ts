@@ -31,6 +31,7 @@ export const en: I18nResource = {
     drawer: {
         home: 'Home',
         workouts: 'Workouts',
+        exercises: 'Exercises',
         history: 'History',
         settings: 'Settings',
         quickAccess: 'Quick access',
@@ -58,6 +59,8 @@ export const en: I18nResource = {
         clear: 'Clear',
         emptyTitle: 'No sessions yet',
         emptyDescription: 'Run a workout and it will appear here.',
+        searchEmptyTitle: 'No sessions found',
+        searchEmptyDescription: 'Try a different workout name.',
         clearConfirm: {
             title: 'Clear history',
             message: 'All workout sessions will be deleted.',
@@ -137,6 +140,8 @@ export const en: I18nResource = {
         validation: {
             nameRequired: 'Workout name is required.',
             addBlock: 'Add at least one block.',
+            exerciseNamesRequired: 'Exercises must have defined names.',
+            saveFailed: 'Could not save workout. Check the details and try again.',
         },
         removeBlock: {
             title: 'Remove block',
@@ -160,7 +165,7 @@ export const en: I18nResource = {
         },
         fields: {
             blockTitle: 'Block name',
-            exerciseDurationSec: 'Duration',
+            exerciseDurationSec: 'Default duration',
             restBetweenExercisesSec: 'Between exercises',
             setsInBlock: 'Sets',
             restBetweenSetsSec: 'Between sets',
@@ -183,6 +188,7 @@ export const en: I18nResource = {
         validation: {
             setsMin: 'Block must have at least one set.',
             exercisesMin: 'Add at least one exercise.',
+            exerciseNameRequired: 'Exercise name is required before saving.',
             exerciseDurationMin:
                 'Exercise {{index}}: duration must be > 0 seconds.',
             exerciseRepsMin: 'Exercise {{index}}: reps must be > 0.',
@@ -237,6 +243,8 @@ export const en: I18nResource = {
         },
         emptyTitle: 'No workouts yet',
         emptyDescription: 'Create your first workout to get started.',
+        searchEmptyTitle: 'No workouts found',
+        searchEmptyDescription: 'Try a different workout name.',
         item: {
             untitled: 'Untitled workout',
         },
@@ -264,6 +272,48 @@ export const en: I18nResource = {
                 readFailed: 'Could not read the selected file.',
                 unexpected: 'Import failed due to an unexpected error.',
             },
+        },
+    },
+    exerciseDefinitions: {
+        title: 'Exercises',
+        detailsTitle: 'Exercise',
+        searchPlaceholder: 'Search exercises',
+        newButton: '＋ New',
+        createButton: '＋ Create exercise',
+        emptyTitle: 'No exercises yet',
+        emptyDescription: 'Create your first exercise to build your catalog.',
+        searchEmptyTitle: 'No exercises found',
+        searchEmptyDescription: 'Try a different exercise name.',
+        notFound: 'Exercise not found.',
+        overview: 'Overview',
+        fields: {
+            name: 'Name',
+            namePlaceholder: 'e.g., Push-ups',
+            availability: 'Availability',
+            source: 'Source',
+        },
+        source: {
+            system: 'System',
+            user: 'Custom',
+        },
+        availability: {
+            both: 'Workout + Gym',
+            workout: 'Workout',
+            gym: 'Gym',
+        },
+        modal: {
+            createTitle: 'New exercise',
+            editTitle: 'Edit exercise',
+            subtitle: 'Keep your exercise catalog clear and reusable.',
+            create: 'Create',
+            save: 'Save',
+        },
+        validation: {
+            nameRequired: 'Exercise name is required.',
+            duplicateName: 'An exercise with this name already exists.',
+            gymOnlyRestricted:
+                'This exercise is used in a workout and cannot be set to gym only.',
+            saveFailed: 'Could not save exercise. Check the details and try again.',
         },
     },
     workoutSummary: {

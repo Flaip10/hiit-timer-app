@@ -1,13 +1,21 @@
 import type { WorkoutBlock } from '@src/core/entities/entities';
 import { uid } from '@core/id';
 
+export type BlockValidationTargetId = 'setup' | `exercise:${string}`;
+
 export interface BlockValidationError {
     key:
         | 'setsMin'
         | 'exercisesMin'
+        | 'exerciseNameRequired'
         | 'exerciseDurationMin'
         | 'exerciseRepsMin';
     exerciseIndex?: number;
+    targetId: BlockValidationTargetId;
+}
+
+export interface ValidateBlockOptions {
+    shouldRequireExerciseNames?: boolean;
 }
 
 // Parse a string/number → non-negative integer
@@ -56,24 +64,48 @@ export const applyDurationToAll = (
 
 // Block-level validation rules
 export const validateBlock = (
-    block: WorkoutBlock | null
+    block: WorkoutBlock | null,
+    options: ValidateBlockOptions = {},
 ): BlockValidationError[] => {
     if (!block) return [];
     const errors: BlockValidationError[] = [];
 
     if (block.sets <= 0) {
-        errors.push({ key: 'setsMin' });
+        errors.push({
+            key: 'setsMin',
+            targetId: 'setup',
+        });
     }
 
     if (block.exercises.length === 0) {
-        errors.push({ key: 'exercisesMin' });
+        errors.push({
+            key: 'exercisesMin',
+            targetId: 'setup',
+        });
     }
 
     block.exercises.forEach((ex, ei) => {
+        const hasDefinition = !!ex.exerciseDefinitionId;
+        const hasName =
+            ex.name !== undefined && ex.name.trim().length > 0;
+
+        if (
+            options.shouldRequireExerciseNames === true &&
+            !hasDefinition &&
+            !hasName
+        ) {
+            errors.push({
+                key: 'exerciseNameRequired',
+                exerciseIndex: ei + 1,
+                targetId: `exercise:${ex.id}`,
+            });
+        }
+
         if (ex.mode === 'time' && ex.value <= 0) {
             errors.push({
                 key: 'exerciseDurationMin',
                 exerciseIndex: ei + 1,
+                targetId: `exercise:${ex.id}`,
             });
         }
 
@@ -81,6 +113,7 @@ export const validateBlock = (
             errors.push({
                 key: 'exerciseRepsMin',
                 exerciseIndex: ei + 1,
+                targetId: `exercise:${ex.id}`,
             });
         }
     });

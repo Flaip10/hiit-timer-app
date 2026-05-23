@@ -1,29 +1,34 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { workoutRepository } from '@src/db/repositories/workoutRepository';
+import { dbServices } from '@src/db/dbServices';
 
 import { workoutKeys } from './workoutKeys';
 
 export const useWorkouts = () =>
     useQuery({
         queryKey: workoutKeys.all,
-        queryFn: () => workoutRepository.getAll(),
-        initialData: () => workoutRepository.getAll(),
+        queryFn: () => dbServices.workoutService.getAll(),
+        initialData: () => dbServices.workoutService.getAll(),
     });
 
 export const useWorkout = (id?: string) =>
     useQuery({
         queryKey: workoutKeys.detail(id ?? 'missing'),
-        queryFn: () => (id ? workoutRepository.getById(id) : null),
+        queryFn: () => (id ? dbServices.workoutService.getById(id) : null),
         enabled: !!id,
-        initialData: () => (id ? workoutRepository.getById(id) : null),
+        initialData: () => (id ? dbServices.workoutService.getById(id) : null),
     });
 
-export const useWorkoutCurrentVersionId = (id?: string) =>
+export const useWorkoutCurrentVersionId = (workoutId?: string) =>
     useQuery({
-        queryKey: workoutKeys.currentVersionId(id ?? 'missing'),
-        queryFn: () => (id ? workoutRepository.getCurrentVersionId(id) : null),
-        enabled: !!id,
+        queryKey: workoutKeys.currentVersionId(workoutId ?? 'missing'),
+        queryFn: () =>
+            workoutId
+                ? dbServices.workoutService.getCurrentVersionId(workoutId)
+                : null,
+        enabled: !!workoutId,
         initialData: () =>
-            id ? workoutRepository.getCurrentVersionId(id) : null,
+            workoutId
+                ? dbServices.workoutService.getCurrentVersionId(workoutId)
+                : null,
     });

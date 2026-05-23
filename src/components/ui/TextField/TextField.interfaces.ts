@@ -7,6 +7,11 @@ import type {
 } from 'react-native';
 import type { TextTone } from '../Typography/AppText';
 
+export interface TextFieldSuggestionItem {
+    id: string;
+    label: string;
+}
+
 export interface TextFieldProps extends TextInputProps {
     label?: string;
     labelTone?: TextTone;
@@ -16,5 +21,7 @@ export interface TextFieldProps extends TextInputProps {
 
     containerStyle?: StyleProp<ViewStyle>;
     inputStyle?: StyleProp<TextStyle>;
+    suggestions?: readonly TextFieldSuggestionItem[];
+    onSuggestionPress?: (item: TextFieldSuggestionItem) => void;
     rightAccessory?: ReactNode;
 }

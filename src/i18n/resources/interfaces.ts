@@ -29,6 +29,7 @@ export interface I18nResource {
     drawer: {
         home: string;
         workouts: string;
+        exercises: string;
         history: string;
         settings: string;
         quickAccess: string;
@@ -55,6 +56,8 @@ export interface I18nResource {
         clear: string;
         emptyTitle: string;
         emptyDescription: string;
+        searchEmptyTitle: string;
+        searchEmptyDescription: string;
         clearConfirm: {
             title: string;
             message: string;
@@ -134,6 +137,8 @@ export interface I18nResource {
         validation: {
             nameRequired: string;
             addBlock: string;
+            exerciseNamesRequired: string;
+            saveFailed: string;
         };
         removeBlock: {
             title: string;
@@ -179,6 +184,7 @@ export interface I18nResource {
         validation: {
             setsMin: string;
             exercisesMin: string;
+            exerciseNameRequired: string;
             exerciseDurationMin: string;
             exerciseRepsMin: string;
         };
@@ -232,6 +238,8 @@ export interface I18nResource {
         };
         emptyTitle: string;
         emptyDescription: string;
+        searchEmptyTitle: string;
+        searchEmptyDescription: string;
         item: {
             untitled: string;
         };
@@ -257,6 +265,47 @@ export interface I18nResource {
                 readFailed: string;
                 unexpected: string;
             };
+        };
+    };
+    exerciseDefinitions: {
+        title: string;
+        detailsTitle: string;
+        searchPlaceholder: string;
+        newButton: string;
+        createButton: string;
+        emptyTitle: string;
+        emptyDescription: string;
+        searchEmptyTitle: string;
+        searchEmptyDescription: string;
+        notFound: string;
+        overview: string;
+        fields: {
+            name: string;
+            namePlaceholder: string;
+            availability: string;
+            source: string;
+        };
+        source: {
+            system: string;
+            user: string;
+        };
+        availability: {
+            both: string;
+            workout: string;
+            gym: string;
+        };
+        modal: {
+            createTitle: string;
+            editTitle: string;
+            subtitle: string;
+            create: string;
+            save: string;
+        };
+        validation: {
+            nameRequired: string;
+            duplicateName: string;
+            gymOnlyRestricted: string;
+            saveFailed: string;
         };
     };
     workoutSummary: {

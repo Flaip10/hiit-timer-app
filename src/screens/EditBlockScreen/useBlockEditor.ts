@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type {
     Workout,
     WorkoutBlock,
-    Exercise,
+    WorkoutExercise,
 } from '@src/core/entities/entities';
 import { uid } from '@core/id';
 
@@ -13,6 +13,7 @@ import {
     validateBlock,
     applyDurationToAll,
     type BlockValidationError,
+    type ValidateBlockOptions,
 } from './helpers';
 
 type UseBlockEditorArgs = {
@@ -123,7 +124,7 @@ export const useBlockEditor = ({ draft, blockId }: UseBlockEditorArgs) => {
         });
 
     // per-exercise changes
-    const onExChange = (ei: number, next: Exercise) =>
+    const onExChange = (ei: number, next: WorkoutExercise) =>
         setBlock((prev) =>
             prev
                 ? {
@@ -163,10 +164,12 @@ export const useBlockEditor = ({ draft, blockId }: UseBlockEditorArgs) => {
         );
 
     // ----- validation -----
-    const validate = (): boolean => {
-        const errs = validateBlock(block);
+    const validate = (
+        options?: ValidateBlockOptions,
+    ): BlockValidationError[] => {
+        const errs = validateBlock(block, options);
         setErrors(errs);
-        return errs.length === 0;
+        return errs;
     };
 
     return {

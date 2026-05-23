@@ -24,19 +24,6 @@ export const useWorkoutsScreenStyles = createStyles((theme: AppTheme) =>
             paddingBottom: theme.insets.bottom,
         },
 
-        emptyContainer: {
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingVertical: 40,
-            gap: 8,
-        },
-        emptyDescription: {
-            textAlign: 'center',
-            maxWidth: 260,
-        },
-        emptyButton: {
-            marginTop: 8,
-        },
         newButton: {
             alignSelf: 'flex-start',
         },

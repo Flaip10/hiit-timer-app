@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { Workout } from '@src/core/entities/entities';
-import { workoutRepository } from '@src/db/repositories/workoutRepository';
+import { dbServices } from '@src/db/dbServices';
 
+import { exerciseDefinitionKeys } from '../exerciseDefinitions';
 import { workoutSessionKeys } from '../workoutSessions';
 import { workoutKeys } from './workoutKeys';
 
@@ -25,15 +26,10 @@ export const useUpsertWorkout = () => {
                 ? args.sourceWorkoutVersionId
                 : undefined;
 
-            if (sourceWorkoutVersionId) {
-                workoutRepository.upsertRestoredWorkout({
-                    workout,
-                    sortIndex: -workout.updatedAtMs,
-                    sourceWorkoutVersionId,
-                });
-            } else {
-                workoutRepository.upsert(workout, -workout.updatedAtMs);
-            }
+            dbServices.workoutService.upsertWorkout({
+                workout,
+                sourceWorkoutVersionId,
+            });
         },
         onSuccess: async (_data, args) => {
             const sourceWorkoutVersionId = isUpsertWorkoutArgs(args)
@@ -43,6 +39,9 @@ export const useUpsertWorkout = () => {
             await Promise.all([
                 queryClient.invalidateQueries({
                     queryKey: workoutKeys.all,
+                }),
+                queryClient.invalidateQueries({
+                    queryKey: exerciseDefinitionKeys.all,
                 }),
                 sourceWorkoutVersionId
                     ? queryClient.invalidateQueries({
@@ -59,7 +58,7 @@ export const useRemoveWorkout = () => {
 
     return useMutation({
         mutationFn: async (id: string) => {
-            workoutRepository.remove(id);
+            dbServices.workoutService.deleteWorkout(id);
             return id;
         },
         onSuccess: async (id) => {
@@ -68,6 +67,12 @@ export const useRemoveWorkout = () => {
             });
             await queryClient.invalidateQueries({
                 queryKey: workoutKeys.all,
+            });
+            await queryClient.invalidateQueries({
+                queryKey: workoutSessionKeys.all,
+            });
+            await queryClient.invalidateQueries({
+                queryKey: exerciseDefinitionKeys.all,
             });
         },
     });
@@ -78,12 +83,7 @@ export const useToggleFavoriteWorkout = () => {
 
     return useMutation({
         mutationFn: async (workout: Workout) => {
-            const nextWorkout: Workout = {
-                ...workout,
-                isFavorite: !workout.isFavorite,
-            };
-
-            workoutRepository.upsert(nextWorkout, -nextWorkout.updatedAtMs);
+            dbServices.workoutService.toggleFavorite(workout);
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({

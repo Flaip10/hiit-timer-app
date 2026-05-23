@@ -1,10 +1,11 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { TextInput, View } from 'react-native';
 
 import { useStepperStyles } from './Stepper.styles';
 import { MiniButton } from './MiniButton';
 import { FieldLabel } from '@src/components/ui/FieldLabel/FieldLabel';
 import type { TextTone } from '@src/components/ui/Typography/AppText';
+import { useMainContainerScroll } from '@src/components/layout/MainContainer/MainContainerScrollContext';
 
 interface Props {
     value: number;
@@ -21,7 +22,7 @@ interface Props {
 const clamp = (n: number, min?: number, max?: number) =>
     Math.max(
         min ?? Number.NEGATIVE_INFINITY,
-        Math.min(max ?? Number.POSITIVE_INFINITY, n)
+        Math.min(max ?? Number.POSITIVE_INFINITY, n),
     );
 
 export const Stepper: React.FC<Props> = ({
@@ -37,15 +38,17 @@ export const Stepper: React.FC<Props> = ({
 }) => {
     const [isFocused, setIsFocused] = useState(false);
     const st = useStepperStyles({ isFocused });
+    const scrollContext = useMainContainerScroll();
+    const anchorRef = useRef<View | null>(null);
 
     const inc = useCallback(
         () => onChange(clamp(value + step, min, max)),
-        [onChange, value, step, min, max]
+        [onChange, value, step, min, max],
     );
 
     const dec = useCallback(
         () => onChange(clamp(value - step, min, max)),
-        [onChange, value, step, min, max]
+        [onChange, value, step, min, max],
     );
 
     const onText = useCallback(
@@ -53,7 +56,7 @@ export const Stepper: React.FC<Props> = ({
             const n = parseInt((txt || '0').replace(/\D+/g, ''), 10);
             if (Number.isFinite(n)) onChange(clamp(n, min, max));
         },
-        [onChange, min, max]
+        [onChange, min, max],
     );
 
     const disableDec = value <= min;
@@ -62,7 +65,7 @@ export const Stepper: React.FC<Props> = ({
         !isFocused && formatValue ? formatValue(value) : String(value);
 
     return (
-        <View style={st.wrap}>
+        <View ref={anchorRef} style={st.wrap}>
             {label ? <FieldLabel label={label} tone={labelTone} /> : null}
 
             <View style={st.row}>
@@ -81,7 +84,13 @@ export const Stepper: React.FC<Props> = ({
                     value={inputValue}
                     onChangeText={onText}
                     style={st.input}
-                    onFocus={() => setIsFocused(true)}
+                    onFocus={() => {
+                        setIsFocused(true);
+                        scrollContext?.scrollFocusedInputIntoView(
+                            anchorRef,
+                            0.5,
+                        );
+                    }}
                     onBlur={() => setIsFocused(false)}
                     returnKeyType="done"
                     testID={testID}

@@ -1,9 +1,91 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "917ede3b-4bf2-4553-91b0-2866cc7da999",
+  "id": "741831ab-7db9-40b3-be5e-b1dec55cc1ba",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
+    "exercise_definitions": {
+      "name": "exercise_definitions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "normalized_name": {
+          "name": "normalized_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "availability": {
+          "name": "availability",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'both'"
+        },
+        "created_at_ms": {
+          "name": "created_at_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at_ms": {
+          "name": "updated_at_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "exercise_definitions_normalized_name_unique_idx": {
+          "name": "exercise_definitions_normalized_name_unique_idx",
+          "columns": [
+            "normalized_name"
+          ],
+          "isUnique": true
+        },
+        "exercise_definitions_source_idx": {
+          "name": "exercise_definitions_source_idx",
+          "columns": [
+            "source"
+          ],
+          "isUnique": false
+        },
+        "exercise_definitions_availability_idx": {
+          "name": "exercise_definitions_availability_idx",
+          "columns": [
+            "availability"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "workout_blocks": {
       "name": "workout_blocks",
       "columns": {
@@ -110,8 +192,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "name": {
-          "name": "name",
+        "exercise_definition_id": {
+          "name": "exercise_definition_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -147,6 +229,13 @@
             "sort_index"
           ],
           "isUnique": false
+        },
+        "workout_exercises_definition_idx": {
+          "name": "workout_exercises_definition_idx",
+          "columns": [
+            "exercise_definition_id"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {
@@ -161,6 +250,19 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "workout_exercises_exercise_definition_id_exercise_definitions_id_fk": {
+          "name": "workout_exercises_exercise_definition_id_exercise_definitions_id_fk",
+          "tableFrom": "workout_exercises",
+          "tableTo": "exercise_definitions",
+          "columnsFrom": [
+            "exercise_definition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },
@@ -192,25 +294,11 @@
           "notNull": true,
           "autoincrement": false
         },
-        "workout_id": {
-          "name": "workout_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "workout_version_id": {
           "name": "workout_version_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "workout_name_snapshot": {
-          "name": "workout_name_snapshot",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         },
         "total_duration_sec": {
@@ -235,29 +323,9 @@
             "workout_version_id"
           ],
           "isUnique": false
-        },
-        "workout_sessions_workout_id_idx": {
-          "name": "workout_sessions_workout_id_idx",
-          "columns": [
-            "workout_id"
-          ],
-          "isUnique": false
         }
       },
       "foreignKeys": {
-        "workout_sessions_workout_id_workouts_id_fk": {
-          "name": "workout_sessions_workout_id_workouts_id_fk",
-          "tableFrom": "workout_sessions",
-          "tableTo": "workouts",
-          "columnsFrom": [
-            "workout_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
         "workout_sessions_workout_version_id_workout_versions_id_fk": {
           "name": "workout_sessions_workout_version_id_workout_versions_id_fk",
           "tableFrom": "workout_sessions",
@@ -286,13 +354,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "workout_id": {
-          "name": "workout_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "name": {
           "name": "name",
           "type": "text",
@@ -308,30 +369,8 @@
           "autoincrement": false
         }
       },
-      "indexes": {
-        "workout_versions_workout_id_idx": {
-          "name": "workout_versions_workout_id_idx",
-          "columns": [
-            "workout_id"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "workout_versions_workout_id_workouts_id_fk": {
-          "name": "workout_versions_workout_id_workouts_id_fk",
-          "tableFrom": "workout_versions",
-          "tableTo": "workouts",
-          "columnsFrom": [
-            "workout_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
@@ -343,6 +382,13 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
@@ -376,8 +422,30 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
+      "indexes": {
+        "workouts_current_version_idx": {
+          "name": "workouts_current_version_idx",
+          "columns": [
+            "current_version_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "workouts_current_version_id_workout_versions_id_fk": {
+          "name": "workouts_current_version_id_workout_versions_id_fk",
+          "tableFrom": "workouts",
+          "tableTo": "workout_versions",
+          "columnsFrom": [
+            "current_version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}

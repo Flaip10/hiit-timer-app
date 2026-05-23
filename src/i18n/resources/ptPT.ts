@@ -31,6 +31,7 @@ export const ptPT: I18nResource = {
     drawer: {
         home: 'Início',
         workouts: 'Treinos',
+        exercises: 'Exercícios',
         history: 'Histórico',
         settings: 'Definições',
         quickAccess: 'Acesso rápido',
@@ -58,6 +59,8 @@ export const ptPT: I18nResource = {
         clear: 'Limpar',
         emptyTitle: 'Ainda não existem sessões',
         emptyDescription: 'Executa um treino e ele aparecerá aqui.',
+        searchEmptyTitle: 'Nenhuma sessão encontrada',
+        searchEmptyDescription: 'Experimenta outro nome de treino.',
         clearConfirm: {
             title: 'Limpar histórico',
             message: 'Todas as sessões serão eliminadas.',
@@ -139,6 +142,9 @@ export const ptPT: I18nResource = {
         validation: {
             nameRequired: 'O nome do treino é obrigatório.',
             addBlock: 'Adiciona pelo menos um bloco.',
+            exerciseNamesRequired: 'Exercícios devem ter nomes definidos.',
+            saveFailed:
+                'Não foi possível guardar o treino. Verifica os detalhes e tenta novamente.',
         },
         removeBlock: {
             title: 'Remover bloco',
@@ -161,7 +167,7 @@ export const ptPT: I18nResource = {
         },
         fields: {
             blockTitle: 'Nome do bloco',
-            exerciseDurationSec: 'Duração',
+            exerciseDurationSec: 'Duração padrão',
             restBetweenExercisesSec: 'Entre exercícios',
             setsInBlock: 'Séries',
             restBetweenSetsSec: 'Entre séries',
@@ -184,6 +190,8 @@ export const ptPT: I18nResource = {
         validation: {
             setsMin: 'O bloco tem de ter pelo menos uma série.',
             exercisesMin: 'Adiciona pelo menos um exercício.',
+            exerciseNameRequired:
+                'Exercício {{index}}: o nome é obrigatório antes de guardar.',
             exerciseDurationMin:
                 'Exercício {{index}}: a duração tem de ser > 0 segundos.',
             exerciseRepsMin:
@@ -239,6 +247,8 @@ export const ptPT: I18nResource = {
         },
         emptyTitle: 'Ainda não existem treinos',
         emptyDescription: 'Cria o teu primeiro treino para começar.',
+        searchEmptyTitle: 'Nenhum treino encontrado',
+        searchEmptyDescription: 'Experimenta outro nome de treino.',
         item: {
             untitled: 'Treino sem nome',
         },
@@ -267,6 +277,50 @@ export const ptPT: I18nResource = {
                 readFailed: 'Não foi possível ler o ficheiro selecionado.',
                 unexpected: 'A importação falhou devido a um erro inesperado.',
             },
+        },
+    },
+    exerciseDefinitions: {
+        title: 'Exercícios',
+        detailsTitle: 'Exercício',
+        searchPlaceholder: 'Pesquisar exercícios',
+        newButton: '＋ Novo',
+        createButton: '＋ Criar exercício',
+        emptyTitle: 'Ainda não existem exercícios',
+        emptyDescription:
+            'Cria o teu primeiro exercício para construir o catálogo.',
+        searchEmptyTitle: 'Nenhum exercício encontrado',
+        searchEmptyDescription: 'Experimenta outro nome de exercício.',
+        notFound: 'Exercício não encontrado.',
+        overview: 'Visão geral',
+        fields: {
+            name: 'Nome',
+            namePlaceholder: 'ex.: Flexões',
+            availability: 'Disponibilidade',
+            source: 'Origem',
+        },
+        source: {
+            system: 'Sistema',
+            user: 'Personalizado',
+        },
+        availability: {
+            both: 'Treino + Ginásio',
+            workout: 'Treino',
+            gym: 'Ginásio',
+        },
+        modal: {
+            createTitle: 'Novo exercício',
+            editTitle: 'Editar exercício',
+            subtitle: 'Mantém o catálogo de exercícios claro e reutilizável.',
+            create: 'Criar',
+            save: 'Guardar',
+        },
+        validation: {
+            nameRequired: 'O nome do exercício é obrigatório.',
+            duplicateName: 'Já existe um exercício com este nome.',
+            gymOnlyRestricted:
+                'Este exercício está a ser usado num treino e não pode ser definido apenas para ginásio.',
+            saveFailed:
+                'Não foi possível guardar o exercício. Verifica os detalhes e tenta novamente.',
         },
     },
     workoutSummary: {

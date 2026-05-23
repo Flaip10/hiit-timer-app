@@ -19,10 +19,5 @@ export const useStyles = createStyles((theme: AppTheme) =>
             gap: theme.layout.listItem.gap,
             paddingBottom: theme.insets.bottom,
         },
-        empty: {
-            paddingVertical: 40,
-            alignItems: 'center',
-            gap: 8,
-        },
     })
 );

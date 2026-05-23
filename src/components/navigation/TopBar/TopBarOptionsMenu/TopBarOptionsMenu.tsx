@@ -35,9 +35,9 @@ export const TopBarOptionsMenu = ({
             onClose={onClose}
             surfaceStyle={st.surface}
         >
-            {options.map((option) => {
+            {options.map((option, index) => {
                 const iconColor = option.destructive
-                    ? theme.palette.feedback.errorText
+                    ? theme.palette.icon.error
                     : theme.palette.text.primary;
 
                 return (
@@ -47,6 +47,7 @@ export const TopBarOptionsMenu = ({
                         onPress={() => handleOptionPress(option)}
                         style={({ pressed }) => [
                             st.option,
+                            index === 0 ? st.optionFirst : null,
                             pressed ? st.optionPressed : null,
                             option.disabled ? st.optionDisabled : null,
                         ]}

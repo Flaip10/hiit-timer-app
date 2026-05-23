@@ -8,17 +8,26 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Add SQLite persistence for workouts and workout sessions using Drizzle and Expo SQLite
+- Add SQLite persistence for workouts, workout sessions and exercise definitions using Drizzle and Expo SQLite
+- Add exercise definitions as a first-class workout concept with system seeding, user-created definitions, availability settings and reusable workout references
+- Add exercise definition list and detail screens with search, create, edit and workout block suggestion flows
 - Add one-time migration from the previous AsyncStorage workout and history stores
 - Add workout version tracking so historical sessions keep stable workout snapshots after edits or deletion
-- Add React Query data hooks for workout and session reads, mutations and cache invalidation
-- Add Jest setup, repository integration tests and mapper unit tests for the SQLite data layer
+- Add React Query data hooks for workout, session and exercise definition reads, mutations and cache invalidation
+- Add Jest setup, service-focused integration tests, seed helpers and mapper unit tests for the SQLite data layer
 
 ### Changed
 
+- Improve workout and workout session repositories, services and tests to support exercise definitions and stronger version-based data integrity
+- Add a main scroll controller for keyboard-aware scrolling, input dropdown coordination and validation target scrolling
+- Improve validation feedback by scrolling to the first invalid workout block field
 - Replace persisted workout and history Zustand stores with repository-backed data access and a draft-only workout store
 - Replace app JSON configuration with variant-aware Expo config and guarded native build scripts
 - Replace custom ID generation with `nanoid`
+
+### Fixed
+
+- Fix accent theme structure usage for icon button styling
 
 ## [v1.0.1] - 2026-05-08
 

@@ -15,6 +15,7 @@ import { ShareWorkoutModal } from '@src/components/modals/ShareWorkoutModal/Shar
 import ConfirmDialog from '@src/components/modals/ConfirmDialog/ConfirmDialog';
 
 import { useWorkoutDraftStore } from '@src/state/stores/useWorkoutDraftStore';
+import { useWorkoutRunStore } from '@src/state/stores/useWorkoutRunStore';
 import { useWorkout, useWorkoutCurrentVersionId } from '@src/data/workouts';
 import {
     useRemoveWorkoutSession,
@@ -47,9 +48,9 @@ const HistorySessionScreen = () => {
     const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
 
     const { data: session } = useWorkoutSession(sessionId);
-    const { data: savedWorkout } = useWorkout(session?.workoutId);
-    const { data: savedWorkoutVersionId } = useWorkoutCurrentVersionId(
-        session?.workoutId,
+    const { data: savedWorkout } = useWorkout(session?.activeWorkoutId);
+    const { data: savedWorkoutCurrentVersionId } = useWorkoutCurrentVersionId(
+        session?.activeWorkoutId,
     );
     const startDraftFromImported = useWorkoutDraftStore(
         (s) => s.startDraftFromImported,
@@ -228,24 +229,25 @@ const HistorySessionScreen = () => {
 
     // -------- actions --------
 
-    const canOpenSavedWorkout = !!session.workoutId && !!savedWorkout;
+    const canOpenSavedWorkout = !!session.activeWorkoutId && !!savedWorkout;
 
-    // Check if the saved workout matches the session version
-    const savedWorkoutMatchesSessionVersion = (() => {
-        if (!canOpenSavedWorkout) return false;
-
-        return savedWorkoutVersionId === session.workoutVersionId;
-    })();
+    const hasSavedWorkoutForSession = canOpenSavedWorkout;
 
     const handleRunAgain = () => {
-        if (savedWorkoutMatchesSessionVersion && session.workoutId) {
+        if (hasSavedWorkoutForSession && session.activeWorkoutId) {
+            useWorkoutRunStore
+                .getState()
+                .setSourceVersionId(savedWorkoutCurrentVersionId ?? null);
             router.push({
-                pathname: `/run/${session.workoutId}`,
+                pathname: `/run/${session.activeWorkoutId}`,
                 params: { autoStart: '1' },
             });
             return;
         }
 
+        useWorkoutRunStore
+            .getState()
+            .setSourceVersionId(session.workoutVersionId);
         startDraftFromImported(
             session.workoutSnapshot,
             session.workoutVersionId,
@@ -257,8 +259,8 @@ const HistorySessionScreen = () => {
     };
 
     const handleOpenWorkout = () => {
-        if (savedWorkoutMatchesSessionVersion && session.workoutId) {
-            router.push(`/workouts/${session.workoutId}`);
+        if (hasSavedWorkoutForSession && session.activeWorkoutId) {
+            router.push(`/workouts/${session.activeWorkoutId}`);
             return;
         }
 
@@ -327,8 +329,7 @@ const HistorySessionScreen = () => {
                                 numberOfLines={2}
                                 style={st.headerTitle}
                             >
-                                {session.workoutNameSnapshot ??
-                                    t('historySession.workoutSessionFallback')}
+                                {session.workoutSnapshot.name}
                             </AppText>
 
                             <View style={st.headerDateRow}>
@@ -605,7 +606,7 @@ const HistorySessionScreen = () => {
                     <View style={st.actionsContainer}>
                         <Button
                             title={
-                                savedWorkoutMatchesSessionVersion
+                                hasSavedWorkoutForSession
                                     ? t('historySession.actions.openWorkout')
                                     : t('historySession.actions.saveWorkout')
                             }
@@ -622,18 +623,6 @@ const HistorySessionScreen = () => {
                                 {t('historySession.hints.noSavedWorkout')}
                             </AppText>
                         )}
-                        {canOpenSavedWorkout &&
-                            !savedWorkoutMatchesSessionVersion && (
-                                <AppText
-                                    variant="bodySmall"
-                                    tone="secondary"
-                                    style={st.linkHint}
-                                >
-                                    {t(
-                                        'historySession.hints.workoutEditedSinceSession',
-                                    )}
-                                </AppText>
-                            )}
                     </View>
                 </ScreenSection>
             </MainContainer>

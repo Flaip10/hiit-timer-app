@@ -13,7 +13,6 @@ export const useTextFieldStyles = createStyles(
         StyleSheet.create({
             container: {
                 width: '100%',
-                gap: 6,
             },
             labelRow: {
                 flexDirection: 'row',
@@ -22,6 +21,7 @@ export const useTextFieldStyles = createStyles(
             },
 
             input: {
+                width: '100%',
                 flexDirection: 'row',
                 alignItems: props.multiline ? 'flex-start' : 'center',
                 borderRadius: 999,
@@ -31,16 +31,41 @@ export const useTextFieldStyles = createStyles(
                 borderWidth: 1,
                 color: theme.palette.text.primary,
                 borderColor: props.hasError
-                    ? theme.palette.feedback.errorBorder
+                    ? theme.palette.border.error
                     : props.isFocused
                       ? theme.palette.accent.primary
                       : theme.palette.border.subtle,
                 textAlignVertical: props.multiline ? 'top' : 'center',
+                marginVertical: 6,
             },
 
+            inputAnchor: {
+                width: '100%',
+            },
             rightAccessoryContainer: {
                 marginLeft: 8,
                 alignSelf: 'center',
+            },
+            suggestionsSurface: {
+                backgroundColor: theme.palette.background.primary,
+                borderColor: theme.palette.accent.primary,
+                borderWidth: 0,
+            },
+            suggestionRow: {
+                justifyContent: 'center',
+                paddingVertical: 12,
+                paddingHorizontal: 14,
+                borderTopWidth: 1,
+                borderColor: theme.palette.border.subtle,
+            },
+            suggestionRowFirst: {
+                borderTopWidth: 0,
+            },
+            suggestionRowPressed: {
+                opacity: 0.55,
+            },
+            suggestionLabel: {
+                flexShrink: 1,
             },
             helperText: {
                 fontSize: 12,
@@ -48,7 +73,7 @@ export const useTextFieldStyles = createStyles(
             },
             errorText: {
                 fontSize: 12,
-                color: theme.palette.feedback.errorText,
+                color: theme.palette.text.error,
             },
-        })
+        }),
 );

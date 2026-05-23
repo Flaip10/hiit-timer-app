@@ -25,9 +25,8 @@ export interface WorkoutSession {
     endedAtMs: number;
 
     workoutSnapshot: Workout;
-    workoutId?: string;
-    workoutVersionId?: string;
-    workoutNameSnapshot?: string;
+    activeWorkoutId?: string;
+    workoutVersionId: string;
 
     totalDurationSec?: number;
 
