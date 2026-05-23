@@ -58,6 +58,7 @@ const SessionListItem = ({
         <MetaCard
             onPress={isSelectMode ? onSelect : onPress}
             containerStyle={st.card}
+            showSelectionOutline={isSelected}
             date={new Date(session.startedAtMs).toISOString()}
             summaryContent={
                 <View style={st.row}>
