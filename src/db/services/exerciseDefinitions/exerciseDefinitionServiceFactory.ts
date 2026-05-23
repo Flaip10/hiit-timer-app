@@ -6,7 +6,10 @@ import type {
 import { normalizeExerciseDefinitionName } from '@src/core/exercises/normalizeExerciseDefinitionName';
 import { buildExerciseDefinitionError } from '../../repositories/exerciseDefinitions/exerciseDefinitionErrors';
 import { normalizeExerciseName } from '@src/core/exercises/normalizeExerciseName';
-import { systemExerciseDefinitions } from '@src/core/exercises/systemExerciseDefinitions';
+import {
+    systemExerciseDefinitions,
+    type SystemExerciseDefinitionSeed,
+} from '@src/core/exercises/systemExerciseDefinitions';
 import { uid } from '@src/core/id';
 
 import type {
@@ -70,12 +73,14 @@ export const createExerciseDefinitionService = ({
 }: CreateExerciseDefinitionServiceArgs): ExerciseDefinitionService => {
     const getSystemDefinitionByNormalizedName = (
         normalizedName: string,
-    ): ExerciseDefinition | null =>
+    ): SystemExerciseDefinitionSeed | null =>
         systemExerciseDefinitions.find(
             (definition) => definition.normalizedName === normalizedName,
         ) ?? null;
 
-    const seedSystemDefinition = (definition: ExerciseDefinition): void => {
+    const seedSystemDefinition = (
+        definition: SystemExerciseDefinitionSeed,
+    ): void => {
         const nameInput = normalizeExerciseDefinitionName(definition.name);
         const existing = exerciseDefinitionRepository.getByNormalizedName(
             nameInput.normalizedName,

@@ -1,9 +1,20 @@
-import type { ExerciseDefinition } from '@src/core/entities/entities';
-import { uid } from '@src/core/id';
+import type {
+    ExerciseDefinitionAvailability,
+    ExerciseDefinitionSource,
+} from '@src/core/entities/entities';
 
 import { normalizeExerciseName } from './normalizeExerciseName';
 
 const SYSTEM_EXERCISE_CREATED_AT_MS = 1_700_000_000_000;
+
+export interface SystemExerciseDefinitionSeed {
+    availability: ExerciseDefinitionAvailability;
+    createdAtMs: number;
+    name: string;
+    normalizedName: string;
+    source: ExerciseDefinitionSource;
+    updatedAtMs: number;
+}
 
 const systemExerciseDefinitionSeeds = [
     'Air Bike',
@@ -164,9 +175,8 @@ const systemExerciseDefinitionSeeds = [
     'Yoga Push Up',
 ];
 
-export const systemExerciseDefinitions: ExerciseDefinition[] =
+export const systemExerciseDefinitions: SystemExerciseDefinitionSeed[] =
     systemExerciseDefinitionSeeds.map((name) => ({
-        id: uid(),
         name,
         normalizedName: normalizeExerciseName(name),
         source: 'system',
