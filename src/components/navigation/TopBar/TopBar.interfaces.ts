@@ -11,10 +11,22 @@ export interface TopBarOption {
     onPress: () => void;
 }
 
+/** A direct icon-button action that replaces the default left or right slot. */
+export interface TopBarDirectAction {
+    icon: IconId;
+    color?: string;
+    disabled?: boolean;
+    onPress: () => void;
+}
+
 export interface TopBarProps {
     title?: string;
     leftMode?: TopBarLeftMode;
+    /** Overrides the auto-detected left button (hamburger / back) when set. */
+    leftAction?: TopBarDirectAction;
     options?: readonly TopBarOption[];
+    /** Replaces the ⋮ options button with a direct icon action when set. */
+    rightAction?: TopBarDirectAction;
 }
 
 export interface TopPillPathParams {
