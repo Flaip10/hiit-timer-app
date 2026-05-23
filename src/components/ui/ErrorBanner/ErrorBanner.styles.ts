@@ -9,9 +9,9 @@ export const useStyles = createStyles((theme) => ({
         padding: theme.layout.card.padding,
         paddingRight: theme.layout.card.padding + 30,
         borderRadius: theme.layout.card.borderRadius,
-        backgroundColor: theme.palette.feedback.errorBg,
+        backgroundColor: theme.palette.background.error,
         borderWidth: 1,
-        borderColor: theme.palette.feedback.errorBorder,
+        borderColor: theme.palette.border.error,
         gap: 8,
         width: '100%',
     },
@@ -25,6 +25,6 @@ export const useStyles = createStyles((theme) => ({
     },
     messageText: {
         flexShrink: 1,
-        color: theme.palette.feedback.errorText,
+        color: theme.palette.text.error,
     },
 }));

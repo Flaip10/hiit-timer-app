@@ -117,7 +117,7 @@ const EditBlockScreen = () => {
     if (notFound || !block || labelIndex === null) {
         return (
             <MainContainer title={t('editBlock.title.edit')} scroll={false}>
-                <AppText variant="body" tone="danger" style={st.err}>
+                <AppText variant="body" tone="error" style={st.err}>
                     {t('editBlock.notFound')}
                 </AppText>
                 <Button

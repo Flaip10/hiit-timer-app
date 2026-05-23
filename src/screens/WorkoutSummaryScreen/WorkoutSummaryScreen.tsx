@@ -57,7 +57,7 @@ const WorkoutSummaryScreen = () => {
         return (
             <MainContainer title={t('workoutSummary.title')} scroll={false}>
                 <View style={st.center}>
-                    <AppText variant="body" tone="danger" style={st.errorText}>
+                    <AppText variant="body" tone="error" style={st.errorText}>
                         {t('workoutSummary.notFound')}
                     </AppText>
                     <Button

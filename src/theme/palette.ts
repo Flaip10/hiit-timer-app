@@ -4,19 +4,24 @@ export interface ThemePalette {
     background: {
         primary: string; // whole-screen background
         card: string; // cards / panels
+        error: string;
     };
     text: {
         primary: string;
         secondary: string;
         muted: string;
         inverted: string;
-        danger: string;
+        error: string;
         success: string;
         header: string; // titles / top bar text
     };
     border: {
         subtle: string;
         strong: string;
+        error: string;
+    };
+    icon: {
+        error: string;
     };
     accent: AccentTokens;
     button: {
@@ -29,12 +34,6 @@ export interface ThemePalette {
     };
     surface: {
         navigation: string; // top bar / bottom bar / drawers
-    };
-    feedback: {
-        errorBg: string;
-        errorBorder: string;
-        errorIcon: string;
-        errorText: string;
     };
     metaCard: {
         container: {
@@ -161,19 +160,24 @@ export const buildLightPalette = (accent: AccentTokens): ThemePalette => ({
     background: {
         primary: colors.white.main,
         card: accent.surface,
+        error: colors.red[50],
     },
     text: {
         primary: colors.gray[900],
         secondary: colors.gray.text,
         muted: colors.gray[400],
         inverted: colors.gray[50],
-        danger: colors.red[700],
+        error: colors.red[700],
         success: colors.emerald[600],
         header: colors.textHeader.light,
     },
     border: {
         subtle: colors.gray[200],
         strong: colors.gray[300],
+        error: colors.red[300],
+    },
+    icon: {
+        error: colors.red[600],
     },
     accent: {
         primary: accent.primary,
@@ -192,12 +196,6 @@ export const buildLightPalette = (accent: AccentTokens): ThemePalette => ({
     },
     surface: {
         navigation: colors.navigation.light,
-    },
-    feedback: {
-        errorBg: colors.red[50],
-        errorBorder: colors.red[300],
-        errorIcon: colors.red[600],
-        errorText: colors.red[700],
     },
     metaCard: {
         container: {
@@ -240,19 +238,24 @@ export const buildDarkPalette = (accent: AccentTokens): ThemePalette => ({
     background: {
         primary: colors.black.main,
         card: colors.gray.background,
+        error: colors.red.errorBgDark,
     },
     text: {
         primary: colors.gray[50],
         secondary: colors.gray.text,
         muted: colors.gray[400],
         inverted: colors.black.main,
-        danger: colors.red[200],
+        error: colors.red[200],
         success: colors.emerald[500],
         header: colors.textHeader.dark,
     },
     border: {
         subtle: colors.gray.border,
         strong: colors.gray[700],
+        error: colors.red[700],
+    },
+    icon: {
+        error: colors.red[300],
     },
     accent: {
         primary: accent.primary,
@@ -271,12 +274,6 @@ export const buildDarkPalette = (accent: AccentTokens): ThemePalette => ({
     },
     surface: {
         navigation: colors.navigation.dark,
-    },
-    feedback: {
-        errorBg: colors.red.errorBgDark,
-        errorBorder: colors.red[700],
-        errorIcon: colors.red[300],
-        errorText: colors.red[200],
     },
     metaCard: {
         container: {

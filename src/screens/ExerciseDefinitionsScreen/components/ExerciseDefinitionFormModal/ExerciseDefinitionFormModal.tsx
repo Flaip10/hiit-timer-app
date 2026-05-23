@@ -198,7 +198,7 @@ export const ExerciseDefinitionFormModal = ({
                             }}
                         />
                         <CollapseFade visible={!!availabilityError}>
-                            <AppText variant="caption" tone="danger">
+                            <AppText variant="caption" tone="error">
                                 {lastAvailabilityErrorRef.current}
                             </AppText>
                         </CollapseFade>
@@ -207,7 +207,7 @@ export const ExerciseDefinitionFormModal = ({
                     {!!saveError && (
                         <AppText
                             variant="caption"
-                            tone="danger"
+                            tone="error"
                             style={st.saveError}
                         >
                             {saveError}

@@ -42,7 +42,7 @@ const ExerciseDefinitionDetailsScreen = () => {
                 scroll={false}
             >
                 <View style={st.center}>
-                    <AppText variant="body" tone="danger" style={st.errorText}>
+                    <AppText variant="body" tone="error" style={st.errorText}>
                         {t('exerciseDefinitions.notFound')}
                     </AppText>
                     <Button

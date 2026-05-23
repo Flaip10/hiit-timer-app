@@ -64,7 +64,7 @@ export const ErrorBanner = forwardRef<View, ErrorBannerProps>(({
                 <Ionicons
                     name="alert-circle"
                     size={18}
-                    color={theme.palette.feedback.errorIcon}
+                    color={theme.palette.icon.error}
                 />
 
                 <View style={st.textContainer}>
