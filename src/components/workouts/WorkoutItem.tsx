@@ -15,18 +15,24 @@ import {
 import { useWorkoutItemStyles } from './WorkoutItem.styles';
 import { useTranslation } from 'react-i18next';
 
-type WorkoutItemProps = {
+interface WorkoutItemProps {
     item: Workout;
     onPress?: () => void;
     onRemove?: () => void;
     onToggleFavorite?: () => void;
-};
+    isSelectMode?: boolean;
+    isSelected?: boolean;
+    onSelect?: () => void;
+}
 
 export const WorkoutItem: React.FC<WorkoutItemProps> = ({
     item,
     onPress,
     onRemove,
     onToggleFavorite,
+    isSelectMode = false,
+    isSelected = false,
+    onSelect,
 }) => {
     const { t } = useTranslation();
     const { theme } = useTheme();
@@ -44,8 +50,44 @@ export const WorkoutItem: React.FC<WorkoutItemProps> = ({
     const name = item.name || t('workouts.item.untitled');
     const isFavorite = item.isFavorite === true;
 
+    const titleLeftIcon = (() => {
+        if (isSelectMode) {
+            return (
+                <AppIcon
+                    id={isSelected ? 'checkmarkCircle' : 'radioButtonOff'}
+                    size={22}
+                    color={
+                        isSelected
+                            ? theme.palette.accent.primary
+                            : theme.palette.text.secondary
+                    }
+                />
+            );
+        }
+        if (onToggleFavorite) {
+            return (
+                <GuardedPressable
+                    onPress={onToggleFavorite}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                    <AppIcon
+                        id={isFavorite ? 'star' : 'starOutline'}
+                        size={22}
+                        color={
+                            isFavorite
+                                ? theme.palette.accent.primary
+                                : theme.palette.text.secondary
+                        }
+                    />
+                </GuardedPressable>
+            );
+        }
+        return null;
+    })();
+
     return (
         <MetaCard
+            showSelectionOutline={isSelected}
             topLeftContent={{
                 text: timeLabel,
                 icon: (
@@ -61,7 +103,7 @@ export const WorkoutItem: React.FC<WorkoutItemProps> = ({
                 borderColor: theme.palette.metaCard.topLeftContent.border,
             }}
             actionStrip={
-                onRemove
+                !isSelectMode && onRemove
                     ? {
                           icon: (
                               <Ionicons
@@ -81,31 +123,11 @@ export const WorkoutItem: React.FC<WorkoutItemProps> = ({
             expandable={true}
             withBottomFade={false}
             minHeight={50}
-            onPress={onPress}
+            onPress={isSelectMode ? onSelect : onPress}
             summaryContent={
                 <View style={st.summaryContainer}>
                     <View style={st.titleRow}>
-                        {onToggleFavorite ? (
-                            <GuardedPressable
-                                onPress={onToggleFavorite}
-                                hitSlop={{
-                                    top: 8,
-                                    bottom: 8,
-                                    left: 8,
-                                    right: 8,
-                                }}
-                            >
-                                <AppIcon
-                                    id={isFavorite ? 'star' : 'starOutline'}
-                                    size={22}
-                                    color={
-                                        isFavorite
-                                            ? theme.palette.accent.primary
-                                            : theme.palette.text.secondary
-                                    }
-                                />
-                            </GuardedPressable>
-                        ) : null}
+                        {titleLeftIcon}
                         <AppText
                             variant="subtitle"
                             style={st.title}

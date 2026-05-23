@@ -27,7 +27,7 @@ export const useSearchFieldStyles = createStyles((theme: AppTheme) =>
 
         input: {
             flex: 1,
-            paddingVertical: 8,
+            paddingVertical: 14,
             paddingHorizontal: 0,
             color: theme.palette.text.primary,
             backgroundColor: 'transparent',
@@ -36,6 +36,7 @@ export const useSearchFieldStyles = createStyles((theme: AppTheme) =>
         clearHitbox: {
             padding: 4,
             marginLeft: 4,
+            height: '100%',
         },
-    })
+    }),
 );

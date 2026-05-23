@@ -8,6 +8,7 @@ type MetaCardStyleProps = {
     hasCollapsibleContent: boolean;
     hasTopContent: boolean;
     hasAnyAction: boolean;
+    selectionOutlineColor?: string;
 };
 
 export const useMetaCardStyles = createStyles(
@@ -15,18 +16,19 @@ export const useMetaCardStyles = createStyles(
         StyleSheet.create({
             cardContainer: {
                 backgroundColor: theme.palette.metaCard.container.background,
-                borderRadius: 14,
-                padding: 14,
+                borderRadius: theme.layout.card.borderRadius,
+                padding: theme.layout.card.padding,
                 flexDirection: 'column',
                 position: 'relative',
                 overflow: 'hidden',
-                borderColor: theme.palette.metaCard.container.border,
+                borderWidth: theme.layout.card.borderWidth,
+                borderColor: theme.palette.background.primary,
                 gap: 14,
             },
 
             cardHeader: {
-                marginTop: -14,
-                marginLeft: -14,
+                marginTop: -theme.layout.card.padding,
+                marginLeft: -theme.layout.card.padding,
                 flexDirection: 'row',
                 alignItems: 'center',
             },
@@ -34,8 +36,8 @@ export const useMetaCardStyles = createStyles(
             topLeftContainer: {
                 flexDirection: 'row',
                 flexWrap: 'wrap',
-                borderTopLeftRadius: 14,
-                borderBottomRightRadius: 14,
+                borderTopLeftRadius: theme.layout.card.borderRadius,
+                borderBottomRightRadius: theme.layout.card.borderRadius,
                 padding: 0,
                 marginRight: props.hasAnyAction ? 50 : 0,
             },
@@ -176,5 +178,14 @@ export const useMetaCardStyles = createStyles(
                 alignItems: 'center',
                 justifyContent: 'center',
             },
-        })
+
+            selectionOutline: {
+                ...StyleSheet.absoluteFill,
+                borderRadius: theme.layout.card.borderRadius,
+                borderWidth: theme.layout.card.selectedBorderWidth,
+                borderColor:
+                    props.selectionOutlineColor ?? theme.palette.accent.primary,
+                zIndex: 20,
+            },
+        }),
 );

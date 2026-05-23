@@ -144,6 +144,21 @@ const ICON_MAP = {
         name: 'star-outline',
         defaultSize: 20,
     },
+    close: {
+        lib: 'ion',
+        name: 'close-outline',
+        defaultSize: 22,
+    },
+    checkmarkCircle: {
+        lib: 'ion',
+        name: 'checkmark-circle',
+        defaultSize: 22,
+    },
+    radioButtonOff: {
+        lib: 'ion',
+        name: 'ellipse-outline',
+        defaultSize: 22,
+    },
 } satisfies Record<string, IconDefinition>;
 
 export type IconId = keyof typeof ICON_MAP;

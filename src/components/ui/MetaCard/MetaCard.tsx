@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 const getPillDate = (
     isoDate?: string | null,
     hideHours?: boolean,
-    locale?: string
+    locale?: string,
 ): string => {
     if (!isoDate) return '';
     const date = new Date(isoDate);
@@ -43,6 +43,8 @@ const getPillDate = (
 
 export const MetaCard: FC<MetaCardProps> = ({
     containerStyle,
+    selectionOutlineColor,
+    showSelectionOutline = false,
     date,
     topLeftContent,
     children,
@@ -63,6 +65,7 @@ export const MetaCard: FC<MetaCardProps> = ({
     measureKey,
 }) => {
     const { i18n } = useTranslation();
+    const { theme } = useTheme();
     const [expanded, setExpanded] = useState(initiallyExpanded);
     const [overflowing, setOverflowing] = useState(false);
     const [measured, setMeasured] = useState(false);
@@ -77,8 +80,10 @@ export const MetaCard: FC<MetaCardProps> = ({
         hasCollapsibleContent: !!collapsibleContent,
         hasSummaryContent: !!summaryContent,
         hasTopContent: !noTopContent,
+        selectionOutlineColor:
+            selectionOutlineColor ?? theme.palette.accent.primary,
     });
-    const { theme } = useTheme();
+
     const locale = i18n.resolvedLanguage ?? i18n.language;
 
     const safeMin =
@@ -345,6 +350,10 @@ export const MetaCard: FC<MetaCardProps> = ({
                         color={theme.palette.text.secondary}
                     />
                 </GuardedPressable>
+            )}
+
+            {showSelectionOutline && (
+                <View pointerEvents="none" style={st.selectionOutline} />
             )}
         </GuardedPressable>
     );

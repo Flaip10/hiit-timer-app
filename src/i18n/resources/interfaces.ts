@@ -25,6 +25,16 @@ export interface I18nResource {
             blockWithIndex: string;
             exerciseWithIndex: string;
         };
+        selectMode: {
+            enter: string;
+            /** Expects {{count}} interpolation */
+            countSelected_one: string;
+            countSelected_other: string;
+            countSelected_zero: string;
+            selectAll: string;
+            deleteSelected_one: string;
+            deleteSelected_other: string;
+        };
     };
     drawer: {
         home: string;
@@ -63,6 +73,12 @@ export interface I18nResource {
             message: string;
             confirm: string;
             cancel: string;
+        };
+        confirmRemoveBulk: {
+            title_one: string;
+            title_other: string;
+            message_one: string;
+            message_other: string;
         };
     };
     historySession: {
@@ -249,6 +265,12 @@ export interface I18nResource {
             confirm: string;
             cancel: string;
         };
+        confirmRemoveBulk: {
+            title_one: string;
+            title_other: string;
+            message_one: string;
+            message_other: string;
+        };
         modal: {
             title: string;
             subtitle: string;
@@ -321,7 +343,7 @@ export interface I18nResource {
         };
         blocksSection: string;
         hint: string;
-        shareWorkout: string;
+        exportWorkout: string;
         actions: {
             edit: string;
             start: string;

@@ -5,7 +5,6 @@ import { useRouter } from 'expo-router';
 import { MainContainer } from '@src/components/layout/MainContainer/MainContainer';
 import { useWorkoutDraftStore } from '@src/state/stores/useWorkoutDraftStore';
 import {
-    useRemoveWorkout,
     useToggleFavoriteWorkout,
     useWorkouts,
 } from '@src/data/workouts';
@@ -20,6 +19,7 @@ import { useWorkoutsScreenStyles } from './WorkoutsScreen.styles';
 import { SearchField } from '@src/components/ui/SearchField/SearchField';
 import { useTranslation } from 'react-i18next';
 import { ListEmptyState } from '@src/components/layout/ListEmptyState';
+import { useWorkoutsSelection } from './useWorkoutsSelection';
 
 interface ImportErrorTranslationMap {
     INVALID_EXTENSION: 'workouts.import.errors.invalidExtension';
@@ -33,14 +33,12 @@ const WorkoutsScreen = () => {
     const { t } = useTranslation();
     const router = useRouter();
     const { data: list = [] } = useWorkouts();
-    const removeWorkout = useRemoveWorkout();
     const toggleFavoriteWorkout = useToggleFavoriteWorkout();
     const startDraftFromImported = useWorkoutDraftStore(
         (state) => state.startDraftFromImported
     );
 
     const [search, setSearch] = useState('');
-    const [toRemove, setToRemove] = useState<string | null>(null);
 
     const [modalVisible, setModalVisible] = useState(false);
     const [importError, setImportError] = useState<string | null>(null);
@@ -54,6 +52,22 @@ const WorkoutsScreen = () => {
         return list.filter((w) => w.name.toLowerCase().includes(searchTerm));
     }, [list, search]);
     const hasSearch = search.trim().length > 0;
+
+    const {
+        screenTitle,
+        topBarOptions,
+        topBarLeftAction,
+        topBarRightAction,
+        isSelectMode,
+        isSelected,
+        toggleItem,
+        hasPendingRemoval,
+        confirmTitle,
+        confirmMessage,
+        requestRemoval,
+        confirmRemoval,
+        cancelRemoval,
+    } = useWorkoutsSelection();
 
     const closeModal = () => {
         setModalVisible(false);
@@ -102,7 +116,14 @@ const WorkoutsScreen = () => {
     };
 
     return (
-        <MainContainer title={t('workouts.title')} scroll={false} noPadding>
+        <MainContainer
+            title={screenTitle}
+            scroll={false}
+            noPadding
+            topBarOptions={topBarOptions}
+            topBarLeftAction={topBarLeftAction}
+            topBarRightAction={topBarRightAction}
+        >
             <FlatList
                 data={data}
                 keyExtractor={(w) => w.id}
@@ -117,13 +138,14 @@ const WorkoutsScreen = () => {
                                 fullWidth
                                 placeholder={t('workouts.searchPlaceholder')}
                             />
-
-                            <Button
-                                title={t('workouts.newButton')}
-                                variant="primary"
-                                onPress={() => setModalVisible(true)}
-                                style={st.newButton}
-                            />
+                            {!isSelectMode && (
+                                <Button
+                                    title={t('workouts.newButton')}
+                                    variant="primary"
+                                    onPress={() => setModalVisible(true)}
+                                    style={st.newButton}
+                                />
+                            )}
                         </View>
                         <ErrorBanner
                             message={importError ?? ''}
@@ -131,15 +153,18 @@ const WorkoutsScreen = () => {
                         />
                     </View>
                 }
-                stickyHeaderIndices={[0]} // make headerRow stick to the top
+                stickyHeaderIndices={[0]}
                 renderItem={({ item }) => (
                     <WorkoutItem
                         item={item}
                         onPress={() => router.push(`/workouts/${item.id}`)}
-                        onRemove={() => setToRemove(item.id)}
+                        onRemove={() => requestRemoval(item.id)}
                         onToggleFavorite={() =>
                             toggleFavoriteWorkout.mutate(item)
                         }
+                        isSelectMode={isSelectMode}
+                        isSelected={isSelected(item.id)}
+                        onSelect={() => toggleItem(item.id)}
                     />
                 )}
                 ListEmptyComponent={
@@ -174,17 +199,14 @@ const WorkoutsScreen = () => {
             />
 
             <ConfirmDialog
-                visible={toRemove != null}
-                title={t('workouts.confirmRemove.title')}
-                message={t('workouts.confirmRemove.message')}
+                visible={hasPendingRemoval}
+                title={confirmTitle}
+                message={confirmMessage}
                 confirmLabel={t('workouts.confirmRemove.confirm')}
                 cancelLabel={t('workouts.confirmRemove.cancel')}
                 destructive
-                onConfirm={() => {
-                    if (toRemove) removeWorkout.mutate(toRemove);
-                    setToRemove(null);
-                }}
-                onCancel={() => setToRemove(null)}
+                onConfirm={confirmRemoval}
+                onCancel={cancelRemoval}
             />
         </MainContainer>
     );

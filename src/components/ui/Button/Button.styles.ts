@@ -46,7 +46,7 @@ export const useButtonStyles = createStyles((theme: AppTheme) =>
             color: theme.palette.button.text.secondary,
         },
         text_danger: {
-            color: theme.palette.text.error,
+            color: theme.palette.button.text.danger,
         },
         text_ghost: {
             color: theme.palette.accent.primary,

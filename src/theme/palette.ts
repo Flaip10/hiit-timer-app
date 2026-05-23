@@ -30,6 +30,7 @@ export interface ThemePalette {
         danger: string;
         text: {
             secondary: string;
+            danger: string;
         };
     };
     surface: {
@@ -159,12 +160,12 @@ export const COLOR_ACCENTS: Record<AccentId, AccentDefinition> = {
 export const buildLightPalette = (accent: AccentTokens): ThemePalette => ({
     background: {
         primary: colors.white.main,
-        card: accent.surface,
+        card: colors.gray[100],
         error: colors.red[50],
     },
     text: {
         primary: colors.gray[900],
-        secondary: colors.gray.text,
+        secondary: colors.gray[500],
         muted: colors.gray[400],
         inverted: colors.gray[50],
         error: colors.red[700],
@@ -182,16 +183,17 @@ export const buildLightPalette = (accent: AccentTokens): ThemePalette => ({
     accent: {
         primary: accent.primary,
         primaryStrong: accent.primaryStrong,
-        soft: accent.soft,
-        surface: accent.surface,
+        soft: colors.gray[200],
+        surface: colors.gray[100],
         darkInk: accent.darkInk,
     },
     button: {
         primary: accent.primary,
-        secondary: accent.soft,
-        danger: colors.red[300],
+        secondary: colors.gray[200],
+        danger: colors.red[500],
         text: {
-            secondary: accent.darkInk,
+            secondary: colors.gray[900],
+            danger: colors.white.main,
         },
     },
     surface: {
@@ -199,8 +201,8 @@ export const buildLightPalette = (accent: AccentTokens): ThemePalette => ({
     },
     metaCard: {
         container: {
-            background: accent.surface,
-            border: accent.soft,
+            background: colors.gray[100],
+            border: colors.gray[200],
         },
         topLeftContent: {
             background: accent.primary,
@@ -212,22 +214,22 @@ export const buildLightPalette = (accent: AccentTokens): ThemePalette => ({
             text: colors.white.main,
         },
         actionButton: {
-            background: accent.surface,
-            border: accent.soft,
+            background: colors.gray[100],
+            border: colors.gray[200],
             icon: accent.primary,
         },
         actionStrip: {
-            background: accent.soft,
-            icon: accent.darkInk,
+            background: colors.gray[200],
+            icon: colors.red[600],
         },
         datePill: {
-            background: accent.soft,
-            icon: accent.darkInk,
+            background: colors.gray[200],
+            icon: colors.gray[700],
         },
     },
     fieldLabel: {
-        icon: accent.darkInk,
-        iconBackground: accent.soft,
+        icon: accent.primary,
+        iconBackground: colors.gray[100],
     },
     overlay: {
         scrim: colors.overlay.scrim,
@@ -270,6 +272,7 @@ export const buildDarkPalette = (accent: AccentTokens): ThemePalette => ({
         danger: colors.red[600],
         text: {
             secondary: colors.gray[50],
+            danger: colors.white.main,
         },
     },
     surface: {

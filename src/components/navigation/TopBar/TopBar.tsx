@@ -52,7 +52,9 @@ export const buildTopPillPath = ({
 export const TopBar = ({
     title,
     leftMode = 'auto',
+    leftAction,
     options = [],
+    rightAction,
 }: TopBarProps) => {
     const nav = useNavigation();
     const router = useRouter();
@@ -113,6 +115,75 @@ export const TopBar = ({
     const titleMaxWidth = Math.max(0, centerW - Math.round(PILL_H * 3));
     const hasOptions = options.length > 0;
 
+    const leftButton = (() => {
+        if (leftAction) {
+            return (
+                <GuardedPressable
+                    onPress={leftAction.onPress}
+                    style={[st.action, st.leftAction]}
+                >
+                    <AppIcon
+                        id={leftAction.icon}
+                        size={22}
+                        color={leftAction.color ?? iconColor}
+                    />
+                </GuardedPressable>
+            );
+        }
+        if (showBack) {
+            return (
+                <GuardedPressable
+                    onPress={onBack}
+                    style={[st.action, st.leftAction]}
+                >
+                    <AppIcon id="back" size={22} color={iconColor} />
+                </GuardedPressable>
+            );
+        }
+        if (showHamburger) {
+            return (
+                <GuardedPressable
+                    onPress={onOpenDrawer}
+                    style={[st.action, st.leftAction]}
+                >
+                    <AppIcon id="menu" size={22} color={iconColor} />
+                </GuardedPressable>
+            );
+        }
+        return null;
+    })();
+
+    const rightButton = (() => {
+        if (rightAction) {
+            return (
+                <GuardedPressable
+                    disabled={rightAction.disabled}
+                    onPress={rightAction.onPress}
+                    style={[st.action, st.rightAction]}
+                >
+                    <AppIcon
+                        id={rightAction.icon}
+                        size={22}
+                        color={rightAction.color ?? iconColor}
+                    />
+                </GuardedPressable>
+            );
+        }
+        if (hasOptions) {
+            return (
+                <GuardedPressable
+                    ref={optionsAnchorRef}
+                    collapsable={false}
+                    onPress={openOptions}
+                    style={[st.action, st.rightAction]}
+                >
+                    <AppIcon id="options" size={22} color={iconColor} />
+                </GuardedPressable>
+            );
+        }
+        return null;
+    })();
+
     return (
         <View style={[st.root, { paddingTop: theme.insets.top }]}>
             <StatusBar barStyle={barStyle} />
@@ -148,32 +219,8 @@ export const TopBar = ({
                 </View>
                 <View style={st.sideSpacer} pointerEvents="none" />
 
-                {showBack ? (
-                    <GuardedPressable
-                        onPress={onBack}
-                        style={[st.action, st.leftAction]}
-                    >
-                        <AppIcon id="back" size={22} color={iconColor} />
-                    </GuardedPressable>
-                ) : showHamburger ? (
-                    <GuardedPressable
-                        onPress={onOpenDrawer}
-                        style={[st.action, st.leftAction]}
-                    >
-                        <AppIcon id="menu" size={22} color={iconColor} />
-                    </GuardedPressable>
-                ) : null}
-
-                {hasOptions ? (
-                    <GuardedPressable
-                        ref={optionsAnchorRef}
-                        collapsable={false}
-                        onPress={openOptions}
-                        style={[st.action, st.rightAction]}
-                    >
-                        <AppIcon id="options" size={22} color={iconColor} />
-                    </GuardedPressable>
-                ) : null}
+                {leftButton}
+                {rightButton}
             </View>
 
             <TopBarOptionsMenu

@@ -34,6 +34,14 @@ export interface MetaCardProps {
      */
     containerStyle?: StyleProp<ViewStyle>;
     /**
+     * Optional color for an outline drawn above card contents.
+     */
+    selectionOutlineColor?: string;
+    /**
+     * Draws the selection outline using the default or provided outline color.
+     */
+    showSelectionOutline?: boolean;
+    /**
      * The main content of the card
      */
     children?: ReactNode;

@@ -14,6 +14,7 @@ import {
 
 import { TopBar } from '@src/components/navigation/TopBar/TopBar';
 import type {
+    TopBarDirectAction,
     TopBarLeftMode,
     TopBarOption,
 } from '@src/components/navigation/TopBar/TopBar.interfaces';
@@ -30,6 +31,8 @@ type MainContainerProps = {
     noPadding?: boolean;
     topBarOptions?: readonly TopBarOption[];
     topBarLeftMode?: TopBarLeftMode;
+    topBarLeftAction?: TopBarDirectAction;
+    topBarRightAction?: TopBarDirectAction;
 };
 
 export interface MainContainerHandle {
@@ -52,6 +55,8 @@ export const MainContainer = forwardRef<
             noPadding = false,
             topBarOptions,
             topBarLeftMode,
+            topBarLeftAction,
+            topBarRightAction,
         },
         ref,
     ) => {
@@ -92,7 +97,9 @@ export const MainContainer = forwardRef<
                     <TopBar
                         title={title}
                         leftMode={topBarLeftMode}
+                        leftAction={topBarLeftAction}
                         options={topBarOptions}
+                        rightAction={topBarRightAction}
                     />
                 ) : null}
 

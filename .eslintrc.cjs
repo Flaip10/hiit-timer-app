@@ -26,6 +26,7 @@ module.exports = {
         '@typescript-eslint/no-unnecessary-type-assertion': 'error',
         '@typescript-eslint/switch-exhaustiveness-check': 'error',
         '@typescript-eslint/no-floating-promises': 'error',
+        '@typescript-eslint/no-deprecated': 'error',
         '@typescript-eslint/consistent-type-imports': [
             'error',
             { prefer: 'type-imports' },

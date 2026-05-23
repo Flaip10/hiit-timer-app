@@ -63,6 +63,9 @@ export const useWorkoutSummaryStyles = createStyles((theme: AppTheme) =>
             paddingVertical: 10,
             gap: 10,
         },
+        exportButton: {
+            opacity: 0.7,
+        },
         exportText: {
             color: theme.palette.text.muted,
             borderBottomColor: theme.palette.text.muted,
