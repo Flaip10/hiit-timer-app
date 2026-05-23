@@ -143,6 +143,8 @@ export const ptPT: I18nResource = {
             nameRequired: 'O nome do treino é obrigatório.',
             addBlock: 'Adiciona pelo menos um bloco.',
             exerciseNamesRequired: 'Exercícios devem ter nomes definidos.',
+            saveFailed:
+                'Não foi possível guardar o treino. Verifica os detalhes e tenta novamente.',
         },
         removeBlock: {
             title: 'Remover bloco',
@@ -317,6 +319,8 @@ export const ptPT: I18nResource = {
             duplicateName: 'Já existe um exercício com este nome.',
             gymOnlyRestricted:
                 'Este exercício está a ser usado num treino e não pode ser definido apenas para ginásio.',
+            saveFailed:
+                'Não foi possível guardar o exercício. Verifica os detalhes e tenta novamente.',
         },
     },
     workoutSummary: {

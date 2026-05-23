@@ -141,6 +141,7 @@ export const en: I18nResource = {
             nameRequired: 'Workout name is required.',
             addBlock: 'Add at least one block.',
             exerciseNamesRequired: 'Exercises must have defined names.',
+            saveFailed: 'Could not save workout. Check the details and try again.',
         },
         removeBlock: {
             title: 'Remove block',
@@ -312,6 +313,7 @@ export const en: I18nResource = {
             duplicateName: 'An exercise with this name already exists.',
             gymOnlyRestricted:
                 'This exercise is used in a workout and cannot be set to gym only.',
+            saveFailed: 'Could not save exercise. Check the details and try again.',
         },
     },
     workoutSummary: {

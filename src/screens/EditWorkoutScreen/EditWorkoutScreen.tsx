@@ -213,6 +213,17 @@ const EditWorkoutScreen = () => {
             } else {
                 router.replace(`/workouts/${workout.id}`);
             }
+        } catch {
+            const saveErrors: WorkoutEditError[] = [
+                {
+                    field: 'blocks',
+                    message: t('editWorkout.validation.saveFailed'),
+                    targetId: 'blocks',
+                },
+            ];
+            setErrors(saveErrors);
+            setDismissalKey((prev) => prev + 1);
+            scrollToFirstError(saveErrors);
         } finally {
             setSaving(false);
         }
