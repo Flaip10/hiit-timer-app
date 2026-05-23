@@ -11,9 +11,12 @@ import {
     useExerciseDefinitions,
     type ExerciseDefinitionListParams,
 } from '@src/data/exerciseDefinitions';
+import { useDebouncedValue } from '@src/hooks/useDebouncedValue';
 import { ExerciseDefinitionCard } from './components/ExerciseDefinitionCard/ExerciseDefinitionCard';
 import { ExerciseDefinitionFormModal } from './components/ExerciseDefinitionFormModal/ExerciseDefinitionFormModal';
 import { useExerciseDefinitionsScreenStyles } from './ExerciseDefinitionsScreen.styles';
+
+const SEARCH_DEBOUNCE_DELAY_MS = 150;
 
 const ExerciseDefinitionsScreen = () => {
     const { t } = useTranslation();
@@ -22,18 +25,22 @@ const ExerciseDefinitionsScreen = () => {
 
     const [search, setSearch] = useState('');
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const debouncedSearch = useDebouncedValue(
+        search.trim(),
+        SEARCH_DEBOUNCE_DELAY_MS,
+    );
 
     const listParams = useMemo<ExerciseDefinitionListParams>(
         () => ({
             filters: {
-                name: search,
+                name: debouncedSearch,
             },
             scope: 'active',
         }),
-        [search],
+        [debouncedSearch],
     );
     const { data: list = [] } = useExerciseDefinitions(listParams);
-    const hasSearch = search.trim().length > 0;
+    const hasSearch = debouncedSearch.length > 0;
 
     const openModal = () => {
         setIsModalVisible(true);
