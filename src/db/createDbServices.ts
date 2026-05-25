@@ -1,4 +1,12 @@
 import { createExerciseDefinitionRepository } from './repositories/exerciseDefinitions/exerciseDefinitionRepositoryFactory';
+import {
+    createGymExerciseRecordRepository,
+    type GymExerciseRecordRepository,
+} from './repositories/gyms/gymExerciseRecordRepositoryFactory';
+import {
+    createGymSessionRepository,
+    type GymSessionRepository,
+} from './repositories/gyms/gymSessionRepositoryFactory';
 import { systemClock, type Clock } from './repositories/repositoryClock';
 import {
     createWorkoutRepository,
@@ -14,6 +22,10 @@ import {
     createWorkoutSessionService,
     type WorkoutSessionService,
 } from './services/workoutSessions/workoutSessionServiceFactory';
+import {
+    createGymSessionService,
+    type GymSessionService,
+} from './services/gyms/gymSessionServiceFactory';
 import type { ExerciseDefinitionService } from './services/exerciseDefinitions/exerciseDefinitionServiceFactory';
 import type { WorkoutRepository } from './repositories/workouts/workoutRepositoryFactory';
 import type { WorkoutSessionRepository } from './repositories/workoutSessions/workoutSessionRepositoryFactory';
@@ -25,6 +37,9 @@ export interface CreateDbServicesArgs {
 
 export interface DbServices {
     exerciseDefinitionService: ExerciseDefinitionService;
+    gymExerciseRecordRepository: GymExerciseRecordRepository;
+    gymSessionRepository: GymSessionRepository;
+    gymSessionService: GymSessionService;
     workoutRepository: WorkoutRepository;
     workoutService: WorkoutService;
     workoutSessionRepository: WorkoutSessionRepository;
@@ -48,6 +63,12 @@ export const createDbServices = ({
     const workoutSessionRepository = createWorkoutSessionRepository({
         db,
     });
+    const gymSessionRepository = createGymSessionRepository({
+        db,
+    });
+    const gymExerciseRecordRepository = createGymExerciseRecordRepository({
+        db,
+    });
     const workoutService = createWorkoutService({
         clock,
         exerciseDefinitionService,
@@ -59,9 +80,18 @@ export const createDbServices = ({
         workoutRepository,
         workoutSessionRepository,
     });
+    const gymSessionService = createGymSessionService({
+        clock,
+        exerciseDefinitionService,
+        gymExerciseRecordRepository,
+        gymSessionRepository,
+    });
 
     return {
         exerciseDefinitionService,
+        gymExerciseRecordRepository,
+        gymSessionRepository,
+        gymSessionService,
         workoutRepository,
         workoutService,
         workoutSessionRepository,
