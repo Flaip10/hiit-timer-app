@@ -4,7 +4,10 @@ import type {
     Workout,
 } from '@src/core/entities/entities';
 import { normalizeExerciseDefinitionName } from '@src/core/exercises/normalizeExerciseDefinitionName';
-import { buildExerciseDefinitionError } from '../../repositories/exerciseDefinitions/exerciseDefinitionErrors';
+import {
+    createExerciseDefinitionError,
+    exerciseDefinitionErrors,
+} from '../../repositories/exerciseDefinitions/exerciseDefinitionErrors';
 import { normalizeExerciseName } from '@src/core/exercises/normalizeExerciseName';
 import {
     systemExerciseDefinitions,
@@ -125,16 +128,14 @@ export const createExerciseDefinitionService = ({
             }
 
             if (existing.source === 'system') {
-                throw buildExerciseDefinitionError(
-                    'DELETE_SYSTEM_FORBIDDEN',
-                    `Cannot delete system exercise definition ${id}`,
+                throw createExerciseDefinitionError(
+                    exerciseDefinitionErrors.deleteSystemForbidden,
                 );
             }
 
             if (exerciseDefinitionRepository.hasWorkoutExerciseReferences(id)) {
-                throw buildExerciseDefinitionError(
-                    'DELETE_REFERENCED',
-                    `Cannot delete referenced exercise definition ${id}`,
+                throw createExerciseDefinitionError(
+                    exerciseDefinitionErrors.deleteReferenced,
                 );
             }
 
@@ -198,9 +199,8 @@ export const createExerciseDefinitionService = ({
                     sourceId,
                 );
             if (hasWorkoutReferences && target.availability === 'gym') {
-                throw buildExerciseDefinitionError(
-                    'MERGE_GYM_ONLY_CONFLICT',
-                    `Cannot merge workout-referenced exercise definition ${sourceId} into gym-only definition ${targetId}`,
+                throw createExerciseDefinitionError(
+                    exerciseDefinitionErrors.mergeGymOnlyConflict,
                 );
             }
             //Todo: Same checking but reversed when we have gym exercises references
@@ -295,9 +295,8 @@ export const createExerciseDefinitionService = ({
                 existing.availability !== 'gym' &&
                 exerciseDefinitionRepository.hasWorkoutExerciseReferences(id)
             ) {
-                throw buildExerciseDefinitionError(
-                    'GYM_ONLY_RESTRICTED',
-                    `Cannot make workout-referenced exercise definition ${id} gym-only`,
+                throw createExerciseDefinitionError(
+                    exerciseDefinitionErrors.gymOnlyRestricted,
                 );
             }
             //Todo: Same checking but reversed when we have gym exercises references
