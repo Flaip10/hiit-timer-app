@@ -130,12 +130,14 @@ export const createExerciseDefinitionService = ({
             if (existing.source === 'system') {
                 throw createExerciseDefinitionError(
                     exerciseDefinitionErrors.deleteSystemForbidden,
+                    `Cannot delete system exercise definition ${id}`,
                 );
             }
 
             if (exerciseDefinitionRepository.hasWorkoutExerciseReferences(id)) {
                 throw createExerciseDefinitionError(
                     exerciseDefinitionErrors.deleteReferenced,
+                    `Cannot delete referenced exercise definition ${id}`,
                 );
             }
 
@@ -201,6 +203,7 @@ export const createExerciseDefinitionService = ({
             if (hasWorkoutReferences && target.availability === 'gym') {
                 throw createExerciseDefinitionError(
                     exerciseDefinitionErrors.mergeGymOnlyConflict,
+                    `Cannot merge workout-referenced exercise definition ${sourceId} into gym-only definition ${targetId}`,
                 );
             }
             //Todo: Same checking but reversed when we have gym exercises references
@@ -297,6 +300,7 @@ export const createExerciseDefinitionService = ({
             ) {
                 throw createExerciseDefinitionError(
                     exerciseDefinitionErrors.gymOnlyRestricted,
+                    `Cannot make workout-referenced exercise definition ${id} gym-only`,
                 );
             }
             //Todo: Same checking but reversed when we have gym exercises references
