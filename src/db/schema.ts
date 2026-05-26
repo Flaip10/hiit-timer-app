@@ -105,13 +105,19 @@ export const gymPlansTable = sqliteTable('gym_plans', {
     createdAtMs: integer('created_at_ms').notNull(),
     updatedAtMs: integer('updated_at_ms').notNull(),
     isFavorite: integer('is_favorite', { mode: 'boolean' }).notNull().default(false),
-    isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
-}, (table) => [
-    index('gym_plans_archived_updated_idx').on(
-        table.isArchived,
-        table.updatedAtMs,
+    status: text('status', {
+        enum: ['active', 'archived', 'draft'],
+    }).notNull().default('active'),
+    draftTargetGymPlanId: text('draft_target_gym_plan_id').references(
+        (): AnySQLiteColumn => gymPlansTable.id,
+        { onDelete: 'set null' },
     ),
+}, (table) => [
+    index('gym_plans_status_updated_idx').on(table.status, table.updatedAtMs),
     index('gym_plans_favorite_idx').on(table.isFavorite),
+    uniqueIndex('gym_plans_single_draft_idx')
+        .on(table.status)
+        .where(sql`${table.status} = 'draft'`),
 ]);
 
 export const gymPlanSectionsTable = sqliteTable('gym_plan_sections', {
