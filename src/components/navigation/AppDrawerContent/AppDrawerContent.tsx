@@ -25,6 +25,7 @@ const ICONS_BY_ROUTE: Record<
 > = {
     index: 'home-outline',
     'workouts/index': 'barbell-outline',
+    'gym/index': 'pulse-outline',
     'exercise-definitions/index': 'fitness-outline',
     'history/index': 'time-outline',
     'settings/index': 'settings-outline',
